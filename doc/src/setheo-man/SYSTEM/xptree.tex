@@ -1,0 +1,147 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{xptree}\label{sec:xptree}
+
+\Xp\ is an X--window based interactive  user  interface  for
+displaying  proof  trees  generated  by \SE\ resp.\ by the \SAM. The user
+can manipulate the outline of the tree  by  showing  interesting
+information and hiding information, which is useless to him.
+All ways of manipulation are mouse driven and so  \xp\  is easy  to
+use.   The  program is based on the {\em Athena Widgets programming
+library}, and can be operated with  an  arbitrary window  manager.
+Predicates and functions can be displayed in prefix, infix, or postfix
+notation in  order  to  enhance the  readability  of the proof tree.
+The representation and binding power of these operators can be defined
+by the user. The synopsis of \xp\ is the following:
+\begin{verbatim}
+xptree [-td number][-horiz][-vert][-ctab opfile] [file[.tree]]
+\end{verbatim}
+
+The parameters for \xp, even the filename, are optional. The name of
+the tree file, which is displayed, must have the extension {\bf
+.tree}. The extension can be omitted. If  the whole file  name  is
+omitted,  input  is  read from standard input. The other optional
+parameters are described below:
+\begin{description}
+      \item[--td number]
+           {Set the shown term depth. Terms, cascaded  deeper  then
+            the  specified  number of levels are replaced by '\dots'.
+            {\it number\/} must be greater than $0$. The original  term  can
+            be shown by pressing the middle mouse button (see also the
+            description of the mouse buttons).}
+      \item[--horiz]
+           {Display the tree horizontally. Can be changed interactively.}
+      \item[--vert]
+           {Display the tree vertically. Can be changed interactively.}
+      \item[--ctab opfile]
+           {This  option  loads {\it opfile\/}  which   contains
+            optional  definitions  of  infix,  prefix,  and postfix
+            operators and their representation.  The format of this
+            file is described in Section~\ref{sec:file-formats:opdefs}.}
+\end{description}
+
+Using the {\bf --ctab} option (see above for a decription of this
+option) a file containing {\it operator definitions\/} can be loaded.
+The format of the file, describing the type of the operators
+(infix,  prefix,  postfix),  their  binding  power and their
+print--names is as follows: Each line of  the  file  contains
+one definition. Blank lines or comment lines are not permitted. 
+A definition consists of four fields,  separated  by  a colon (':'):
+\begin{description}
+      \item[The parse--name]
+           {is the name of the predicate or function symbol  as  it
+            appears  in  the  tree file produced by the \SAM.  It
+            starts with a lower case letter and may  contain  lower
+            and  uppercase letters, digits, and the underscore '\_'.
+            Blanks and other special characters are not allowed.}
+      \item[The print--name]
+           {is the string which is displayed whenever a  term  with
+            the  given  operator is displayed. Print--names may
+            contain arbitrary characters (except the colon, which  has
+            to  be  preceeded  by  a back--slash).  In particular, a
+            print--name can contain blanks to enhance the  readability
+            of a term.}
+      \item[The binding power]
+           {is an integer, defining the binding power of the operator.}
+      \item[The type]
+           {is a character, indicating the type  of  the  operator:
+            'i'  or 'I' for infix, 'p' or 'P' for prefix and 'q' or
+            'Q' for postfix.}
+\end{description}
+
+Predefined operators are `$\sim$` and '$[$' as prefix operators with a
+binding power of 50. All entries in the given file are processed
+in reverse order.  Therefore, the definitions of '$\sim$' and '$[$'
+can be changed by the user.  The following example shows the
+format of the entries into the file:
+\begin{center}
+\begin{tabular}{ccccccc}
+{\tt equal} & {\tt :} & {\tt =}    & {\tt :} & {\tt 100} & {\tt :} & {\tt i} \\
+{\tt in}    & {\tt :} & {\tt in}   & {\tt }: & {\tt 100} & {\tt :} & {\tt i} \\
+{\tt ispre} & {\tt :} & {\tt $[$=} & {\tt }: & {\tt 100} & {\tt :} & {\tt i} \\
+{\tt pair}  & {\tt :} &            & {\tt :} &  {\tt 95} & {\tt :} & {\tt p} \\
+{\tt add}   & {\tt :} & {\tt +}    & {\tt :} & {\tt 150} & {\tt :} & {\tt i} \\
+{\tt mul}   & {\tt :} & {\tt *}    & {\tt :} & {\tt 200} & {\tt :} & {\tt i}
+\end{tabular}
+\end{center}
+
+When the tree is displayed, the window can be  distinguished
+into  three  areas:   the  menu bar, the panner and the tree
+itself. In each area the user can perform different actions:
+execute  commands  with  the  menu bar, move the tree in the
+window and change display of nodes.  The  second  action  is
+only available, if the tree is larger than the window. It is
+reached by moving the mouse in the  panner  area  while  the
+left button is pressed.
+
+By using the menu bar, the following commands  may  be executed:
+\begin{description}
+      \item[Quit]
+           {Leave \xp. Key shortcut: {\bf q}.}
+      \item[View/Layout Horizontal]
+           {Display the tree  with  the  root  to  the  left.   Key
+            shortcut: \Cc.}
+      \item[View/Layout Vertical]
+           {Display the  tree  with  the  root  at  the  top.   Key
+            shortcut: \Cv.}
+      \item[Tree/Select All]
+           {Show the additional information for every node.}
+      \item[Tree/Unselect All]
+           {Hide the additional information for every node.}
+      \item[Tree/Select Children]
+           {Show the additional information for  each  node,  which
+            has a currently selected parent.}
+      \item[Tree/Select Descendants]
+           {Show the additional information for  each  node,  which
+            has a currently selected ancestor.}
+      \item[Tree/Set Term Depth]
+           {Change the term depth dynamically (see also option {\bf --td}). 
+            This option is not supported by now.}
+      \item[About]
+           {Show the current version number.}
+\end{description}
+
+The style of the tree can be changed by clicking  the  mouse
+buttons  while  the  mouse pointer is on a node of the tree.
+The node must be highlighted, before any  action  is
+available. The actions are described below:
+\begin{description}
+      \item[Left Mouse Button]
+           {Toggles the display of additional information for the node.}
+      \item[Middle Mouse Button]
+           {Toggles the display of term: brief vs.\ full display.
+            The term depth option {\bf --td} must be set.}
+      \item[Right Mouse Button]
+           {Collapses the whole subtree of the node  and  the  node
+            itself  to  a  small  triangle.  So  the  size  of  the
+            displayed tree may be shrunk immensely.}
+\end{description}
+
+Any mouse button, if the node is a triangle, expands the hidden
+subtree. 
+

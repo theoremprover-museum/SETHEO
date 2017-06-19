@@ -1,0 +1,279 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The \SAM\ Logfile}\label{sec:logfile}
+
+While the \SAM\ tries to find a proof, statistical information
+is generated. This information is printed on the screen as well as into
+the \SAM\ logfile. The extension of the logfile is {\bf .log}. An
+example of a \SAM\ logfile is shown in Figure~\ref{fig:logfile}. 
+\input{FORMATS/WOS4.log}
+
+At top of the logfile the number of the \SAM's version is
+printed, e.g.\ 
+\begin{description}
+\item [\phantom{1234}] 
+      {\bf SAM V3.3 Copyright TU Munich (December 22, 1995)}
+\end{description}
+This is important because different \SAM\ versions may produce
+different statistics. 
+The next thing to be printed in the logfile are the options and the
+name of the problem file the \SAM\ is called with, e.g.\ 
+\begin{description}
+\item [\phantom{1234}] 
+      {\bf Options : --dr --cons --dynsgreord 2 WOS4}
+\end{description} 
+Each sort of turned on constraints is listed as well\footnote{This
+list refers only to the \SAM's parameters and not to which constraints
+are really effecting the proof. I.e.\ some of the used constraints
+might have no effect if the corresponding options have not been turned
+on in the preprocessing phase of \inw\ (see
+Remark~\ref{rem:constr-options} in Section~\ref{sec:sam}).}.  
+The beginning of the search to the proof is indicated by 
+\begin{description}
+\item [\phantom{1234}] 
+      {\bf Start proving \dots}
+\end{description} 
+If the \SAM\ is called with an iterative bound (e.g.\ {\bf --dr}), for
+each iteration step during computation the following information is
+printed. 
+\begin{enumerate}
+\item The value of the increased bound. Since the \SAM\ provides
+      different iterative bounds, a short string before the value
+      indicates which bound is increased.
+      \begin{description}
+      \item [--d:] Depth bound.
+      \item [--wd:] Weighted depth bound.
+      \item [--i:] Inference bound.
+      \item [--loci:] Local inference bound.
+      \end{description}
+\item The runtime (CPU--time) in seconds, introduced by the string
+      {\bf time}. 
+\item The total number of inferences, introduced by the string {\bf
+      inferences}. 
+\item The number of fails, introduced by the string {\bf fails}.
+\end{enumerate}
+
+When a proof is found,
+\begin{center} 
+{\bf ***** SUCCESS *****}
+\end{center}
+is printed into the logfile. Otherwise the reason for not finding a
+proof is given. 
+\begin{center} 
+{\bf ***** TOTAL FAILURE *****}
+\end{center}
+means that the given problem is satisfiable. This message also
+indicates that this failure does not depend on \SAM's invocation
+parameters. 
+\begin{center} 
+{\bf ***** BOUND FAILURE *****}
+\end{center}
+indicates that the failure was caused by the given bounds. With
+different bounds set a proof might be found.
+\begin{center} 
+{\bf ***** INTERRUPT FAILURE *****}
+\end{center}
+is printed, if the \SAM\ is running in the batch mode and the run is
+interrupted, e.g.\ by \Cc. Read Section~\ref{sec:sam} for an
+explanation of the {\bf --batch} option. 
+\begin{center} 
+{\bf ***** REAL TIME FAILURE *****}
+\end{center} 
+is printed, if the \SAM\ is running with limited real time and the
+given time--limit has been exhausted. Read Section~\ref{sec:sam} for an
+explanation of the {\bf --realtime} option.
+\begin{center} 
+{\bf ***** CPU TIME FAILURE *****}
+\end{center} 
+is printed, if the \SAM\ is running with limited CPU time and the
+given limit has been exhausted. Read Section~\ref{sec:sam} for an
+explanation of the {\bf --cputime} option.
+\begin{center} 
+{\bf ***** E R R O R *****}
+\end{center}
+is printed, if an internal \SAM\ error occured. This indicates
+inconsistent changes to the source code or an illegal use of
+built--ins. 
+
+When the run is over all non--zero statistical counters are written to
+the logfile. The statistical counters are the following. 
+\begin{description}
+
+\item[Number of inferences in proof:]
+     number of successful, not backtracked unifications
+     \begin{description}
+     \item [--E:] number of successful, not backtracked extension steps
+     \item [--R:] number of successful, not backtracked reduction steps
+     \item [--F:] number of successful, not backtracked factorization
+                  steps 
+     \item [--L:] number of successful, not backtracked unit--lemma
+                  uses (always zero in the current version) 
+     \end{description}
+     
+\item[Intermediate free variables:]
+     intermediate maximum number of simultaneously free variables
+     
+\item[Intermediate term complexity:]
+     intermediate maximum term complexity (only displayed, if the
+     termcomplexity bound is set) 
+     
+\item[Intermediate inferences:]
+     intermediate maximum number of inferences (i.e.\ successful, not
+     backtracked unifications) 
+     
+\item[Intermediate open subgoals:]
+     intermediate maximum number of simultaneously open subgoals
+     
+\item[Generated antilemmata:]
+     total number of generated antilemmata
+     
+\item[Elapsed Time:]
+     elapsed time since last interrupt (only displayed, if the
+     computation is interrupted, e.g. by \Cc)
+     
+\item[Number of unifications:]
+     total number if tried unifications (including unsuccessful and
+     backtracked unifications)
+     \begin{description}
+     \item [--E:] number of tried extension steps
+     \item [--R:] number of tried reduction steps
+     \item [--F:] number of tried factorization steps
+     \item [--L:] number of tried unit--lemma uses (always zero in the 
+                  current version) 
+     \end{description}
+     
+\item[Number of generated constraints:]
+     total number of constraints generated during computation (only
+     displayed, if constraints have been generated)
+     \begin{description}
+     \item [--anl:] number of antilemma constraints
+     \item [--reg:] number of regularity constraints
+     \item [--ts:] number of tautology or subsumption constraints 
+     \end{description}
+     
+\item[Number of fails:]
+     total number of fails (the following numbers are only displayed,
+     if they are greater than zero) 
+     \begin{description}
+     \item [--unification:] number of unification fails
+     \item [--depth bound:] number of depth bound fails
+     \item [--inference bound:] number of inference bound fails
+     \item [--variable bound:] number of variable bound fails
+     \item [--term complexity bound:] number of termcomplexity bound
+                                      fails 
+     \item [--open subgoals bound:] number of subgoal bound fails
+     \item [--local--inf bound:] number of local inference bound fails
+     \item [--constraints:]
+           total number of constraint fails
+          \begin{description}
+          \item [--anl:] number of antilemma constraint fails
+          \item [--reg:] number of regularity constraint fails
+          \item [--ts:] number of tautology or subsumption constraint
+                       fails 
+          \end{description}
+     \end{description}
+     
+\item[Number of folding operations:]
+     total number of folding operations
+     \begin{description}
+     \item [--one level:] number of folding operations one level up
+     \item [--root:] number of folding operations up to root, i.e.\
+                     number of possible lemmata 
+     \end{description}
+     
+\item[Instructions executed:]
+     number of executed \SAM\ instructions\footnote{Examples for \SAM\
+     instructions are {\bf calling a clause}, {\bf calling a subgoal},
+     {\bf backtracking}, {\bf finishing a subproof}.}
+     
+\item[Abstract machine time:]
+     pure proving time\footnote{These times are measured
+     with a granularity of $1/60$~seconds (depending on the UNIX
+     system).} 
+     of the \SAM\ program in seconds (i.e.\ runtime
+     without time for reading the options and the formula and without
+     time for displaying the statistics). 
+     
+\item[Overall time:]
+     total runtime\footnote{These times are measured
+     with a granularity of $1/60$~seconds (depending on the UNIX
+     system).}  
+     of the \SAM\ program in seconds (i.e.\ time for
+     reading the options and the formula, proving time, time for
+     displaying the statistics)
+     
+\item[Genlemma]
+     statistics concerning the generation of unit--lemma (only
+     displayed, if the concerning numbers are greater than zero). For
+     details see the {\bf genlemma} built--in predicate in
+     Section~\ref{subsec:built-in-genlemma}. 
+     \begin{description}
+     \item [--entered:] 
+           number of times, the built--in to generate unit--lemtata has
+           been entered
+     \item [--no-unitlemma:]
+           number of times, it had been tried to generate a non--unit
+           lemma 
+     \item [--GEN/w.match:] 
+           {\bf GEN } indicates, how many more general unit--lemmata 
+           could be found in the index. {\bf w.match} is the
+           number of times, a really more general lemma could
+           be found in the index. The ratio between {\bf GEN/w.match}
+           indicates, how good the filter provided with the path index 
+           really is. Note: Whenever a more general unit--lemma
+           already exists in the index, the new lemma is not entered.
+     \item [--INST/w.match:] 
+           {\bf INST } indicates, how many more instantiated
+           unit--lemmata could be found in the index. {\bf w.match} is
+           the number of times, a really more instantiated lemma could
+           be found in the index. The ratio between {\bf INST/w.match}
+           indicates, how good the filter provided with the path index
+           really is. Note: Whenever a more instantiated unit--lemma
+           is found, it will be removed from the index (i.e.\ it
+           cannot be used any more). The new lemma will be stored in the 
+           index. 
+     \item [--stored:] 
+           number of unit--lemmata actually stored in the index
+     \item [--Nr. in Index:] 
+           number of unit--lemmata which can be used by the prover
+     \end{description}
+
+\item[Uselemma]
+     statistics concerning the use of unit-lemmata (only displayed, if
+     the concerning numbers are greater than zero). For
+     details see the {\bf uselemma} built--in predicate in
+     Section~\ref{subsec:built-in-uselemma}.  
+     \begin{description}
+     \item [--entered:]
+           number of times the built--in to use unit--lemmata has been
+           called 
+     \item [--no:]
+           number of unsuccessful tries to use a lemma (In that case,
+           the index does not return any unifiable unit--lemma.)
+     \item [--Nr. pushed:]
+           number of times, unit--lemmata are activated to be used
+           (i.e.\ appended to the current choice point)
+     \end{description}
+
+\item[\#\#\# :]
+     memory statistics (only displayed, if the
+     \SAM\ is running in verbose mode\footnote{Read
+     Section~\ref{sec:sam} for an explanation of the {\bf --verbose}
+     option.}), including
+     \begin{description}
+     \item [Pagesize]
+     \item [Marksize]
+     \item [Memory demanded]
+     \item [Memory freed]
+     \item [Memory remaining]
+     \item [Pages allocated]
+     \end{description}
+     
+\end{description}
+
+

@@ -1,0 +1,175 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{Dynamic Reading and Executing Queries in SETHEO}
+\author{Johann Schumann}
+\date{16.9.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document describes the enhancements to SETHEO in order to allow for
+a compilation of a formula without a query and a dynamic reading and
+executing of a query.
+\end{abstract}
+
+\noindent{\bf Keywords:}  preprocessing, read, call
+
+\noindent{\bf Action: } {\tt EXTENSION}
+
+\section{Detailed informal Description}
+
+For a compilation of a formula without the query and the execution
+of a query dunring the run-time, extensions must be made in the compiler
+inwasm and the abstract machine.
+
+In the following, we describe a solution which uses a ``read'' predicate
+to read in the query during the run-time, and the built-in ``lop-call''
+which operates in a way similar to the PROLOG call.
+
+On a high level, we add additional predicates to the formula:
+
+\begin{verbatim}
+?- write("\n>>"), read(X), call(X).
+...
+// here the original formula starts
+//
+\end{verbatim}
+
+This simple solution, however, imposes the following restrictions:
+
+\begin{itemize}
+\item
+the query must consist of ONE literal only
+\item
+this kind of reading in and executing a query is restricted to Horn-formulae
+or to formulae which do not require an extension step into the
+negated query.
+\end{itemize}
+
+For the Horn case, the first restriction can be overcome easily with
+the help of the built-in predicates. In this case, a small parser
+must be written in LOP.
+For the Non-Horn case, however, the handling of multi-literal queries
+cannot be accomplished easily, since the query must be fanned
+into contrapositives. This would lead to non-unit clauses to
+be added dynamically to the original formula.
+
+The second restriction can be overcome by using the lemma storage.
+After reading in the single-literal query, we store its negation
+in the lemma store. From there, it can be automatically used for
+extension steps into the negated query.
+ 
+\subsection{Extensions in inwasm}
+
+When the inwasm is asked to compile a formula without a query, using
+the command line flag ``-noquery'', the following compilation steps
+must be performed differently:
+
+\begin{enumerate}
+\item
+No purity-reduction must be performed.
+\item
+The artificial query must be generated in a specific way,
+\item
+additional entry-points in the weak unification graph must be
+generated, and
+\item
+special SAM code must be generated for reading in the query, and for
+executing it.
+\end{enumerate}
+
+\subsection{Extensions in sam}
+
+read(X), call(X)
+
+
+\section{SAM-Based Specification}
+
+{\tt ein absolutes MUSS}
+
+\subsection{Data Structures}
+
+{\tt immer im Hinblick auf SETHEO-register + Datenstrukturen}
+
+\subsection{New Instructions}
+
+\subsubsection{The lop\_call-instruction}
+
+\subsection{Additional C-functions within SETHEO}
+
+
+\section{Required Changes}
+
+{\tt wichtig anzugeben: welche files werden geandert, was wird
+geandert, soweit nicht oben beschrieben.}
+
+\subsection{Required Changes in sam}
+
+Files to be modified:
+
+\subsection{Required Changes in inwasm}
+
+
+\section{Manual Pages}
+{\tt hier kommen die neuen Manual pages hin, sofern sich was geandert hat.}
+
+\section{Discussion of Problems}
+
+{\tt noch bestehende Probleme, moegliche Verbesserungen hier eintragen}
+
+\section{Testing}
+\subsection{Test-examples}
+{\tt schwierige/spezielle Beispiele fuer die Erweiterung/Aenderung hier angeben}
+
+\subsection{Results of Tests}
+{\tt Resultate: Ausgabe, Zeiten,... angeben}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

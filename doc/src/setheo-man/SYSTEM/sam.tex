@@ -1,0 +1,641 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%       (c) J. Schumann, O. Ibens
+%       TU Muenchen 1995
+%
+%       %W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{sam}\label{sec:sam}
+
+The \SAM\ (= {\bf S}ETHEO {\bf A}bstact {\bf M}achine) is a theorem
+prover for full first order logic. It is based  on  the  connection
+tableau calculus and runs on many different machines. The implementation
+of the \SAM\ is based on the {\em Warren Abstract Machine (WAM)}.
+
+The synopsis of the \SAM\ is the following.
+
+\begin{tabular}{lp{13.8cm}}
+{\tt sam}   &  {\tt  [-d~number] [-i~number] [-cdd~number]
+                     [-wd~number] [-wd1~number] [-wd2~number]
+                     [-wd3~number] [-wd4~number] [-wd4flag]
+                     [-tc~number] [-tcd~number] [-tcd1~number]
+                     [-tcd2~number]
+                     [-sig~number] [-sigd~number] [-sigd1~number]
+                     [-sigd2~number]
+                     [-fvars~number] [-sgs~number]
+                     [-dr~[number]] [-ir~[number]] [-cddr~[number]]
+                     [-wdr~[number]]
+                     [-[no]reg] [-[no]st]
+                     [-anl~[number]] [-noanl] [-hornanl~[number]]
+                     [-nhornanl~[number]]
+                     [-[no]cons]
+                     [-dynsgreord~[number]]
+                     [-singlealt~[number]] [-multialt~[number]]
+                     [-spreadreducts] [-forcegr] [-forcedl]
+                     [-forcefvar] [-forceps] [-[no]lookahead] [-eq]
+                     [-altswitch~number] [-shortcl~number]
+                     [-longcl~number]
+                     [-code~number] [-stack~number] [-cstack~number]
+                     [-heap~number] [-trail~number] [-symbtab~number]
+                     [-seed~number]
+                     [-v[erbose]~[number]]
+                     [-realtime~number] [-cputime~number]
+                     [-alltrees]
+                     %[-lemmatree]
+                     [-printlemmata]
+                     [-batch] [-debug]} \\
+{\tt file}  &
+\end{tabular}
+
+The filename must have the extension {\bf .hex}. During and after the
+computation statistical information is generated. This
+information is printed on the screen as well as in a file with the
+extension {\bf .log}.
+In case a proof is found, a proof tree is generated. The proof tree
+file has the extension {\bf .tree} and can be displayed using \xp. 
+The following parameters are optional.
+
+The connection tableau calculus is sound and complete for full
+first order logic, if the tableau branches may contain inifinitly
+many nodes. To avoid an infinite search space {\it fixed
+bounds\/} can be set: The depth of the tableau, the number of
+inferences, the inference resources for each branch, the number
+of free variables, the termcomplexity and the number of open
+subgoals can be restricted. But note that completeness is not ensured
+when using these restrictions\footnote{The \SAM\ distinguishes between
+{\it bound failure\/} and {\it total failure\/}: {\it Bound failure\/}
+means that this proof might have failed due to the chosen bounds and
+{\it total failure\/} means that this problem can never
+succeed.}. These are the bounds for a finite search space.  
+\begin{description}
+      \item[--d number]
+           {\em Depth bound\/}. The (A-literal) depth of the
+           tableaux to be  enumerated is less than {\it number\/} or
+           equal to {\it number\/}. 
+      \item[--i number]
+           {\em Inference bound\/}. The maximum number of leaf nodes
+           of the tableaux to  be enumerated  is  less  
+           than {\it number\/} or equal to {\it number\/}.
+      \item[--cdd number]
+           {\em Clause dependent depth bound\/}. Something in between the
+           {\bf --i} and the {\bf --d} option; in each inference with
+           a clause of length~$n$, the resources for each new leaf
+           node are determined by the resources of their parent
+           minus~$n$. The root node starts with {\it number\/}
+           inferences. 
+      \item[--wd number]
+           The {\em weighted depth bound\/} permits to combine the
+           above bounds. The bound is computed by using four
+           parameters~$\mbox{{\it wd\/}}_1, \dots, \mbox{{\it wd\/}}_4$
+           described below. The maximum value of  this bound  is
+           determined by {\it number\/}. 
+
+           When entering a clause, its weighted depth is modified
+           depending on the number of  subgoals  of  the  clause
+           (according to~$\mbox{{\it wd\/}}_4$); this value is divided 
+           into two parts, a {\em free\/} part and an {\em adaptive}
+           part (according to~$\mbox{{\it wd\/}}_1, \mbox{{\it
+           wd\/}}_2$); when a subgoal is selected, the adaptive
+           resource depends on the inferences  performed since the
+           clause has been entered (according to~$\mbox{{\it
+           wd\/}}_1$). In the special case, where all
+           parameters~$\mbox{{\it wd\/}}_1, \dots, \mbox{{\it
+           wd\/}}_4$ are zero, the bound behaves like the depth bound.  
+
+           The following options are for setting the
+           parameters~$\mbox{{\it wd\/}}_1, \dots, \mbox{{\it
+           wd\/}}_4$. Let~$n_{sgls}$ be the number of subgoals.  
+           \begin{description}
+           \item [--wd1 number]
+                 Set~$\mbox{{\it wd\/}}_1$ to {\it number\/}.
+                 The free depth is incremented by 
+                 \[  
+                     \frac{\mbox{{\it wd\/}}_1}
+                          {100}
+                 \] 
+           \item [--wd2 number]
+                 Set~$\mbox{{\it wd\/}}_2$ to {\it number\/}.
+                 The free depth is decremented by 
+                 \[  
+                     \frac{n_{sgls} * \mbox{{\it wd\/}}_2}
+                          {100}  
+                 \]
+           \item [--wd3 number]
+                 Set~$\mbox{{\it wd\/}}_3$ to {\it number\/}.
+                 Let~$\Delta i$ be the number of inferences performed
+                 since entering the clause. The adaptive depth is
+                 divided by
+                 \[  
+                     1 + \frac{\Delta i * \mbox{{\it wd\/}}_3}
+                              {100}
+                 \]
+           \item [--wd4 number]
+                 Set~$\mbox{{\it wd\/}}_4$ to {\it number\/}.
+                 If the {\bf --wd4flag} is not set, then the weighted
+                 depth is decremented  by 
+                 \[  
+                     1 + \frac{n_{sgls} * 
+                               \mbox{{\it wd\/}}_4}
+                              {100}  
+                 \]
+                 Otherwise the weighted depth is decremented by
+                 \[  
+                     \frac{100 + n_{sgls} * 
+                                 \mbox{{\it wd\/}}_4}
+                          {100 + \mbox{{\it wd\/}}_4}
+                 \]
+           \item [--wd4flag]
+                 This flag is important in combination with the
+                 {\bf --wd4} option (see above). 
+                 Per default, the {\bf --wd4flag} is set. 
+           \item [--eq]
+                 This flag controls the combination of the weighted
+                 depth bound with subgoal alternation and equality
+                 handling by STE-modification. 
+                 For details see the parameters concerning subgoal
+                 alternation. 
+                 Per default, {\bf --eq} is switched off. 
+           \end{description}
+      \item[--tc number]
+           {\em Termcomplexity bound\/}. The maximum value of the sum
+           of  term  complexities  of open  subgoals  is set to {\it
+           number\/}. The complexity of a term is the sum over the
+           complexities of the  contained subterms.  The  complexity
+           of a free variable is~$0$ and the complexity of a constant
+           or of a function symbol is~$1$.  Here the {\it
+           dag-complexity\/}  is computed: The complexity of
+           repeatedly occurring subterms is~$1$. 
+      \item[--tcd number]
+           {\em Depth-dependent termcomplexity bound\/}. 
+           The maximum value of the sum of term complexities of open
+           subgoals is set to a value depending on the permitted
+           tableau depth. 
+
+           The value of the depth-dependent termcomplexity bound~{\it
+           tcd\/} is computed according to parameters~$\mbox{{\it
+           tc\/}}_1, \mbox{{\it tc\/}}_2$.  Let~$d$ be the permitted
+           tableau depth. 
+           \[
+               \mbox{{\it tcd\/}} = 
+               \frac{\mbox{{\it tc\/}}_1}
+                    {100} +
+               \frac{d * \mbox{{\it tc\/}}_2}
+                    {100}
+           \] 
+           
+           Per default, $\mbox{{\it tc\/}}_1 = 1000$ and 
+           $\mbox{{\it tc\/}}_2 = 100$.
+           The following options are for setting the
+           parameters~$\mbox{{\it tc\/}}_1, \mbox{{\it tc\/}}_2$.   
+           \begin{description}
+           \item [--tcd1 number] 
+                 Set~$\mbox{{\it tc\/}}_1$ to {\it number\/}. 
+           \item [--tcd2 number] 
+                 Set~$\mbox{{\it tc\/}}_2$ to {\it number\/}. 
+           \end{description}
+      \item[--sig number]
+           {\em Signature bound\/}. The maximum number of different
+           signature symbols (i.e., predicate, function and constant
+           symbols) is set to {\it number\/}.
+      \item[--sigd number]
+           {\em Depth-dependent signature bound\/}. 
+           The maximum number of different signature symbols is set to
+           a value depending on the permitted tableau depth. 
+
+           The value of the depth-dependent signature bound~{\it
+           sigd\/} is computed according to parameters~$\mbox{{\it
+           sig\/}}_1, \mbox{{\it sig\/}}_2$.  Let~$d$ be the permitted
+           tableau depth. 
+           \[
+               \mbox{{\it sigd\/}} = 
+               \frac{\mbox{{\it sig\/}}_1}
+                    {100} +
+               \frac{d * \mbox{{\it sig\/}}_2}
+                    {100}
+           \] 
+
+           Per default, $\mbox{{\it sig\/}}_1 = 150$ and 
+           $\mbox{{\it sig\/}}_2 = 200$.
+           The following options are for setting the
+           parameters~$\mbox{{\it sig\/}}_1, \mbox{{\it sig\/}}_2$.   
+           \begin{description}
+           \item [--sigd1 number] 
+                 Set~$\mbox{{\it sig\/}}_1$ to {\it number\/}. 
+           \item [--sigd2 number] 
+                 Set~$\mbox{{\it sig\/}}_2$ to {\it number\/}. 
+           \end{description}
+      \item[--fvars number]
+           {\em Variable bound\/}. Only {\it number\/} free variables
+           are allowed at the same 
+           time. This option is not complete in combination with
+           antilemmata constraints (see below).
+      \item[--sgs number]
+           {\em Subgoals bound\/}. Only {\it number\/} open subgoals
+           are allowed at the same time. 
+\end{description}
+
+A finite search space without loosing completeness is provided by the
+following {\it iterative bounds\/}: 
+An initial bound is increased until either a proof has been found or
+the problem has failed totally. 
+Iterative search can be done on the (weighted) tableau depth, on the
+number of inferences or on the inference resources of each branch. 
+These are the options for iterative search.
+\begin{description}
+      \item[--dr \lb number\rb]
+           {Use iterative-deepening search with depth  bounds.  The
+            depth bound  increment  after  each  cycle  is given by
+            {\it number\/}. The default increment is~$1$ and the start
+            depth bound is~$2$.}
+      \item[--ir \lb number\rb]
+           {Use iterative-deepening search with  inference  bounds.
+            The  bound  increment  after  each  cycle  is  given by
+            {\it number\/}. The default increment is~$3$ and the start
+            inference bound is~$5$.}
+      \item[--cddr \lb number\rb]
+           {Use iterative-deepening search with clause dependent
+            depth bounds. The bound increment after each cycle is given 
+            by {\it number\/}. The default increment is~$1$ and the start
+            clause dependent depth bound is~$5$.}
+      \item[--wdr \lb number\rb]
+           Use  iterative-deepening  search  with  weighted  depth
+           bounds.  The depth bound  increment after each cycle is
+           given by {\it number\/}. The default increment is~$1$  and  the
+           start  depth  bound  is~$2$. See also the parameters for
+           weighted depth bound search above.
+\end{description}
+
+\begin{remark}
+From the recursive bounds {\bf --dr}, {\bf --ir},  {\bf --cddr}, {\bf --wdr}  
+only  one option  can  be  selected.  For the fixed bounds we can
+have as many as we want. Recursive and fixed bounds can be combined.
+\end{remark}
+
+Furthermore, the search space can be restricted by the use of
+{\it constraints\/}. The constraint choices are the following.
+\begin{description}
+      \item[--reg] 
+           {Use {\it regularity constraints\/} in order to  avoid  multiple
+            occurrences of the same literal in a tableau path.}
+      \item[--noreg] 
+           {Deactivate regularity constraints.}
+      \item[--st] 
+           {Activate {\it subsumption\/} and {\it tautology constraints\/}.}
+      \item[--nost] 
+           {Deactivate subsumption and tautology constraints.}
+      \item[--anl \lb number\rb] 
+           {Use {\it antilemma constraints\/} in order to  avoid  repetitive
+            solutions of the same subgoals. {\it number\/} characterizes
+            the minimum search that must have been explored to generate an
+            antilemma. The default is {\it number\/} = 25.}
+      \item[--noanl] 
+           {Deactivate generation of antilemma constraints.}
+      \item[--hornanl \lb number\rb] 
+           {Provides an optimized version of antilemmata which
+            generates antilemma constraints only for {\it relevant\/}
+            variables. This option is not complete.}
+            % in combination with
+            % regularity, subsumption or tautology constraints and not
+            % complete for {\it nonhorn clauses\/}.}  
+      \item[--nhornanl \lb number\rb] 
+           {Similar to {\bf --hornanl}. This option is complete, but
+            the pruning effect is less than by using {\bf --hornanl}.} 
+      \item[--cons] 
+           {Use antilemma, regularity, subsumption and tautology
+            constraints.} 
+      \item[--nocons] 
+           {Deactivates antilemma, regularity, subsumption and
+            tautology constraints.} 
+\end{description}
+
+\begin{remark}\label{rem:constr-options}
+\
+\begin{enumerate}
+      \item{If you did not select  the
+            corresponding  options  in the preprocessing phase of
+            \inw\ the options {\bf --reg}, {\bf --st} have no effect and
+            the {\bf --cons} option will only turn on antilemma
+            constraints. See also Section~\ref{sec:inwasm}.} 
+      \item{The {\bf --cons} and {\bf --no...} options can be combined
+            to switch on all constraints except for one. For example
+            {\bf --cons --noanl} will activate all constraints exept for
+            the antilemma constraints. But do not turn around the order
+            of these options! \linebreak
+            {\bf --noanl --cons} means: {\it First\/}
+            switch off the antilemma constraints (even if they are not
+            yet activated) and {\it then\/} switch on all constraints
+            (including the antilemma constraints).}
+\end{enumerate}
+\end{remark}
+
+In finding proofs it is useful first to call the subgoals which are
+difficult to prove and try the easy ones later. The reason is to
+detect as early as possible, if a clause will lead to a fail. That is
+why {\it subgoal reordering\/} is a helpful method. A 
+{\it static\/} subgoal reordering can already be done during the
+preprocessing phase of \inw\ (see option {\bf --sgreord} in
+Section~\ref{sec:inwasm}). But during computation subgoals get
+instantiated and the initial order might not be optimal any longer. So
+a {\it dynamical\/} subgoal reordering becomes useful.
+
+\begin{description}
+\item[--dynsgreord \lb number\rb]
+      If the clause is declarative, a subgoal is chosen with respect
+      to the strategy indicated by {\it number\/}. If the clause is
+      procedural, no dynamical subgoal reordering is performed,
+      i.e., the first open subgoal is taken (see also
+      Remark~\ref{rem:sgreord}).   
+      The default value for {\it number\/} is 1.
+      \begin{description}
+      \item[number = 1]
+           {The subgoal with the highest dag-complexity is chosen
+            (The dag-complexity of a subgoal is the sum of the
+            dag-complexities of its arguments.). If there is more
+            than one subgoal with highest dag-complexity, the first of
+            them is taken.}
+      \item[number = 2] 
+           {If there are ground subgoals, only ground subgoals are
+            considered in choosing. The subgoal with the highest
+            dag-complexity is chosen. If there is more than one
+            subgoal with highest dag-complexity, the one of them with
+            the least free variables is chosen.}
+      \item[number = 3] 
+           {The subgoal with the least free variables is chosen. If
+            there is more than one subgoal with least free variables,
+            the one of them with the highest dag-complexity is chosen.}
+      \item[number = 4]
+           {Like {\bf --dynsgreord 1}, but do not switch to a subgoal
+            with a different predicate symbol, according to the order
+            of subgoals computed statically.}
+      \item[number = 5]
+           {Like {\bf --dynsgreord 2}, but do not switch to a subgoal
+            with a different predicate symbol, according to the order
+            of subgoals computed statically.}
+      \item[number = 6]
+           {Like {\bf --dynsgreord 3}, but do not switch to a subgoal
+            with a different predicate symbol, according to the order
+            of subgoals computed statically.}
+      \end{description}
+\end{description}
+
+One common principle of standard backtracking search procedures is
+that the possible inference steps at a subgoal (the {\em choice
+point}) cannot be partially processed.
+More precisely, when backtracking to a choice point, another
+alternative in the {\em same\/} choice point must be tried. 
+This methodology has search-theoretic weaknesses, as demonstrated in
+\cite{IL96}.
+With {\em subgoal alternation\/} a subgoal can be delayed, even if its
+choice point is not completely processed, and another subgoal may be
+selected.
+For procedural clauses, subgoal alternation is suppressed.
+The following options can be used to control subgoal alternation.
+
+\begin{description}
+      \item [--singlealt \lb number\rb]
+            Invoke the {\em single-alternation\/} variant of subgoal
+            alternation, i.e., move away from a subgoal at most once,
+            namely after the reduction steps and the extension steps
+            with unit clauses have been tried.
+            The move is suppressed if the remaining depth resources
+            are less than {\it number\/} (default: {\it number = 0}).
+      \item [--multialt \lb number\rb]
+            Invoke the {\em multi-alternation\/} variant of subgoal
+            alternation, i.e., a subgoal may be left whenever all its
+            extension steps with clauses of a certain length have been
+            processed. 
+            Leaving a subgoal is suppressed if the remaining depth
+            resources are less than {\it number\/} (default: {\it
+            number = 0}). 
+      \item [--spreadreducts] 
+            Per default, when selection another subgoal, the one is
+            selected which allows an inference step with adding the
+            least subgoals to the tableau.
+            Obviously, the number of added subgoals is zero for
+            reduction steps and extension steps with unit clauses and
+            $n\/$ for extension steps using clauses with $n\/$
+            subgoals. 
+            If {\bf --spreadreducts} is switched on, not zero is
+            associated to reduction steps but the least $n\/$
+            available in the same choice point.
+            Per default, {\bf --spreadreducts} is switched off.
+      \item [--forcegr]
+            Suppress subgoal alternation if the current subgoal is
+            ground (default: switched off). 
+      \item [--forcedl]
+            Extend subgoal alternation from the use after backtracking
+            to the use after successfull unifications, i.e., the
+            length of the available alternatives is used as an
+            additional criterion for subgoal selection (default:
+            switched off). 
+      \item [--forcefvar]
+            Switch to a subgoal which has at least one variable in
+            common with the current subgoal (default: switched off). 
+      \item [--forceps]
+            Switch to a subgoal which has the same predicate symbol as
+            the current subgoal (default: switched off).
+\end{description}
+
+\begin{remark}\label{rem:sgreord}
+If you are running the \SAM\ on a file with the extension {\bf \_pp}
+(generated by inwasm with the {\bf --lop} option), dynamic subgoal
+selection and subgoal alternation have no effect. 
+This is because a file with the extension {\bf \_pp} contains only
+procedural clauses. 
+See also option {\bf --lop} in Section~\ref{sec:inwasm}.
+\end{remark}
+
+\begin{description}
+      \item [--altswitch number]
+            This option allows to switch dynamically between two
+            parameter selections for subgoal alternation. The possible
+            parameter selections are the following: 
+            \begin{description}
+              \item [{\rm 0.}] no subgoal alternation
+              \item [{\rm 1.}] {\bf --singledelay}
+              \item [{\rm 2.}] {\bf --singledelay 2}
+              \item [{\rm 3.}] {\bf --singledelay --forcedl}
+              \item [{\rm 4.}] {\bf --singledelay --spreadreducts}
+              \item [{\rm 5.}] {\bf --multidelay}
+              \item [{\rm 6.}] {\bf --multidelay 2}
+              \item [{\rm 7.}] {\bf --multidelay --forcedl}
+              \item [{\rm 8.}] {\bf --multidelay --spreadreducts}
+            \end{description}
+            The switch is performed according to the length of the
+            current clause: clauses of length $\leq$ {\it number\/}
+            are viewed as short clauses, clauses of length $>$ {\it
+            number\/} are viewed as long clauses. Per default, for
+            short clauses the parameter selection~2 and for long
+            clauses the parameter selection~7 are used.
+            In order to change the these default setting, use the
+            following commands:
+            \begin{description}
+              \item [--shortcl number]
+                    For short clauses the parameter selection
+                    indicated by {\it number} is used.
+              \item [--longcl number]
+                    For long clauses the parameter selection
+                    indicated by {\it number} is used.
+            \end{description}
+\end{description}
+
+\begin{remark}
+  Of course the {\bf --altswitch} option can be combined
+  with any of the above options for controlling subgoal
+  alternation, e.g., the {\bf --forcegr} option. But note
+  that in this case the additional control option refers to
+  both short clauses and long clauses.
+\end{remark}
+
+\begin{description}
+      \item [--\lb no\rb lookahead]
+            Subgoal alternation leads to processing several choice
+            points simultaneously.
+            This offers the possibility of computing the minimal
+            number of subgoals that still will be added to the
+            tableau and -- since at each subgoal at least one
+            inference step has to be aplied -- the minimal number if
+            inferences still needed for closing the tableau.
+            This {\em look-ahead information\/} is used for search
+            pruning when using the inference bound, the clause
+            dependent depth bound, or a weighted-depth bound.
+            Per default, {\bf --lookahead} is switched on.
+            Use {\bf --nolookahead} to suppress the use of look-ahead
+            information.  
+      \item [--eq]
+            For using look-ahead information in combination with the
+            weighted-depth bound two different strategies have been
+            developed. 
+            One of these is especially suitable when performing
+            equality handling via STE-modification, and the other when
+            performing axiomatic equality handling.
+            Use {\bf --eq} for equality handling via STE-modification.
+            Per default, {\bf --eq} is switched off. 
+\end{description}
+
+\begin{remark}
+  Subgoal alternation expects the alternatives in a choice point to be
+  ordered by static clause selection
+  So do not invoke subgoal alternation after having compiled an input
+  file with \inw\ {\bf --noclreord}.
+  This would lead to undesirable swichting orders and, in combination
+  with the {\bf --lookahead} option, to delaying proofs to higher
+  iterative deepening levels.
+\end{remark}
+
+The \SAM\ might stop with an {\it overflow error\/}. This means
+that the default sizes of the \SAM's memory areas have been too
+small. You can enlarge the allocated memory with the following
+options. 
+
+\begin{description}
+      \item[--code number] 
+           {Set the maximal size of the {\it code area\/}\footnote{The
+            size of the code area is different to the size of the
+            actual formula.} (default = 100 KBytes). The code area is
+            the place to store the compiled 
+            input formula, i.e., the compiler output as generated by
+            \wasm.}
+      \item[--stack number] 
+           {Set the maximal  size  of  the  {\it stack\/}  (default = 100
+            KBytes). The stack is the main working space of the
+            \SAM. For example, choicepoints with open
+            alternatives are stored on the stack.}
+      \item[--cstack number] 
+           {Set the maximal size of the {\it constraint stack\/} 
+            (default = 100 KBytes). Constraints are not stored on the
+            stack. They have their own memory area, the constraint
+            stack.} 
+      \item[--heap number] 
+           {Set the maximal size of the {\it heap\/} (default = 300
+            KBytes). Things in the code area can not be changed during
+            computation. So non-ground terms have to be copied on the
+            heap before they can be instantiated.}
+      \item[--trail number] 
+           {Set the maximal size of the {\it trail\/} (default = 200
+            KBytes). On the trail all changes are written that must be
+            undone in case of backtracking.} 
+      \item[--symbtab number] 
+           {Set the maximal size of the {\it symbol table\/} (default = 1000
+            entries). The symbol table contains all pedicate, function
+            and constant symbols. Increasing the size of the
+            symbol table means increasing the number of allowed
+            symbols.} 
+\end{description}
+
+\begin{remark}
+The size of the code area and the size of the symbol table are set
+automatically to values appropriate for the given formula. Therefore,
+these options should be given in specific (e.g.\ debugging) situations
+only. 
+\end{remark}
+
+These are miscellaneous options.
+\begin{description}
+      \item[--seed number] 
+           {The  random  number  generator  is   initialized   with
+            {\it number\/}.  The random number generator is used, if  we
+            have  set  the compiler option \inw\ {\it --randreord\/} to
+            select the clauses at each orbranch in an arbirtrary
+            permutation.} 
+      \item[--v\lb erbose\rb \lb number\rb] 
+           {Turn  on  verbose  mode  (for  debugging).    Different
+            options for display are bitwise OR-ed.}
+      \item[--realtime number] 
+           {This option limits the run of the \SAM\ abstract machine to
+                at most {\rm number\/} seconds (wall clock). If after that
+                time no proof has been found, the \SAM\ is aborted with
+                {\tt REALTIME FAILURE}. Please note that the accuracy of the
+                alarm clock is 1 second.}
+      \item[--cputime number] 
+           {If this option is used, the \SAM\ is aborted (with
+                {\tt CPUTIME FAILURE}) after the \SAM\ has consumed
+                {\em number\/} seconds CPU (user-) time. Due to
+                the timer's accuracy of 1 second, the absolute run-time
+                may differ up to 1 second from {\em number}.}
+      \item[--alltrees]
+           Per default, only the first generated proof-tree is written
+           into the {\bf .tree} file. This option causes {\it all\/}
+           generated proof-trees to be written into the {\bf .tree}
+           file. 
+%      \item[--lemmatree] 
+%           {This option causes proof-trees for all generated unit-lemmata
+%                to be added into the file {\bf file.tree}. This
+%                option is experimentally for the current version.}
+      \item[--printlemmata]
+           If the {\bf --printlemmata} option is set, all generated
+           unit lemmata are put out. The output is either written on the
+           screen or into an output file which has to be specified by
+           using the built-in \$tell/1 (see Section~\ref{sec:tell}).
+      \item[--batch] 
+           {This option disables the interactive monitor mode after
+                \Cc\ is pressed. This option should be used, if
+                SETHEO is used within a script or a system. The \SAM\ is
+                aborted with the message {\tt INTERRUPT FAILURE}.}
+      \item[--debug number] 
+           This option can be used to obtain debug information. {\it
+           number\/} is used to control the generation of debug
+           information. The default value for {\it number\/} is zero
+           which means that no debug information is given.
+\end{description}
+
+During the proof, the \SAM\ can be interrupted by pressing \Cc. Then
+after entering {\bf help} or \qm\ the following commands can be
+entered. 
+\begin{description}
+\item[stat]{Display statistics.}
+\item[r\lb eg\rb]{Display registers.}
+\item[stack]{Display stack.}
+\item[trail]{Display trail.}
+\item[heap]{Display heap.}
+\item[tree]{Display proof-tree.}
+\item[links]{Display links.}
+\item[choice]{Display current choices.}
+\item[todo]{Display what is to be done.}
+\item[cont]{Continue.}
+\item[re]{Reproof.}
+\item[help]{Help.}
+\item[?]{Help.}
+\item[!]{Shell escape.}
+\item[quit]{Quit SETHEO.}
+\end{description}

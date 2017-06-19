@@ -1,0 +1,44 @@
+\begin{figure}[htb]
+
+\begin{verbatim}
+SAM V3.3 Copyright TU Munich (December 22, 1995)
+
+Options : -dr -cons -dynsgreord 2 WOS4 
+
+using antilemma-constraints
+using regularity-constraints
+using tautology-constraints
+using subsumption-constraints
+
+Start proving...
+
+-d:    2  time     < 0.01 sec  inferences =        5  fails =       29
+-d:    3  time =     0.05 sec  inferences =      266  fails =     1176
+-d:    4  time =     0.03 sec  inferences =      105  fails =      197
+
+                    ******** SUCCESS ************
+
+Number of inferences in proof      :       13
+        - E/R/F/L                  :        9/       4/       0/       0
+Intermediate free variables        :        3
+Intermediate inferences            :       13
+Intermediate open subgoals         :        5
+Generated antilemmata              :        2
+Number of unifications             :      376
+    - E/R/F/L                      :      330/      39/       7/       0
+Number of generated constraints    :       44
+    - anl/reg/ts                   :        0/       6/      38
+Number of fails                    :     1402
+    - unification                  :      197
+    - depth bound                  :     1165
+    - constraints                  :       40
+        - anl/reg/ts               :        2/       6/      32
+Number of folding operations       :       12
+    - one level                    :        5
+    - root                         :        8
+Instructions executed              :     2992
+Abstract machine time (seconds)    :     0.08
+Overall time          (seconds)    :     0.43
+\end{verbatim}
+\caption{A \SAM\ logfile.}\label{fig:logfile}
+\end{figure}

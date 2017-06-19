@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$isvar/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$isvar(T)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}]
+	term
+	\end{description}
+\item[Low Level Name:]
+	{\tt is\_var }
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in predicate succeeds, if {\tt T} is
+a variable or bound to a variable.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Note.}
+Global variables are initially bound to ordinary variables.
+Therefore, this test is also suited for global variables.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- $isvar(X),...
+\end{verbatim}
+Using {\tt \$isvar} allows to enter that clause only, if {\tt X} is
+instantiated to a variable, e.g., if called from the (sub-) goal
+{\tt <- p(Y).}
+
+

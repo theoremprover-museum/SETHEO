@@ -1,0 +1,60 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{List of Built-Ins}\label{sec:builtins}
+
+The SETHEO system provides a number of built-in predicates
+for programming and control purposes.
+Most of them are used in a similar way to PROLOG, but several
+differences exist.
+
+The following list describes all built-in predicates available
+with SETHEO Version V3.3.
+This list is likely to be extended in future versions of SETHEO.
+Therefore, changes are marked clearly.
+Furthermore, built-ins can be implemented by the user, using
+SETHEO's C-interface as described in Section~\ref{sec:C-interface}.
+However, no support is provided in this case.
+
+Syntactically, a built-in predicate is an {\tt ATOM} 
+(in the LOP-file), corresponding to the syntax definition in
+Section~\ref{sec:lop-syntax}.
+Whereas most built-in predicates are in prefix notation
+(of the form $\$p$ or $\$p(t_1,\ldots,t_n)$), some (mostly for
+arithmetic) are available in infix notation.
+In contrast to PROLOG, the user cannot define if a predicate can
+appear in prefix, infix or postfix notation.
+
+%For the following description of the built-in predicates, we give
+%a list of possible data-types for the parameters. Unless otherwise
+%specified, all parameters are passed using (sound) unification.
+%
+%\begin{description}
+%\item[V] at the parameter position, an unbound variable (logical or
+%	%global) must be present. This variable must not be bound to any term
+%	at the time when the built-in predicate is invoked. 
+%\item[\$V] the name of a global variable is required at this
+%	parameter position.
+%\item[N] a numeric value is required at this parameter position.
+%\item[C] a symbolic constant (not a number) must be present at the
+%	parameter position.
+%\item[NUMEXPR] a numerical expression is required which must evaluate to a
+%	number during run-time (i.e., its variables (if any) must be
+%	bound to numbers).
+%\item[L] a list, or an empty list, denoted by {\tt []} is
+%	required.
+%\item[T] an arbitrary term can be used at this parameter position.
+%\end{description}
+%
+%In all cases, variables may be present instead of the required type of
+%the parameter, as long as they are getting bound to the appropriate
+%type at the time when the predicate is being called.
+%A number may be appended to all type specifiers in order allow for
+%references to a specific parameter (e.g., {\tt genlemma(N1,N2)}).
+
+{\tt low-level name}
+

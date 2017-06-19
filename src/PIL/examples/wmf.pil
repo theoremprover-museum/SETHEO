@@ -1,0 +1,27 @@
+// wide-mouthed-frog protocol
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+//
+Objects:
+principal A,B,S;
+sharedkey K_a_b, K_a_s, K_b_s;
+variable sharedkey K;
+statement T_a, T_s;
+//
+Assumptions:
+(A,S) believes sharedkey K_a_s;
+(B,S) believes sharedkey K_b_s;
+A believes sharedkey K_a_b;
+B believes A controls sharedkey (A,B,K);
+B believes S controls A believes sharedkey (A,B,K);
+S believes fresh T_a;
+B believes fresh T_s;
+//
+Idealized Protocol:
+message 1: A -> S      {T_a, sharedkey K_a_b}(K_a_s);
+message 2:      S -> B {T_s, A believes sharedkey K_a_b}(K_b_s);
+//
+Conjectures:
+after message 2: B believes sharedkey K_a_b;
+		 B believes A believes sharedkey K_a_b;
+

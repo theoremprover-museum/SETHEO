@@ -1,0 +1,72 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$get{\em bound\/}/1}
+
+This section describes a number of built-ins which allow to access the
+current (or maximal) values of the search bounds.
+\begin{description}
+\item[Synopsis:]
+	{\tt \$get{\em bound}(N)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}] number or variable
+	\end{description}
+\item[Low Level Name:]
+	{\tt getdepth, getinf, getlocinf, get\_maxinf, get\_maxfvars,
+             get\_maxtc, get\_maxsgs} 
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+A built-in of this group obtains the current or maximal value
+of a search-bound and
+unifies this value with the parameter {\tt N}.
+\begin{description}
+\item[{\tt \$getdepth(N)}]
+            gets the maximum tableau depth
+            (allowed for a final tableau) minus current depth.
+\item[{\tt \$getinf(N)}]
+            gets the current number
+            of inferences (i.e.\ the number of inferences needed
+            to derive the current tableau).
+\item[{\tt \$getlocinf(N)}]
+            gets the current value 
+            of the local inference bound.
+\item[{\tt \$getmaxinf(N)}]
+            obtains the maximum number
+            of inferences (allowed for a final tableau).
+            This value is set at the beginning of a search level (when
+            iterative deepening is used), and then kept constant.
+\item[{\tt \$getmaxfvars(N)}]
+            gets the maximum number
+            of free variables (allowed for a final tableau).
+\item[{\tt \$getmaxtc(N)}]
+            gets the maximum termcomplexity
+            (allowed for a final tableau).
+\item[{\tt \$getmaxsgs(N)}]
+            gets the maximum number
+            of open subgoals (allowed for a final tableau).
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) :- $getdepth(D), D > 5, q(X).
+\end{verbatim}
+
+This clause can be used only, if the remaining allowable depth
+is greater than $5$.
+
+

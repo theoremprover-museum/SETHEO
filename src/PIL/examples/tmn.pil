@@ -1,0 +1,37 @@
+// TMN protocol
+// from Mitchell etal paper
+//	1.0.0		7.12.97
+// 
+Objects:
+principal A,B,S;
+publickey K_s;
+//statement N_a;
+statement N_b;
+//variable sharedkey K;
+sharedkey K_a_b;
+//
+Assumptions:
+//(A,B) believes sharedkey N_a;
+//A believes B controls sharedkey(A,B,K);
+//B believes sharedkey Kp_a_b;
+
+//A believes fresh K_a_b;
+B believes fresh N_b;
+
+//B believes fresh (N_b;Np_b);
+//
+Idealized Protocol:
+message 1: A -> S { sharedkey K_a_b }(K_s);
+message 3: B -> S {N_b}(K_s);
+
+message 4: A <- S {N_b}(K_a_b);
+
+//
+Conjectures:
+after message 4: 
+A believes sharedkey K_a_b;  // = N_b
+
+//		 B believes A said N_a;
+		 
+//A believes B said |sharedkey Kp_a_b,Np_b|;
+		 

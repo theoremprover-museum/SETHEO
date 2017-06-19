@@ -1,0 +1,373 @@
+/* **********************************************************
+**    NAME:             autolog.lop
+**    SCCS:             %W% %G%
+**    DESCRIPTION:
+**    AUTHOR:  		J. Schumann
+**			from [KW94AUTLOG]
+**
+**    DATE: 		21.4.98
+**			27.4.98
+**    STATUS:
+**    NOTE:        
+**	                - all banrules from [BAN90]
+**
+**    CHANGES:
+**		
+*********************************************************** */
+%BAN-RULES
+/* dummy-rule to initialize and/2 */
+dummy(and(X,Y))<-.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% seeing (components)
+% S1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename sees_components_1(S1)
+
+holds(sees(P,X)) <- 
+	holds(sees(P,Y)),
+	oneof(X,Y).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% believes-sees
+% BS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename believes_sees(BS)
+
+#if(sees_cnt)
+holds(sees(P,X)) <-
+	holds(bel(P,X)).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% nonce-verification 
+% NV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename nonce_verification(NV)
+
+#if ((fresh_cnt && said_cnt )|| said_recently_cnt)
+holds(bel(P,said_recently(Q,X))) <-
+	holds(bel(P,fresh(X))),
+	holds(bel(P,said(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% jurisdiction
+% J
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename jurisdiction(J)
+
+#if (controls_cnt && said_recently_cnt)
+holds(bel(P,X)) <-
+	holds(bel(P,controls(Q,X))),
+	holds(bel(P,said_recently(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% freshness
+% F1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename freshness(F1)
+
+#if(fresh_cnt)
+holds(bel(P,fresh(X))) <-
+	holds(bel(P,fresh(Y))),
+	oneof(Y,X).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Symmetric Enciphering
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% seeing
+% S2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename sees_symmetric(S2)
+
+#if (sk_cnt && encr_cnt)
+holds(sees(P,X)) <-
+	holds(sees(P,sk(Q,P,K))),
+	holds(sees(P,encr(X,K))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Authentication
+% A1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename authentication(A1)
+
+#if(encr_cnt && sk_cnt && recog_cnt)
+holds(bel(P,said(Q,X))) <-
+	holds(sees(P,encr(X,K))),
+	holds(bel(P,sk(Q,P,K))),
+	holds(bel(P,recog(X))).
+
+holds(bel(P,said(Q,K))) <-
+	holds(sees(P,encr(X,K))),
+	holds(bel(P,sk(Q,P,K))),
+	holds(bel(P,recog(X))).
+
+holds(bel(P,said(Q,encr(X,K)))) <-
+	holds(sees(P,encr(X,K))),
+	holds(bel(P,sk(Q,P,K))),
+	holds(bel(P,recog(X))).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Key
+% K1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename key(K1)
+
+#if (encr_cnt && sk_cnt && said_recently_cnt)
+holds(bel(P,said_recently(Q,encry(X,K)))) <-
+	holds(sees(P,encr(X,K))),
+	holds(bel(P,sk(Q,P,K))),
+	holds(bel(P,said_recently(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% freshness
+% F2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename freshness_2(F2)
+
+#if(fresh_cnt && encr_cnt)
+holds(bel(P,fresh(encr(X,K)))) <-
+	holds(bel(P,fresh(X))),
+	holds(sees(P,sk(Q,P,X))).
+
+holds(bel(P,fresh(encr(X,K)))) <-
+	holds(bel(P,fresh(sk(Q,P,K)))),
+	holds(sees(P,sk(Q,P,X))).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% recognizing
+% R2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename recognizing(R2)
+
+#if(recog_cnt && sk_cnt)
+
+holds(bel(P,recog(encr(X,K)))) <-
+	holds(bel(P,recog(X))),
+	holds(sees(P,sk(Q,P,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% contents
+% C1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename contents_1(C1)
+
+#if (encr_cnt && sk_cnt && said_recently_cnt)
+holds(bel(P,said_recently(Q,X))) <-
+	holds(bel(P,said_recently(Q,encr(X,K)))),
+	holds(bel(P,sk(Q,P,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% symmetry of sk(X,Y,K) and ss
+% not explicitly mentioned
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename symmetry
+
+#if (sk_cnt)
+holds(bel(A,sk(Q,P,K))) <-
+	holds(bel(A,sk(P,Q,K))).
+#endif
+
+
+#if(ss_cnt)
+holds(bel(A,ss(Q,P,K))) <-
+	holds(bel(A,ss(P,Q,K))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% List rules 
+% L1,L2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename list_1(L1)
+
+#if (ILF_PROOF)
+
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+holds(bel(P,said_recently(Q,S))) :- 
+	subset(S,X), holds(bel(P,said_recently(Q,X))).
+
+%% not in [KW94AUTLOG], but resonable
+holds(bel(P,S)) :- 
+	subset(S,X), holds(bel(P,X)).
+
+%% combination mit \not ILF_PROOF
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+#else
+
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X),
+ 	$tdepth3(X,and,X1),
+ 	X1< TDEPTH,
+ 	holds(bel(P,said(Q,X))).
+
+holds(bel(P,said_recently(Q,S))) :- 
+	subset(S,X),
+	$tdepth3(X,and,X1),
+	X1< TDEPTH,
+	holds(bel(P,said_recently(Q,X))).
+
+holds(bel(P,S)) :- 
+	subset(S,X),
+	$tdepth3(X,and,X1),
+	X1< TDEPTH,
+	holds(bel(P,X)).
+
+
+%%% ???? und combination mit ILF_PROOF
+holds(bel(P,and(X,and(Y,nil)))) <- 
+	holds(bel(P,X)),
+        holds(bel(P,Y)).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% recognizing
+% R1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename recognizing(R1)
+
+#if(recog_cnt)
+holds(bel(P,recog(X))) <-
+	holds(bel(P,recog(Y))),
+	oneof(Y,X).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% shared secrets
+% seeing
+% S3
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename sees(S3)
+
+#if (sees_cnt && comb_cnt)
+
+holds(sees(P,X)) <-
+	holds(sees(P,comb(X,S))).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Authentication
+% A3
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename authentication(A3)
+
+#if(comb_cnt && ss_cnt && sees_cnt && said_cnt)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,ss(P,Q,S))),
+	holds(sees(P,comb(X,S))).
+
+holds(bel(P,said(Q,S))) <-
+	holds(bel(P,ss(P,Q,S))),
+	holds(sees(P,comb(X,S))).
+
+holds(bel(P,said(Q,comb(X,S)))) <-
+	holds(bel(P,ss(P,Q,S))),
+	holds(sees(P,comb(X,S))).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Key
+% K3
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename key(K3)
+
+#if (comb_cnt && ss_cnt && said_recently_cnt)
+holds(bel(P,said_recently(Q,comb(X,S)))) <-
+	holds(sees(P,comb(X,S))),
+	holds(bel(P,ss(P,Q,K))),
+	holds(bel(P,said_recently(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% freshness
+% F4
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename freshness(F4)
+
+#if(fresh_cnt && ss_cnt)
+holds(bel(P,fresh(comb(X,S)))) <-
+	holds(bel(P,fresh(X))),
+	holds(sees(P,ss(P,Q,X))).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% recognizing
+% R4
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename recognizing(R4)
+
+#if(recog_cnt)
+
+holds(bel(P,recog(comb(X,S)))) <-
+	holds(bel(P,recog(X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% contents
+% C3
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename contents(C3)
+
+#if (comb_cnt && ss_cnt && said_recently_cnt)
+holds(bel(P,said_recently(Q,X))) <-
+	holds(bel(P,said_recently(Q,comb(X,S)))),
+	holds(bel(P,ss(P,Q,S))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% testing and retrieving subsets
+% subset(A,B)    A \subset B
+% NOTE:
+%	currently, nil can be returned
+%	as a subset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename low_level_subset
+low_level_subset(nil,nil)<-.
+low_level_subset(T,and(F,R)) <- low_level_subset(T,R).
+low_level_subset(and(F,T),and(F,R)) <-low_level_subset(T,R).
+
+subset(X,Y) <- low_level_singleton(X,Y).
+
+#if (ILF_PROOF)
+subset(X,Y) <- low_level_subset(X,Y).
+#else
+subset(X,Y) <- low_level_subset(X,Y) : [X] =/= [and(#X,nil)].
+#endif
+
+#clausename low_level_singleton
+low_level_singleton(X,and(X,R))<-.
+low_level_singleton(X,and(F,R)) <- low_level_singleton(X,R).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% oneof
+% selects one element out of
+% a set
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename oneof
+
+% (13)
+oneof(X,and(X,Y))<-.
+% (14)
+oneof(X,and(Y,Z)) <- oneof(X,Z).
+
+

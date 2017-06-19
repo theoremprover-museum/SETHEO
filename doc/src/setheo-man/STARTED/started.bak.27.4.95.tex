@@ -1,0 +1,352 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\bild[5]{{\tt #1 #2 #3 #4 }\label{#5}}
+
+\subsection{Introduction} 
+XTHEO is a graphic user interface for the SETHEO theorem prover.
+This document introduces you to the user--interface by giving a 
+guided tour through all stages of automatically proving an actual theorem.
+To get an impression of the interface have a glimpse at figure~\ref{fig:whole-thing}.
+%\begin{figure}[htbp]
+%\begin{picture}(100,170)
+%\put(0,0){\framebox(180,170)}
+%\end{picture}
+%\caption{Full fledged XTHEO}\label{fig:whole-thing}
+%\end{figure}
+
+\bild{xtheo01.ps}{12cm}{17cm}{Full fledged XTHEO}{fig:whole-thing}
+
+\subsection{The Example--Theorem} 
+The theorem we are about to prove is a classic example~\footnote{Chang and Lee, 
+Symbolic Logic and Mechanical Theorem Proving, Academic Press, Orlando, 1973.} from ATP.
+It alleges that from the axioms of group theory it follows that any
+left--identity element is also a right--identity element. 
+To recollect the fundamentals of group theory, cast a look at the definition coming up.
+\\ \\
+{\bf Definition}
+\begin{quote}
+A {\it group\/} consists of 
+\begin{quote}
+a set $\cal G$ 
+and 
+a function $* : S \times S \rightarrow S; (s1,s2) \mapsto s1 * s2$. 
+\end{quote}
+Additionally, two axioms must hold.
+\begin{enumerate}
+\item There exists an element $e$ in $\cal G$ such that: \\
+\begin{itemize}
+\item[a.]$e * x = x$ for any element $x$ in $\cal G$. 
+(We call $e$ a left--identity element.) 
+\item[b.] For any element $x$ in $\cal G$ there exists an element $x'$ in $\cal G$ such that 
+$x * x' = e.$ \\ 
+\end{itemize}
+\item For all $x, y, z$ from $\cal G$ it holds that $(x * y) * z = x * (y * z)$.
+\end{enumerate}
+\end{quote}
+
+An example of a group is $(Q\setminus \{0\},*)$, the set of rational numbers with
+standard multiplication. However, $(Q,*)$ is not a group, since axiom 1.b. cannot
+be satisfied\footnote{1 is the only candidate for a (left--) identity but
+$0 * x' = 1$ holds for no $x'$ in $\cal G$.}.
+It also follows from the group axioms that  for any group there is exactly
+one identity element, but we are not to take advantage of this knowledge.
+As far as we are concerned, there
+exist one or more left--identity elements, which may or may not be right--identities.
+Now, rendering axiom 1 in logical notation results in:
+\begin{center}
+	$\exists y (\forall x  (y * x = x) \:\wedge\: \forall x  \exists x' (x' * x = y))$
+\end{center} 
+Axiom 2 reads in logical notation as follows:
+\begin{center}
+	$\forall x \forall y \forall z  ((x * y) * z) = (x * (y * z))$
+\end{center} 
+To prove that indeed every left--identity is a right--identity we proceed
+indirectly, i.e. we assume that there is an element, which is a left--identity 
+but not a right--identity.
+So what we want to do is to state that there is an element that is characterised by axiom 1
+but is not a right--identity.
+In logic notation this can be expressed as:
+\begin{center}
+	$\exists y (\forall x  (y * x = x) \:\wedge\: \forall x  \exists x' (x' * x = y) \:\wedge\:  \sim \forall x  (x * y = x))$
+\end{center} 
+which is equivalent to: There is a left-identity which is not a right--identity.
+These formulas are almost, but not quite, what you can feed the theorem--prover with.
+For one, since there are no provisions for equality in SETHEO's underlying calculus,
+we have to paraphrase equality by introducing the 3--place predicate times\_is. The intended
+interpretation for times\_is(x,y,z) is obviously $x * y = z$. Also, some of the conjunctives
+we used above, do not belong to the ASCII--set. Thus, e.g. $\forall$ must be explicitly
+written as {\it forall\/}\footnote{For a complete description of SETHEO's input--language consult
+the chapter ``Syntax of the Input Language''.},
+$\wedge$ as \&, and $\neg$ as \~\ .
+Introducing these modifications to our input formulas they
+turn out like this:
+\\
+\begin{tabbing}
+exists Y \= \\
+          \> ~ forall X times\_is(X,Y,X)) \\
+          \> (forall X  times\_is(Y,X,X) \& \\
+          \> forall X exists Z times\_is(Z,X,Y) \& \\
+forall X, Y, Z, U, V, W \\
+          \>(times\_is(X,Y,V) \& times\_is(Y,Z,U) -$>$ (times\_is(X,U,W) $<$-$>$ times\_is(V,Z,W)))
+\end{tabbing}
+Before you enter the formula, read on!
+\\
+\subsection{XTHEO--Window} 
+XTHEO is a window--based interface for the SETHEO theorem--prover. To call the main window into existence,
+change to xtheo's example subdirectory and type {\it xtheo\/}. XTHEO's main windows should now be visible
+in the left bottom corner of the screen. It looks similar to figure~\ref{fig:xtheo-main-window}.
+%\begin{figure}[htb]
+%\begin{center}
+%\begin{picture}(131,95)
+%\input{/u1/johann/papers/setheo/man/xtheo_main_pic}
+%\end{picture}
+%jfjfj
+%\caption{XTHEO's Main Window}\label{fig:xtheo-main-window}
+%\end{center}
+%\end{figure}
+
+\bild{win01.ps}{9cm}{15cm}{XTHEO's Main Window}{fig:xtheo-main-window}
+
+The main--window is subdivided into two parts; the upper part is called a {\it panel\/} in SUN's terminology,
+the lower part a {\it tty--window\/}. On the panel you notice a couple of small ovals; these are called
+{\it buttons\/} and this is quite literally what they are: moving the cursor to these buttons and clicking
+the left mouse--button will call forward the action selected just as pushing buttons of a vending
+machine does. 
+While the cursor moves over a button you will have noticed that the first two lines in the panel change;
+they provide some very concise information on the actions behind the push--buttons.
+
+The lines marked {\it Directory\/}, {\it File\/}, and {\it Flags\/} in the panel are input--lines.
+You can move from line to line with either the return--key of your terminal or by clicking a
+mouse--button on a line. The line currently accepting input will show a small caret. 
+Try now to enter {\it chang3\/} on the line marked {\it File\/}.
+In XTHEO's examples subdirectory there should be a file {\it chang3.pl1\/}. This is identical to
+the input--formula we developed above; so you don't need to type it again.
+
+The buttons in the middle of the panel labelled {\it PLOP\/}, {\it preproc\/}, {\it inwasm\/}, {\it wasm\/}, {\it setheo\/}, and
+{\it prooftree\/} represent, applied from left to right, the seqence of steps from the 
+input--formula in standard logic notation to a graphical representation of the proof--tree, provided 
+there is a proof and SETHEO finds it. Below the buttons is an additional line of buttons
+marked {\it flags\/}; on clicking the left mouse--button while the cursor is on a button marked {\it flags\/}
+an additional window will appear, which is called pop--up in SUN's terminology.
+It seems to pop up out of blue air and appears to float slightly above everything else
+on the screen.
+You can open the pop--up if you are curious, but we do not need any flags for the PLOP program;
+to close the pop--up again click at the {\it DONE\/} button. 
+\paragraph{PLOP}
+Now we are ready to get on our way proving the theorem. Click the {\it PLOP\/} button now.
+There are two possibilities:
+If anything went wrong, e.g. you misspelled {\it chang3\/} or you have not been in XTHEO's examples
+subdirectory when calling XTHEO, you might see an {\it alert--popup\/} on your screen. An alert--popup
+is a subwindow with a huge black arrow pointing into the window. Usually an
+alert tells you that you made a mistake or that you are about to invoke an action that you better think
+about twice. There is no way just to ignore an alert. You cannot go on unless having chosen one of the
+options in the alert-- subwindow. \\
+If, on the other hand, things are going smoothly, the PLOP program should have translated chang3 from
+predicate logic to LOP, which is a language not unlike Prolog but with some extensions.
+In the lower part of the main--window chang3 should appear in LOP--syntax:
+\begin{center}
+\begin{verbatim}
+    <- times_is(a_2,a_1,a_2) . 
+    times_is(a_1,X,X) <- . 
+    times_is(f_1(X),X,a_1) <- . 
+    times_is(V,Z,W) <- times_is(X,Y,V) , times_is(Y,Z,U) , times_is(X,U,W) . 
+    times_is(X,U,W) <- times_is(X,Y,V) , times_is(Y,Z,U) , times_is(V,Z,W) . 
+\end{verbatim}
+\end{center}
+If you are interested in how PLOP went about translating chang3 into LOP--form, consult the chapter on PLOP.
+Just to shed some light on this particular example:
+The formula in predicate logic syntax has been translated into a LOP formula, that consists of
+five clauses which have the general structure $\ldots \leftarrow \ldots .$
+Clauses one to three state that there is an element $a_1$ such that $a_1$ is a left--identity (clauses 2 and 3)
+but not a right--identity (clause 1); i.e. there is an element, namely $a_2$, for which $a_2 * a_1 \neq a_2$.
+Clauses four and five are a restatement of associativity and left to the interested reader to work out.
+\\
+PLOP also created a file {\it chang3.lop\/} which can be looked at in an extra window instigated by
+clicking the left button at the {\it Input formula\/}--button of the main--menu.
+XTHEO supplies an extra window for the {\it .lop\/} files but not for the {\it .pl1\/} files since
+clauses in the {\it .lop\/} files will be used in the actual proof. Also
+many problems in ATP are already in LOP--form. If you had the Chang \& Lee classic mentioned above in your library
+you could check that example 3 is given there in a form very close to LOP.
+\paragraph{preproc}
+Often a formula to be proven conveys a lot of information that will not be needed for a
+particular proof. But proving a theorem is essentially a search process and surplus clauses
+will generally result in a vast amount of futile search. Thus there has been some research 
+into limiting the set of clauses to those that stand a chance to be needed for the proof.
+In theorem--proving this effort is called pre--processing, hence the name of the module.
+The best possible kind of preprocessing would be to first find a proof and then throw away
+the surplus clauses, but this obviously misses the underlying idea completely. Preprocessing
+is meant to effectively reduce the number of clauses without engaging in a search--process.
+The preprocessing module can be called by clicking the left mouse button at the button marked
+{\it preproc\/}. With chang3 preprocessing does not result in a reduction of clauses.
+By the way, the preprocessing module generates a file {\it p\_chang3.lop\/} containing the clauses left
+in the formula. So in the general case, if preprocessing led to any reduction, do not forget
+to put the {\it p\_\/}--prefix in front of the name of the file in the panel of the main--menu.
+\paragraph{wasm and inwasm}
+The {\it inwasm\/}--module translates LOP--code into assembler--code which is subsequently translated
+to machine--code (compiled) by {\it wasm\/}.
+If you look at wasm's flags pop--up you will notice that some of the options are already ticked\footnote
+{to tick or untick an option, clicking a mouse button after having moved the arrow into
+the respective box will do the job.}.
+Standardly wasm will be called with the {\it -t\/}--flag for output of a file {\it name\/}.tree containing a
+description of the proof--tree that will be rendered into an actual graphical display by the {\it prooftree\/}--module.
+To get a discription of the wasm--module and its flags (--or of any other module--) you can have
+the manual--page displayed by choosing from the menu to appear at clicking at the {\it Manual\/}--button.
+Now start first inwasm and then wasm.
+\paragraph{setheo}
+Setheo is a first order predicate logic theorem prover featuring completeness, consistency, speed,
+and a variety of proof modi. The standard proof mode is iterative deepening by clauses; i.e. the
+number of (copies of) clauses is iteratively increases by one, thus securing a complete search of the search tree.
+Experience has shown that the time needed for proving a theorem varies enormously depending on the
+proof mode.
+The prover is activated by clicking at the button marked {\it setheo\/}, the result will be displayed in the
+{\it tty--subwindow\/} below the panel. In our case, i.e. the group--example {\it chang3\/}, the result looked like this:
+
+\begin{verbatim}
+        Start proving ...
+        elapsed time 16ms
+        Last run at depth: 4
+        ********SUCCESS********
+        Number of inferences:		10
+        Total number of inferences:	-1
+        Number of fails:		108
+        Instructions executed: 442
+\end{verbatim}
+
+So Setheo needed 16ms (0.016 seconds) to solve this problem. Some details in the output might be a
+bit confusing. Thus {\it depth\/} is actually the depth of the search--tree plus one and the total number of
+inferences is set to -1 in the present implementation.
+\paragraph{prooftree}
+If you are interested in the proof you can have a look at the actual proof the prover came up with.
+Click at the {\it prooftree\/} button to have a canvas displayed with the graphical representation of the
+prooftree on it.
+For your convenience the proof tree is reproduced in figure~\ref{fig:proof-tree}.
+%\begin{figure}[htb]
+%\begin{center}
+%\begin{picture}(110,65)
+%\input{ /u1/johann/papers/setheo/man/proof-pic}
+%\end{picture}
+%jfjfj
+%\caption{Proof tree}\label{fig:proof-tree}
+%\end{center}
+%\end{figure}
+
+\bild{tree01.ps}{9cm}{15cm}{Proof tree}{fig:proof-tree}
+
+A canvas is yet another type of window in the SUN menagerie. As the name suggests a canvas is a window
+type for drawing objects in like, e.g. prooftrees. The interesting thing, however, is that a canvas can be
+much larger than the actual window. So with a large prooftree you might only see a part of the tree
+at a given time, but you can have the canvas moved under your window like you can move a probe under
+the microscobe. The way to do this is to use mouse clicks at the shaded bars to the left and on top
+of the canvas. Left mouse--clicks cause the canvas to be moved left or downwards respectively, right mouse--clicks
+have the canvas moved right or upwards. The amount of movement at each click can be controlled via
+the cursor's position on the bar. The further you swerve to the right or downwards the larger the steps
+will get.
+But for now, we need not be concerned about this since our proof fits snugly into its frame.
+What you might be wondering about, though, are the strange bullets and diamonts on the canvas.
+Why not get a legend? Just click the {\it settings\/} button, make the {\it no\/} on the {\it legend\/} option
+change to {\it yes\/} by clicking right in the middle of the diagram consisting of two arrows, hit
+the {\it Done\/} button and then have the canvas redisplayed by clicking at the {\it Redisplay\/} button.
+The legend should appear in the upper left corner of the window. 
+Intuitively the root of the prooftree is what you want to show and the
+leaves of the tree are the hard facts. 
+Every symbol in the tree stands for a literal, the integers preceding a sequence of symbols stand for
+the number of the clause\footnote{As determined by the succession of clauses in the {\it .lop\/} input 
+file.} and its incarnation\footnote{clauses can occur arbitrarily often in a proof} respectively.
+If you open the {\it Substitution\/} window (- you will probably know how to by now -) and click at
+the number of a clause the uninstatiated clause will be displayed; a click at a symbol standing for
+a literal will show you both the uninstantiated and instantiated literal.
+Now we can reconstruct the proof, retranslating times$\_$is, and sustituting $\,^{-1}$ for f\_1, e for a$\_$1 and
+a for a$\_$2.
+
+Setheo first showed that $a^{-1^{-1}} * e = a$ using the facts $a^{-1^{-1}} * a^{-1} =e$ and $a^{-1} * a = e$
+and $ e * a = a$ and the instantiation of rule 5: if $a^{-1^{-1}} * a^{-1} =e$ and $a^{-1} * a = e$ and $e * a = a$ then
+$a^{-1^{-1}} * e = a$.\\
+Setheo actually showed this twice.\\
+It than showed that $a * e = a$ using $a^{-1^{-1}} *e = a$ twice, the fact $e * e = e$, and the instantiation of rule 4:
+if $a^{-1^{-1}} * e = a$ and $e * e = e$ and $a^{-1^{-1}} * e = a$, then $a * e = a$.
+So what did we show? We presumed that there is (at least one) left--identity
+which is not a right--identity. Under this assumption we could show that
+any left--identity picked at random is a right--identity~\footnote{We actually
+picked $e$ but there is nothing special about $e$ to make it behave
+differently from any other left--identity}. So we come up with a 
+contradiction. Since there is nothing wrong with the axioms, our assumption 
+that there exists a left--identity which is not a right--identity
+must be a mistake. This concludes the proof.
+
+Proving this theorem obviously was a very easy task for setheo and it only used a tiny fraction of its 
+reasoning power. So we did not need built-in predicates and there did not occur any reduction steps in the proof.
+Reduction steps are needed, e.g. for proving that Sue will be at your party from knowing that:
+(1) if Martin does not come, Sue will be there, and
+(2) if Sue does not come, Martin won't come.
+%\ssubsection{A more advanced example}
+%Let's do one more example and concentrate on the proof rather than on SUN's
+%windowing environment~\footnote{Actually, the environment is called SUNVIEW,
+%being a more advanced version of X--WINDOWS, the standard of the UNIX
+%X--OPEN group.}.
+%The theorem we want to prove is $$There is no largest prime.$$
+%Or, which is the same thing, there exist infinetly many primes.
+%The proof is attributed to Euclid (300 B.C.). Again, the proof is
+%indirect: Assume there is a largest prime and call it $P$. Then, since
+%the property of being prime is decidable for any number you can
+%collect all primes smaller than $P$, form the product of all these
+%primes including $P$.
+
+
+
+
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+\paragraph{Further hints}
+\begin{itemize}
+\item A menu displayed on clicking at the {\it examples\/} button lets you choose among a number of
+shellscripts running the complete inwasm-wasm-setheo cycle. The shellscript are stored in files with
+extension {\it .pr\/}. 
+\item SUN's windows can be moved and/or enlarged. Clicking the {\it right\/} button on the black bar atop
+each window will give you the respective options.
+\item The canvas settings allow also for a generally more dense display of the prooftree possibly using a
+smaller font. This might be useful if you want to get a birds--eye view on the whole proof.
+You can also open a second canvas with the the same proof on it using one to get an overview and
+the other to look at details.
+\item Code produced with {\it PLOP\/} might not always be understood by the {\it inwasm\/}--module. In case of problems
+check whether:
+\begin{itemize}
+\item In case there is one query this should be the first clause in your {\it .lop\/}--file. It is the first
+clause if it had been the first clause in your {\it .pl1\/}--file.
+\item In case there is more than one query, automatic query generation should be {\it on\/} in the
+inwasm options.
+\end{itemize}
+\item If you want to prove theorems the files of which are not in the current directory,
+you can use the {\it Directory\/} entry on the {\it panel\/} to enter the paths.
+But beware!
+In case any modules do not find input files make sure that you are allowed to write in the
+respective directories. The setheo modules try to write output files in the same directory where
+they got input files from. 
+\item Be sure to set your UNIX path variable so you can access the xtheo modules after installation.
+\end{itemize}
+%\ssubsection{BUGS}
+%There are problems with the prooftree output  by setheo. Most of the times the information is not
+%sufficient for the construction of a tree. If a prooftree can be constructed there are frequent
+%mistakes in the succession of literals and their instantiation. Often variables are not fully
+%instantiated as this would afford an additional run trough the prooftree. $\not\models$

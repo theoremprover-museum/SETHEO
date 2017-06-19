@@ -1,0 +1,107 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The First Order Predicate Logic Syntax}\label{sec:pl1-syntax}
+
+In\footnote{This text is from the OLD SETHEO MANUAL.}
+ this part we describe the syntax of the input language, which is
+accepted by the formula translator {\bf plop}.
+A formula in that notation has to be in a file with the extension {\bf .pl1}.
+
+Because the grammar of first order logic is well-known it seems
+useless to repeat an inductive definition of the concept 
+{\em ``formula''}. We rather represent the special PLOP
+requirements i.e. the differences to the usual
+standard in giving some comments on the individual
+elements of the accepted language
+
+\paragraph{Variables}
+Variables are strings starting with a capital letter followed 
+by arbitrary letters, digits, or underscore.
+
+\paragraph{Constants}
+Predicate-, function-, and object parameters are strings starting 
+with a lower case letter followed by lower case letters, digits, or underscore. 
+Predicate- and function arguments are to be included in round brackets.
+Multiple arguments are to be separated by a comma ``,''.
+
+\paragraph{Propositional Connectives}
+The symbols for the propositional connectives are:
+
+\begin{center}
+\begin{tabular}{llll}
+(1) &  {\tt $\sim$}  &   - &  not, \\
+(2)  &	 {\tt \& } & -  & and, \\
+(3)   &{\tt ; } & -  & or, \\
+(4)   &{\tt -> } & -  & if ... then, \\
+(5) & 	 {\tt <->}  & -  & iff. 
+\end{tabular}                  
+\end{center}
+
+The binding preference is given by this order:
+1 $>$ 2 $>$ 3 $>$ 4 $>$ 5 . 
+Equal connectives are left associative i.e.,
+\tt 
+\mbox{a -> b -> c} \rm is to be read as \tt \mbox{((a -> b) -> c)} 
+\rm .
+
+\paragraph{Quantifiers}
+The quantifiers are represented by
+``{\tt
+forall}'' and ``{\tt exists}''.
+These symbols must not occur as parts of other names like constants
+or variables.
+The scope of a quantifier extends over the following propositionally 
+complete subformula and ends there.
+E.g. at the formula
+\[\tt 
+\mbox{forall X a -> b(X)}  \\
+\rm
+\]
+the scope of the quantifier does not include {\tt b(X)}.
+To bind {\tt X} by this quantifier one has to write as usual with parenthesis
+\[\tt 
+\mbox{forall X (a -> b(X)).}\\
+\rm
+\]
+Occurences of free variables are understood by PLOP as bound
+from the outside (universal closure).
+
+\paragraph{Brackets}
+Parenthesis are expressed by the usual {\em round brackets} only.
+{\em Square brackets} must not be used in the whole input formula .
+
+\paragraph{Special Characters}
+All characters with ASCII value $<$ 32 are ignored and will be deleted
+during the transformation.
+The {\em space-character} can be omitted if the meaning is not affected and if
+there cannot result any ambiguities. 
+E.g. 
+\[\tt 
+\mbox{forallX} \\
+\rm
+\]
+is recognized as a quantifier and a variable. 
+In other cases a space character must be set, e.g.
+\[\tt 
+\mbox{forall X a(X) }\\
+\rm
+\]
+cannot be written as 
+\[ \tt 
+\mbox{forall Xa(X).}\\
+\rm
+\]
+
+
+Other characters as mathematical function symbols (especially in
+infix notation) are not recognized.
+
+\paragraph{Comments}
+Comments are enclosed in C--like convention in ``{\tt /*}'' and ``{\tt */}''
+and can extend over several lines. Nested comments are not allowed.
+All comments are removed during the conversion.

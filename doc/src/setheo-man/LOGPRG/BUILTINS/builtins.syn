@@ -1,0 +1,342 @@
+
+
+Built-Ins of Setheo Version 3.2
+********************************
+
+The built-ins of Setheo are designed to be inserted as subgoals into 
+the tail of procedural clauses (queries and rules). If they appear
+in the tail of declarative ones (goals and axioms), they are inherited 
+to all contrapositives obtained by compiling the underlying axiom or goal.
+
+
+Example:
+
+   By performing the `fanning' operation the axiom
+
+	p(X,Y) ; p(Y,X) <- q(X,Y), $V := f(X,Y).
+
+   is transformed into the following sequence of rules (contrapositives)
+
+	p(X,Y) :-  BUILT_IN,  q(X,Y), ~p(Y,X).
+	p(Y,X) :-  BUILT_IN,  q(X,Y), ~p(X,Y).
+       ~q(Y,X) :-  BUILT_IN, ~p(X,Y), ~p(X,Y).
+
+
+
+Note:
+
+1. All built-ins of the original tail are automatically put in front
+   of each contrapositive tail. 
+
+2. In order to preserve a fixed ordering of the clauses and subgoals
+   the automatic subgoal and clause reordering during the compilation 
+   phase can be supressed.
+
+3. All built-ins except the destructive term assignment operations are 
+   strongly dependent from their positions in the tail. 
+   
+We now continue with the BNF-Grammer described in the file `lop.syntax' and 
+explain the available built-ins. 
+
+
+
+
+-------------------------------------
+Assignment and destructive assignment 
+-------------------------------------
+
+*) Destructive term assignment to global variables
+
+   	BUILT_IN ::= GLOBAL_VARIABLE := TERM
+
+*) Destructive integer assignment to global variables: 
+
+       BUILT_IN ::= GLOBAL_VARIABLE :is ARITH_EXPR
+
+*) Non-destructive term assignment to logical variables:
+
+       BUILT_IN ::=  unify^( VARIABLE , TERM )
+
+*) Non-destructive integer assignment to logical variables:
+
+       BUILT_IN ::=  VARIABLE is ARITH_EXPR
+
+   Note: In contrast to global variables in some Prolog Systems
+   	 like Sepia or Eclipse, destructive assignments to
+	 global variables in LOP are backtracked if the proof 
+	 search fails at later subgoals.
+
+   Note: In contrast to arithmetic assignments, term assignments can 
+         be inserted at any position in the tail. The right side of 
+	 the assignment may become instantiated later.
+
+
+
+------------------
+Integer arithmetic 
+------------------
+
+*) Arithmetical operations:
+
+       ARITH_EXPR ::= VARIABLE 
+	                   | GLOBAL_VARIABLE 
+		           | INTEGER
+		           | ARITH_EXPR * ARITH_EXPR
+		           | ARITH_EXPR / ARITH_EXPR
+		           | ARITH_EXPR + ARITH_EXPR
+		           | ARITH_EXPR - ARITH_EXPR
+		           | ( ARITH_EXPR ). 
+
+    Note: `*' and `/' have higher priority than `+' or `-'
+
+*) Arithmetical tests:
+
+       BUILT_IN ::= ARITH_EXPR >= ARITHEXPR 
+		 | ARITH_EXPR > ARITH_EXPR
+		 | ARITH_EXPR < ARITH_EXPR
+
+*) Valid domain:
+
+       INTEGER ::= {-32768, ..., +32768}
+
+
+
+----------------------------------
+Unification and test for identity
+---------------------------------
+
+
+*) Unification of terms:
+
+   	BUILT_IN ::= unify^( TERM , TERM ) 
+
+*) Testing whether two expressions are identical:
+
+   	BUILT_IN ::= eq^( TERM , TERM )
+       	          | TERM == TERM
+
+*) Testing whether two expressions are not identical:
+
+   	BUILT_IN ::= neq^( TERM , TERM )
+       	          | TERM =/= TERM
+
+*) Equal predecessor check in the current tableau:
+
+   	BUILT_IN ::= eqpred^( NAT )
+
+   Comment: A built-in of this form fails, whenever the 
+            n-th literal in the current clause is preceeded by an 
+            identical one in the current tableau. 
+
+   Example:
+
+	L1:- eqpred(1),     /* eq pred check for the head literal L1.   */
+	     L3, eqpred(3), /* eq pred check for the literal ~L3.       */
+	     L5, eqpred(5), /* eq pred check for the literal ~L5.       */
+	      :
+	      :
+
+
+----------------------
+Metalogical predicates
+-----------------------
+
+*) BUILT_IN ::= isvar^( VARIABLE )
+
+   Comment: succeeds if VARIABLE is unbound or bound to another variable 
+
+*) BUILT_IN ::= isnonvar^( VARIABLE )
+
+   Comment: succeeds if VARIABLE is bound to a non-variable term
+
+*) BUILT_IN ::= isconst^( VARIABLE )
+
+   Comment: succeeds if VARIABLE is bound to a constant
+
+*) BUILT_IN ::= isnumber^( VARIABLE )
+
+   Comment: succeeds if VARIABLE is bound to an integer
+
+*) BUILT_IN ::= iscompl^( VARIABLE )
+
+   Comment: succeeds if VARIABLE is bound to a complex term
+
+
+-----------------------
+Testing term complexity
+-----------------------
+
+
+*) BUILT_IN ::= size^( TERM , VARIABLE )
+
+   Comment: Instantiates VARIABLE with the size of TERM.
+   	    The size of a term is determined by the number of 
+	    its subterms.
+
+*) BUILT_IN ::= size^( TERM , NAT )
+
+   Comment: Compares the size of TERM with the value of NAT.
+
+*) BUILT_IN ::= tdepth^( TERM , VARIABLE )
+
+   Comment: Instantiates VARIABLE with the depth of TERM.
+
+*) BUILT_IN ::= tdepth^( TERM , NAT )
+
+   Comment: Compares the depth of TERM with the value of NAT.
+
+
+
+---------------------------------------
+Testing and bounding tableau complexity
+---------------------------------------
+
+
+*) BUILT_IN ::= getdepth^( VARIABLE ) 
+
+   Comment: Instantiates VARIABLE with the maximum tableau depth 
+            (allowed for a final tableau) minus current depth.
+
+*) BUILT_IN ::= getinf^( TERM ) 
+
+   Comment: Instantiates VARIABLE with the current number
+   	    of inferences (i.e. the number of inferences needed
+	    to derive the current tableau).
+
+*) BUILT_IN ::= getmaxinf^( TERM ) 
+
+   Comment: Instantiates VARIABLE with the maximum number 
+   	    of inferences (allowed for a final tableau).
+
+
+*) BUILT_IN ::= setdepth^( NAT )
+	
+   Comment: Setting the still available depth to the value of NAT
+
+*) BUILT_IN ::= setinf^( NAT )
+
+   Comment: Setting the current inference counter to the value of NAT.
+
+*) BUILT_IN ::= setmaxinf^( NAT )
+
+   Comment: Setting the maximum inference counter to the value of NAT.
+
+
+
+----------------------------------------
+Other possibilities for explicit control
+----------------------------------------
+
+
+*) BUILT_IN ::= fail
+
+   Comment: `fail' is an usolvable subgoal. 
+
+*) BUILT_IN ::= stop
+
+   Comment: `stop' is a subgoal letting the proof procedure halt.
+
+*) BUILT_IN ::= precut 
+            |   cut 
+
+   Comment: The Prolog clause
+
+ 	p(X) :- q(X), 
+	        !, 
+		r(X).
+
+             is operationally equivalent to the LOP clause
+
+ 	p(X) :- precut, 
+	        q(X), 
+		cut, 
+		r(X).
+
+   Comment: The Prolog Clause 
+
+ 	p(X) :- not q(X), 
+		r(X).
+
+ 	     is operationally equivalent to the following sequence of
+	     LOP clauses
+
+ 	p(X) :- not_q(X),
+		r(X).
+
+	not_q(X) :- q(X),
+		 !,
+		 fail.
+
+        q(X).
+  
+
+------------------
+Output statements
+------------------
+
+*) To open a file with filename STRING:
+
+	BUILT_IN ::=  tell^( "STRING" )
+
+
+*) To close the file with filename STRING:
+
+	BUILT_IN ::= told
+
+*) To write the value of variables into the file just opened 
+   or onto the screen:
+
+	BUILT_IN ::= write^( VARIABLE )
+
+   Note: The write statement is executed immediately whenever
+   	 it is met during the search. 
+
+   Note: to obtain the full answer substitution the write statement 
+         must be the last subgoal of a QUERY (rather than a GOAL). 
+	 This is because goal clauses are fanned.
+
+	 In order to output disjunctive answer substitutions 
+	 global variables are needed:
+
+Example:
+
+   Given the clause
+
+        p(a) ; p(b) <-.
+
+   the `disjunctive answer' for the query
+
+	<- p(X).
+
+   is `X = a ; X = b'.
+
+
+  A program which computes this answer needs a new `artificial query' 
+  containing a subgoal to enter the original goal. In this way, the 
+  goal is transformed into an axiom. The axiom however, is fanned into
+  contrapositives. The program is given below.
+
+# In order to initialize list $X:
+
+   ?- $X := [], query, write_list($X).
+   
+# In order to collect the answer substitutions in the list $X:
+
+   query <- $X := [X|$X], p(X).
+
+# The disjunctive fact remains unchanged:
+
+   p(a) ; p(b) <-.
+
+# In order to output the elements of $X:
+
+   write_list([]) :- write(".").
+   write_list([H|T]) :- write(H), write(";"), write_list(T).
+   
+
+Note: It would be helpful if you try this program by your own with SETHEO 
+      and then have a closer look onto the proof tree using `xptree'.
+
+
+
+

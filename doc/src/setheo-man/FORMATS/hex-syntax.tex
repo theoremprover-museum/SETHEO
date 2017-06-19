@@ -1,0 +1,79 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{\SAM\ Machine Code Syntax}
+
+Machine code for the SETHEO Abstract Machine \SAM\ is always located
+in files with the extension {\bf .hex}. 
+Each entry in this file occupies one line.
+A one-character identifier is used
+to select the appropriate type of data contained in the current line.
+Blank lines, comments or extra spaces are not allowed.
+
+The following grammar shows the definition of the \SAM\ Machine Code:
+
+\begin{verbatim}
+file           ::= lines
+
+lines          ::= line
+                | lines line
+
+line           ::= ':' ident ':' address ':' data ':' string '\n'
+
+ident          ::= 'C' | 'Y' | 'E' | 'S' | 'M' | 'N'
+
+
+address        ::= [0-9A-F]{8}
+data           ::= [0-9A-F]{8}
+string         ::= [A-Za-z_0-9]       /* see Note 4 */
+\end{verbatim}
+
+The following table shows the meaning of the fields, corresponding to
+the given identifier:
+
+\begin{center}
+\begin{tabular}{lllll}
+C & word in code area of \SAM &
+	\SAM-code-address & contents & --- \\
+Y & symbol &
+	type of symbol & arity & printname \\
+S & set start-address &
+	\SAM-code-address & --- & --- \\
+M & highest address &
+	 0 & highest address & --- \\
+N & number of symbols &
+	 0 & symbols & --- \\
+\end{tabular}
+\end{center}
+
+\noindent{\bf Notes:}
+\begin{enumerate}
+\item
+A ``highest memory address'' (identifier: ``M'')
+directive must be placed prior to any code words (``C'') in order
+to be effective. Otherwise, the size of the code-area of the \SAM\ is
+determined by a default value (or the {\bf sam} parameter -code).
+\item
+The relative line number of a ``symbol'' directive determines the index
+of that symbol in the symbol table. Therefore, the order of these
+directives must not be changed and their number must not be 
+increased or decreased.
+\item
+Special characters in a symbol are encoded by: \verb+\OOO+
+where {\tt OOO} is the 3-digit octal value of the ASCII code of that
+character. E.g. \verb+\007+ is for {\tt BELL}.
+\item
+The maximal length of a symbol is limited to 42 on the 
+generation side ({\bf wasm}), and to 200 in the reader of
+the abstract machine.
+This limit includes special characters (see above). Each such character
+contributes 4 to the total length of the symbol.
+\item
+all other directives may be intermixed and arbitrarily changed in order.
+\item
+A file with machine code must at least contain one line.
+\end{enumerate}

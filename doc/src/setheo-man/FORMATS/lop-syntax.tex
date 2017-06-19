@@ -1,0 +1,289 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The LOP-Syntax}
+\label{sec:lop-syntax}
+
+The general input language of the SETHEO-system is
+LOP (LOgic Programming Language) and is used to write
+formulas in clausal normal form (CNF) and to write logic
+programs, using SETHEO's procedural facilities.
+LOP formulas (or programs) are normally located in files
+with the extension {\tt .lop} and are read by {\bf inwasm}
+and the modules {\bf setheo, clop}, and {\bf delta}.
+In this section, the exact definition of the syntax of a LOP
+formula or program is given in a BNF-like form\footnote{
+	This section is based from a definition of the LOP
+	syntax by R.~Letz
+}.
+
+The usage of white spaces (blanks, tabs, and new-lines) is
+kept as flexible as possible. White spaces can be inserted or
+removed arbitrarily unless otherwise noted.
+Comments are written in a C-like style surrounded
+by {\tt /* */}.  Nested comments are not allowed.
+A line, starting with a {\tt \#} is also treated as a comment.
+
+LOP-files consist of a non-empty list of clauses\footnote{
+	In this manual, we only describe the systax of pure
+	LOP; the syntax of MPLOP which further allows to specify
+	modules, is not covered here.}
+of different types (axioms, goals, queries, and rules).
+Each clause is ended by a full stop '.'.
+
+\begin{verbatim}
+lop-program   ::=
+               clause '.'
+               | clause '.' lop-program
+
+clause        ::=
+               axiom
+               | goal
+               | query
+               | rule
+\end{verbatim}
+
+Let's start with the types of clauses which are used for
+theorem-proving: axioms and goals.
+\begin{verbatim}
+axiom         ::=
+	      head '<-' tail constraints
+	      head '<-' constraints
+
+goal          ::=
+	      '<-' tail constraints
+\end{verbatim}
+The head and tail of a clause are non-empty lists of literals;
+the {\tt <-} separates the positive literals from the negative
+ones.
+{\tt constraints} denotes (a possible empty) list of
+inequality constraints.
+
+The logic-programming style clauses (query and rule) have a
+similar syntax which is close to PROLOG. The head of each rule
+can be just one literal only.
+\begin{verbatim}
+rule          ::=
+	      literal ':-' tail constraints
+	      literal '<-' constraints
+
+query         ::=
+	      '?-' tail constraints
+\end{verbatim}
+
+
+In general, the following differences and similarities
+exist in the handling of these 4 types of clauses by SETHEO:
+\begin{enumerate}
+\item
+all literals in front of the separator have per default
+a {\em positive\/} sign, those after the separator (i.e., literals
+in the tail) have a negative one.
+\item
+Each {\tt goal} and {\tt query} is used as a start clause 
+(in the Model Elimination Calculus)\footnote{
+	If a clause, consisting of negative literals only is not
+	to be used as a start clause, this clause can be transformed
+	as described in Section~\ref{sec:Selection of Start Clauses}.
+	}.
+\item
+If there exists one Non-Horn clause in the formula, each
+{\tt axiom} and {\tt goal} is transformed into contrapositives.
+\item
+No {\tt query} or {\tt rule} is transformed into contrapositives.
+\item
+An axiom with one literal only is syntactically and semantically
+the same as a rule with one literal (``fact'').
+\item
+Literals in the tail of a
+{\tt axiom} and {\tt goal} are subject to subgoal reordering
+(unless turned off with the inwasm switch {\tt -nosgreord}),
+whereas those in a
+{\tt query} or  {\tt rule} are not reordered.
+\end{enumerate}
+
+
+The positive and negative parts of the clauses are lists
+of literals. A literal itself is an atom or its negation.
+Built-ins can occur in the tail of a clause only.
+\begin{verbatim}
+head          ::=
+               literal
+               | literal ';' head
+
+tail          ::=
+               tail-literal
+               | tail-literal ',' tail
+
+tail-literal  ::=
+               literal
+               | built-in
+
+literal       ::=
+               atom
+               | '~' atom
+\end{verbatim}
+
+In the following, we define the structure of an {\tt atom} which
+follows the usual lines of a definition of terms. Please note
+that additionally, {\em lists\/} of terms are allowed within
+terms. They are used in a PROLOG-like way.
+
+As in PROLOG, constants start with a lower-case letter,
+variables with an upper-case letter or an underscore {\tt \_}.
+Anonymous variables are denoted, like in PROLOG, by a {\tt\_}.
+Furthermore, short strings (quoted in ") are allowed. Please, note
+that, however, a string {\tt "plus"} and a constant {\tt plus} are
+equal. This e.g., disallows a string {\tt "*"}, since the asterisk is
+a reserved symbol.
+Special characters are expressed in a C-like manner:
+predefined are 
+\verb+\t+ for tabulator,
+\verb+\n+ for newline, and
+\verb+\OOO+ for a 3-digit octal value of the character's
+ASCII code. E.g., \verb+\007+ rings the bell.
+%
+Numbers must be in the range of [-32768,32767].
+%
+Additionally, the following consistency condition must be
+fulfilled:
+\begin{enumerate}
+\item
+all predicate and function symbols can occur with one arity, and
+as a constant of arity $0$ only. This means, that {\tt f(a)} and
+{\tt f} are allowed in one formula, but not {\tt f(a)} and
+{\tt f(a,b)}.
+\item
+predicate symbols may also occur as function symbols of the
+same arity (or used as a constant with arity 0), 
+as long as the first occurrence
+of the symbol in that file is on the level of predicates. E.g.,
+{\tt <- p(a,b). q(p)<-...} is allowed, but not the
+other way round. (Sorry)\footnote{
+	The best way to avoid this problem (in the inwasm compiler),
+	is to preceed the formula with a line of the
+	form $p(X_1,\ldots,X_n) \leftarrow false.$ for
+	each predicate symbol $p$ with arity $n$.
+	}
+\end{enumerate}
+\begin{verbatim}
+atom           ::=
+               constant
+               | constant '(' termlist ')'
+
+termlist       ::=
+               term
+               | term ',' termlist
+
+term           ::=
+               constant
+               | constant '(' termlist ')'
+               | number
+               | variable
+               | global-variable
+               | list
+
+constant       ::=
+               '[a-z][A-Za-z0-9_]*'
+               | '"[^"]*"'
+
+number         ::=
+               '[0-9]+'
+               | '-[0-9]+'
+
+variable       ::=
+               '[A-Z_][A-Za-z0-9_]*'
+
+global-variable::=
+               '$[A-Z_][A-Za-z0-9_]*'
+
+list           ::=
+	       '[]'
+               | '[' term '|' term ']'
+               | '[' termlist ']'
+\end{verbatim}
+	
+Built-ins are either infix expressions or have a similar
+structure as atoms. They only can occur in the tail of
+a clause (i.e., they occur negatively).
+The names of the pre-fix built-ins
+start with a {\tt \$}. All built-ins are described
+in detail in Chapter~\ref{chap:Logic Prograamming}.
+
+\begin{verbatim}
+built-in       ::=
+               built-in-pred
+               | built-in-pred '(' termlist ')'
+               | variable 'is' numexpr
+               | global-variable ':is' numexpr
+               | global-variable ':=' term
+               | term '=' term
+               | term '==' term
+               | term '=/=' term
+               | numexpr relop numexpr
+
+numexpr        ::=
+               number
+               | '(' numexpr ')'
+               | numexpr '+' numexpr
+               | numexpr '-' numexpr
+               | numexpr '*' numexpr
+               | numexpr '/' numexpr
+
+relop          ::=
+               '<' | '>' | '<=' | '=='
+
+buit-in-pred   ::=
+               '$[a-z][A-Za-z0-9_]*'
+\end{verbatim}
+
+Constraints are inequality constraints, i.e., lists of
+disequations of terms.
+Constraints can be considered as additional literals in the tail
+of a clause which are being checked permanently.
+
+Please note, that in the current version of SETHEO, constraints
+which have been added to the formula with a semantic meaning
+(e.g., {\tt [X] =/= [0]}), are not compatible with \SAM's built-in
+antilemmata mechanism. 
+If you want to use such constraints, you must
+invoke \SAM\ with the {\tt -noanl} option, 
+or without {\tt -anl} or {\tt -cons}.
+All constraints generated by the compiler inwasm are pure syntactic
+constraints which do not influence soundness of the prover.
+
+
+\begin{verbatim}
+constraints   ::=            // empty
+               | ':' constr-list
+
+constr-list   ::=
+               constraint
+               | constraint ',' constr-list
+
+constraint    ::=
+               '[' ctermlist ']' '=/=' '[' ctermlist ']'
+
+ctermlist     ::=
+               cterm
+               | cterm ',' ctermlist
+
+cterm         ::=
+               term
+               | struct-variable
+               | constant '(' ctermlist ')'
+
+struct-variable::=
+               '#[A-Z_][A-Za-z0-9_]*'
+\end{verbatim}
+
+Structure variables {\tt struct-variable} in constraints
+are treated as universally quantified variables (w.r.t.\ the clause
+in which the occur). A constraint {\tt [X] =/= [f(\#Y]} is
+violated, if X is instantiated to a term with the top-level
+functor {\tt f}, e.g., {\tt f(a)}.

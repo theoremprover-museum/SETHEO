@@ -1,0 +1,93 @@
+
+! All of the button labels and actions are determined in this file.
+! It should be easy to adapt to any language.
+
+!*Panner*backgroundStipple: grid2
+*Panner*internalSpace: 1
+
+*Tree.Gravity: north
+
+!*allowShellResize: true
+*buttonbox*ShapeStyle: rectangle
+!*Form*Panner.Thickness: -1
+*Form.defaultDistance: 0
+*Form.BorderWidth: 0
+!Porthole.BorderWidth: Rand um den gesamten Baum
+!*Porthole.BorderWidth: 10
+*Porthole.BorderWidth: 0
+*Porthole.top: ChainTop
+*Porthole.left: ChainLeft
+*Porthole.bottom: ChainBottom
+*Porthole.right:  ChainRight
+*Porthole.resizable: on
+*Panner.top: ChainTop
+*Panner.left: ChainLeft
+!*Panner.bottom: ChainTop
+!*Panner.right:  ChainLeft
+*Panner.resizable: on
+*Tree*ShapeStyle: rectangle
+*Tree*Toggle*BorderWidth: 0
+*Porthole*Box.BorderWidth: 1
+*Porthole*Box.HSpace: 0
+*Porthole*Box.VSpace: 0
+*Paned*allowResize: true
+*Porthole*Label.BorderWidth: 0
+*Porthole*Toggle.BorderWidth: 0
+
+*Tree*Toggle*Font: -adobe-helvetica-bold-r-normal--*-120-*-*-*-*-iso*-*
+*Tree*Label*Font: -adobe-helvetica-medium-r-normal--*-100-*-*-*-*-iso*-*
+
+*SimpleMenu*BackingStore: NotUseful
+!*Font: -adobe-helvetica-bold-r-normal--*-120-*-*-*-*-iso*-*
+*buttonbox.MenuButton.leftBitmap: menu12
+*SimpleMenu*menuLabel.vertSpace:   100
+*SimpleMenu*SmeLine*Height: 12
+
+!*pane.treeform.porthole*tree.Box.subtree.bitmap: tree.xbm
+!*pane.treeform.porthole*tree.Box.subtree.height: 40
+*pane.treeform.porthole*tree.Box.subtree.highlightThickness: 0
+
+
+*pane*buttonbox.quit.Label: Quit
+*pane.buttonbox.about.Label: About
+
+*buttonbox.quit.baseTranslations:  #override \
+		<Btn1Down>, <Btn1Up>: Quit() unset() \n\
+		<Btn2Down>, <Btn2Up>: Quit() unset() 
+
+!*Porthole*Toggle.baseTranslations: #augment \n\
+*pane.treeform.porthole*tree.Box.Toggle.baseTranslations: #override \n\
+<Key>q: Quit() \n\
+Ctrl<Key>h: SetOrientation(west) \n\
+Ctrl<Key>v: SetOrientation(north) \n\
+<Btn1Down>,<Btn1Up>: SaveButton(1) toggle() notify()  \n\
+<Btn2Down>,<Btn2Up>: SaveButton(2) toggle() notify()  \n\
+<Btn3Down>,<Btn3Up>: SaveButton(3) toggle() notify()
+
+*List.baseTranslations: #augment \n\
+<Key>q: Quit() \n\
+Ctrl<Key>h: SetOrientation(west) \n\
+Ctrl<Key>v: SetOrientation(north) 
+
+
+*Porthole.baseTranslations: #override \n\
+<Key>q: Quit() \n\
+Ctrl<Key>h: SetOrientation(west) \n\
+Ctrl<Key>v: SetOrientation(north) 
+
+*buttonbox.view.Label: View
+*buttonbox.view.viewMenu.layoutHorizontal.Label: Layout Horizontal
+*buttonbox.view.viewMenu.layoutVertical.Label: Layout Vertical
+
+*buttonbox.tree.Label: Tree
+*buttonbox.tree.treeMenu.selectAll.Label: Select All
+*buttonbox.tree.treeMenu.selectNone.Label: Unselect All
+*buttonbox.tree.treeMenu.selectChildren.Label: Select Children
+*buttonbox.tree.treeMenu.selectDescendants.Label: Select Descendants
+*buttonbox.tree.treeMenu.changeTermdepth.Label: Set Term Depth
+
+*termdepth.baseTranslations: #override \
+  <Key>Return:             no-op(RingBell) 
+
+
+

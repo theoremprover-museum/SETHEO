@@ -1,0 +1,406 @@
+\documentstyle[12pt,a4]{article}
+
+\def\SAM{{\sc S\kern-.13em\lower.45ex\hbox{A}\kern-.13emM}}
+
+\title{Generation and Usage of Permanent,
+        Multiple Usage \\
+Unit-Lemmata within SETHEO}
+\author{Johann Schumann}
+\date{23.6.93,29.6.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the the generation and usage of single-literal
+(unit) lemmata within SETHEO, using a Path Index.
+\end{abstract}
+
+\noindent{\bf Keywords:}  SAM, lemma, FPA, Path-indexing
+
+\noindent{\bf Action: } {\tt EXTENSION}
+
+\section{Detailed Description}
+
+In the following we will specify the extensions necessary in SETHEO
+to generate and use permanant unit lemmata.
+
+%%\begin{theorem}{Permanent Unit Lemma}
+%%{\tt to be defined}
+%%\end{definition}
+
+The FPA-index, provided by P.~Graf \cite{Graf92}, is used to store
+the lemmata and to retrieve the appropriate ones.
+
+\subsection{Informal Description}
+
+After solving a subgoal, a lemma can be generated.
+Before storing a lemma, the following checks and actions
+have to be made:
+\begin{enumerate}
+\item
+a check must be performed that within the proof of that subgoal, no
+reduction steps have been performed to literals in the path {\em
+above\/} the current subgoal.
+This check is necessary only if non-Horn formulae are processed.
+\item
+the most general solution for this subgoal, given the current proof
+for it should be obtained. This can be accomplished with SETHEO's
+reproof mode.
+\item
+the lemma can be demodulated using given rules.
+\item
+checks are to be made if the lemma is worth keeping, e.g., by checking
+the size of the terms or the complexity.
+\item
+if a more general lemma\footnote{Due to K.~Mayr, this step is
+not necessary, when anti-lemma constraints are used.} already exists in the lemma store the current
+one will not be stored.
+\item
+if we decide to enter the lemma all lemmas in the store which are more
+specific than the current ones will be deleted.
+\end{enumerate}
+
+All actions and checks except the last one are to be accomplished by
+\SAM-built-ins and are subject to separate specifications.
+
+
+The generation of lemmata is performed using the \SAM-built-in
+{\tt genlemma}. The following example of code illustrates the place for
+this built-in.
+
+\begin{verbatim}
+clausexxx:
+        alloc	lcbyyy
+        un...
+        call	...
+        ...
+        call	...           # call of last subgoal
+        genlemma lcbyyy
+        dealloc
+\end{verbatim}
+
+Permanent unit lemmata are used in exactly the same way as single-unit
+clauses. Before using a lemma, it must be extracted from the lemma-store,
+given the terms of the current subgoal as search specification.
+Then, one retrieved lemma is used one after the other.
+This is accomplished, using the cursor facility of the FPA-index.
+Backtacking causes the next lemma to be tried.
+
+Within the \SAM, using and retrieval of lemmata is implemented using
+the non-deterministic built-in {\tt uselemma}.
+The following piece of \SAM-code illustrates its usage.
+This built-in behaves similar to the {\tt reduct} instruction.
+
+\begin{verbatim}
+orxxx:
+        orbranch  lab
+lab:
+        .dw lcb_use_lemma         # first try lemmata
+        .dw ext1,...,extn,0       # then all other extension steps
+
+lcb_use_lemma:                    # pseudo literal control block
+        .dw lab_use_lemma         # for uselemma
+        .dw predsymb              # predicate symbol
+
+lab_use_lemma:
+        uselemma  lcb_use_lemma   # try lemmata with that arity
+                                  # the arity is obtained from the symb.tabb
+        proceed                   # and we are done
+\end{verbatim}
+
+A different uselemma instruction and literal control block is generated
+for each predicate symbol and sign.
+
+
+\section{Specification of Algorithms and Data Structures}
+
+\subsection{Interface to the PATH Index}
+
+Entries in the FPA index are pairs, consisting of a \SAM-term and
+a general purpose pointer {\tt ptr}. When an entry is to be retrieved,
+the {\tt ptr} is returned. 
+The following functions are provided:
+
+{\tt to be done}
+
+\subsection{Additional Data Structures}
+
+The \SAM\ gets a new memory area, the {\em lemma\_store}.
+It is a permanent area of memory which is not influenced by backtracking.
+The lemma store contains the actual lemmata, i.e., dynamically compiled
+facts. Since parts of this store can be removed, e.g., by entering a
+more general lemma, this memory area is handled by a general purpose
+memory manager.
+
+A lemma consists of the following data structure:
+\begin{verbatim}
+typedef struct lemma_ {
+    int    deleted;                   // indicates, if that lemma is deleted
+    int    has_been_used;             // a flag indicating that the lemma
+                                      // has been used
+    WORD   *compiled_fact;            // pointer to compiled fact
+    ...                               // additional information, e.g.
+                                      // resources, complexity,...
+    } lemma;
+\end{verbatim}
+
+The structure of the lemma, seen as a compiled fact is given below.
+	
+\subsection{The genlemma Instruction}
+
+The genlemma instruction can be written down as follows:
+
+\begin{verbatim}
+genlemma(){          % argument = lcb
+   % generate the predictate-term for storing the lemma
+   % temporarily on the stack (or heap)
+   tempterm = <sign><predsymb>(<arg1>,...<argn>);
+
+   % are there already more general terms in the Index?
+   %
+   % get a query tree: GENERALIZATIONS of the current term 
+   root = path_TreeBuild(index,GENERALIZATION,tempterm);
+   % are there entries ?
+   if(path_TreeNext(root,1)){
+        % yes, there are, we do not enter the new one
+        path_TreeFree(root);
+        }
+   else {
+        % we enter the lemma
+        path_TreeFree(root);
+        % but first, we will delete all instances
+        % of the current lemma
+        root = path_TreeBuild(index,INSTANCE,tempterm);
+        % to do so, we get all instances and mark them as
+        % deleted
+        while((id = path_TreeNext(root,1))!=NULL){
+             label_lemma_as_deleted(id->pointer);
+             }
+        % clean up
+        path_TreeFree(root);
+        % must first compile it into the lemma-store
+        compiled_fact = compile_fact(ARGV(1));
+        % and generate a lemma out of it
+        thislemma = new lemma;
+        thislemma -> compiled_fact = compiled_fact;
+        thislemma ->deleted = 0;
+        thislemma ->has_been_used = 0;
+	% now, enter the tuple into the Index
+        path_EntryCreate(index,thislemma,tempterm);
+	}
+   % clean up and done
+   free tempterm;
+   return success;
+   }
+\end{verbatim}
+    
+\subsection{The uselemma Instruction}
+
+The use-lemma instruction is implemented
+as a non-deterministic additional inference rule. Here we only
+describe the included parts which are necessary for such a built-in.
+
+\begin{verbatim}
+% first entry
+%
+% we set up a temporary term for the query on the stack (or heap)
+tempterm = <sign><predsymb>(<arg1>,...<argn>);
+
+% get a query tree: obtain unifiable terms
+root = path_TreeBuild(index,UNIFICATION,tempterm);
+% are there entries ?
+if(!(id=path_TreeNext(root,1))){
+     % no, there are no usable lemmas,
+     % clean-up and fail
+     path_TreeFree(root);
+     free tempterm;
+     return failure;
+     }
+% is this a valid lemma or has it been deleted
+while(id && id->pointer.is_deleted){
+     % try the next one
+     id = path_TreeNext(root,1);
+     }
+% are we at the end ?
+if(!id){
+     % yes, nothing valid is there
+     % clean-up and fail
+     path_TreeFree(root);
+     free tempterm;
+     return failure;
+     }
+% we got a valid lemma
+% store the current root
+ND_BUILT_STORE(root);
+% now, we may try the first possibility
+pc = id->pointer.pc;
+
+% clean up what we do not need
+free tempterm;
+return success;
+
+% n-th entry
+%
+% get the current root
+ND_BUILT_LOAD(root);
+% are there still entries ?
+id=path_TreeNext(root,1);
+% is this a valid lemma or has it been deleted
+while(id && id->pointer.is_deleted){
+     % try the next one
+     id = path_TreeNext(root,1);
+     }
+% are we at the end ?
+if(!id){
+     % yes, nothing valid is there
+     % clean-up and fail
+     path_TreeFree(root);
+     free tempterm;
+     return failure;
+     }
+% store the current root
+ND_BUILT_STORE(root);
+% now, we may try the next possibility
+pc = id->pointer.pc;
+\end{verbatim}
+
+\section{SAM-Based Specification}
+
+\subsection{Data Structures}
+
+\subsection{SAM instructions involved}
+
+\subsection{New Instructions}
+
+\subsection{The genlemma instruction}
+The genlemma instructions works as specified above.
+\subsection{The uselemma instruction}
+The uselemma instructions works as specified above.
+
+\subsection{Additional C-functions within SETHEO}
+
+\subsubsection{{\tt compile\_fact()}}
+
+The function {\tt compile\_fact()} dynamically compiles
+a literal as specified in the literal control block.
+The compiled data are put into the lemma-store, and a pointer to it (WORD *)
+is returned.
+
+The following structure(s) are generated in the lemma-store
+
+\begin{verbatim}
++-----------------+   (unit_lemma_ctrl_block)
+|                 |
+|                 |
+      ...
++-----------------+ <-start    literal-control-block
+|       *---------+--------+    
++-----------------+        |
+|    ...          |        |
++-----------------+        |
+| arg   *---------+----+   |
++-----------------+<-------+
+| alloc <start>   |    |
++-----------------+    |
+| un*   <argument>|    |
+| ...             |    |
+| proceed         |    |
++-----------------+<---+
+| <arg1>          |
+| ...             |
+| <arg1>          |
++-----------------+           <--- This block up to here is allocated
+                                   as one block
++-----------------+           <--- Terms belonging to
+| <terms>         |                <arg1>,...,<argn> and the unification
+| ...             |                instructions
+| <terms>         |
++-----------------+   
+\end{verbatim}
+
+\subsubsection{{\tt label\_lemma\_as\_deleted()}}
+The function {\tt label\_lemma\_as\_deleted()} labels the given lemma
+as deleted and frees the compiled fact.
+
+\begin{verbatim}
+label_lemma_as_deleted(l)
+lemma *l;
+{
+if (l->deleted && !l->has_been_used){
+         // we can free the memory for this lemma
+         ...
+        }
+else {
+         // we may only mark it as deleted
+         l->deleted = TRUE;
+     }
+}
+\end{verbatim}
+
+\section{Required Changes}
+\subsection{Required Changes in setheo}
+
+Files to be modified:
+conf.c, main.c, init.c, several new header files
+
+\subsection{Required Changes in mplop}
+
+Code for {\tt genlemma} and {\tt uselemma} must be generated,
+together with new command-line options.
+
+\section{Testing}
+\subsection{Test-examples}
+{\tt to be specified}
+
+\subsection{Results of Tests}
+{\tt to be specified}
+
+\end{document}
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

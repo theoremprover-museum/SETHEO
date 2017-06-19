@@ -1,0 +1,50 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$iscompl/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$iscompl(T)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term
+	\end{description}
+\item[Low Level Name:]
+	{\tt iscompl}
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in predicate succeeds, if {\tt T} is
+bound to a complex term $f(t_1,\ldots,t_n)$, or a list.
+
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- isconst(X),...
+p(X) <- iscompl(X),...
+\end{verbatim}
+
+

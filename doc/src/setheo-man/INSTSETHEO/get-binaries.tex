@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Getting the Binaries}\label{sec:get-bin}
+
+The SETHEO system can be obtained via anonymous ftp. The ftp--server
+provides a package containing the binaries of the basic SETHEO
+programs for specific platforms (see Figure~\ref{fig:platforms}), the
+manpages, example problems and a file with installation
+hints. Binaries for other platforms will be available in the future. 
+
+\input{INSTSETHEO/platforms}
+
+To get this package you have to connect the ftp--server either by
+\begin{verbatim}
+        ftp ftp.informatik.tu-muenchen.de
+\end{verbatim}
+or by
+\begin{verbatim} 
+        ftp 131.159.0.198
+\end{verbatim}
+If the connection is established, the ftp--server will ask for your
+name and your e--mail address:
+\begin{verbatim}
+        Name: anonymous
+        Password: <your-e-mail-address>
+\end{verbatim}
+The next thing you have to do is change to the right directory, set
+the transfer mode to {\tt binary} and get the {\tt
+setheo.solaris.tar.gz} file (respectively {\tt setheo.hp.tar.gz} or
+{\tt setheo.sunos.tar.gz}, or {\tt setheo.linux.tar.gz}): 
+\begin{verbatim}
+        ftp> cd /local/lehrstuhl/jessen/Automated_Reasoning/SETHEO
+        ftp> binary
+        ftp> get setheo.solaris.tar.gz
+\end{verbatim}
+You can get a short version of this description as well. After this
+leave the ftp--server: 
+\begin{verbatim}
+        ftp> get README
+        ftp> bye
+\end{verbatim}
+
+
+

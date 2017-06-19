@@ -1,0 +1,34 @@
+// Kerberos Protocol
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+// mod'd new PIL version
+//
+Objects:
+principal A,B,S;
+sharedkey K_A_b, K_a_s, K_b_s;
+variable sharedkey K;
+statement T_a, T_s;
+//
+Assumptions:
+(A,S) believes sharedkey K_a_s;
+(B,S) believes sharedkey (B,S,K_b_s);
+S believes sharedkey (A,B,K_a_b);
+(A,B) believes S controls sharedkey (A,B,K);
+(A,B) believes fresh T_s;
+
+(A,B) believes fresh T_a;
+//
+Idealized Protocol:
+
+message 2: S -> A      {T_s, sharedkey (A,B,K_a_b), {T_s, sharedkey(A,B,K_a_b)}(K_b_s)}(K_a_s);
+message 3:      A -> B {T_s, sharedkey K_a_b}(K_b_s),{T_a,sharedkey K_a_b}(K_a_b);
+message 4:	A <- B {T_a, sharedkey K_a_b}(K_a_b);
+
+//******************
+Conjectures:
+//******************
+after message 2: A believes sharedkey K_a_b;
+after message 3: B believes sharedkey K_a_b;
+		 B believes A believes sharedkey K_a_b;
+after message 4: A believes B believes sharedkey K_a_b;
+

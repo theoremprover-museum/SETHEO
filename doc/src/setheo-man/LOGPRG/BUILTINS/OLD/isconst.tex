@@ -1,0 +1,51 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$isconst/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$isconst(T)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}]
+	term
+	\end{description}
+\item[Low Level Name:]
+	{\tt }
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in predicate succeeds, if {\tt T} is
+bound to a symbolic constant or a string.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+Numbers and complex terms (e.g., {\tt f(a,b)} are no symbolic constants.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- isconst(X),...
+p(X) <- isvar(X),...
+\end{verbatim}
+
+

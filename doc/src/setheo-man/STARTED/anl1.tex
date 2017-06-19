@@ -1,0 +1,57 @@
+\begin{figure}[htb]
+
+\psset{levelsep=8ex,linewidth=0.5pt,treefit=loose,nodesepB=4pt}
+
+\begin{center}
+
+\parbox{8cm}{
+$
+\begin{array}{l}
+    \begin{array}{l}
+        \left.
+        \begin{array}{l}
+            \longleftarrow p(X), q(X).  \\
+        \end{array}
+        \right.
+    \end{array}  \\
+    \begin{array}{ll}
+        \left.
+        \begin{array}{c}
+            p(a).  \\
+            \vdots \\
+            p(a).  \\
+        \end{array}
+        \right\}
+        &
+        100 \times
+    \end{array} \\
+    \begin{array}{l}
+        \left.
+        \begin{array}{l}
+            p(b).  \\
+            q(b).  \\
+        \end{array}
+        \right.
+    \end{array}  \\
+\end{array}
+$
+}%
+\parbox{8cm}{
+\pstree{\TR{}}
+       {\pstree[nodesepA=4pt]
+               {\TR{$\neg p(a)$}}
+               {\TR{$p(a)$}}
+        \pstree[linestyle=dotted,nodesepA=4pt]
+               {\TR{$\neg q(a)$}}
+               {\TR{\mbox{\wasy\char18}}}}
+}
+
+\end{center}
+
+\caption{A simple example for the necessity of Antilemmata: Basic ME will
+         compute the solution $X=a$,
+         detect a fail and backtrack for 100 times, before the
+         solution $X=b$ can be 
+         computed.}  
+\label{fig:anl1}
+\end{figure}

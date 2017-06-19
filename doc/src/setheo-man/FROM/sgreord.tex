@@ -1,0 +1,288 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{A general Framework for Global Reordering of Subgoals
+--- 1st Draft ---}
+\author{Johann Schumann}
+\date{29.7.92}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the data structures and instructions which
+are necessary to allow for a global (dynamic) reordering of subgoals.
+
+\end{abstract}
+
+\section{Description of Change}
+
+\subsection{Solution Provided}
+
+see Carlson 1987
+
+\subsection{The Problem}
+
+\section{Requirements for new Solution}
+
+\section{Description of New Solution}
+
+The basic idea of handling subgoal-reordering within the SAM is similar to
+that found in the PROLOG-predicates ``freeze'' and ``delay'' (see e.g.\ \cite{Carl87}).
+Each subgoal  which has to be solved is considered to be a ``light-weight'' process which has to be executed eventually.
+The order of execution of the subgoals is controlled by a given
+subgoal-selection function. This function will have access to the list of
+all (still unsolved) subgoals with their attached information. From this list,
+the subgoal to be solved next has to be selected.
+
+Note, however, that with such an approach, the memory requirements
+for the search very much depend on the order, in which the subgoals are executed.
+E.g.\ the requirements are minimal, if the subgoals are executed in a LIFO manner.
+If, however the subgoals are to be executed in a FIFO-manner, a breadth first
+search is performed. In this search mode, all data have to be kept.
+
+First, let us define what is a subgoal within the SETHEO abstract machine:
+
+A subgoal comes into existence, when the SAM-instruction ``call'' is being
+executed.
+Therefore, a subgoal cal be seen as the tuple
+$( pc,bp,{\rm argv},{\rm resources})$ where {\em pc} is the jump-address,
+{\em bp\/} is the pointer to the current environment, and {\em argv\/}
+is the second argument of the call instruction, pointing to the
+parameters of the subgoal. Furthermore, the {\em resources\/}, i.e.\ the bounds
+and counters are necessary. All other registers of the SAM are not
+needed to uniquely define a subgoal.
+
+
+Within the SAM, subgoals are considered as small processes. One is
+created whenever a {\bf call} instruction is executed. After that, the SAM
+proceeds in the execution of the next instruction instead of calling the
+subgoal.
+Additionally, a {\bf signal} is set.
+
+Whenever one inference has been finished, the status of the signal is
+to be checked and subgoals which are in the waiting list have to be executed.
+This is done, whenever a {\bf dealloc} instruction is being executed.
+
+This execution can be accomplished by the following mechanism:
+
+\begin{enumerate}
+\item
+save the current SAM-status on the stack.
+\item
+load the information contained in the process (subgoal) to be executed
+next.
+\item
+call this subgoal with a special return-address pointing to the
+following instruction which is executed {\em after\/} this subgoal
+has been solved:
+\item
+restore the old SAM-status and proceed solving the old subgoal.
+In this step, it must be checked, if there are subgoals still waiting to
+be executed.
+\end{enumerate}
+
+The steps executed above can be expressed by a number of SAM-instructions:
+
+\begin{verbatim}
+    ...
+    signal  subgoals,sublabel         // at the beginning of the formula,
+    ...                               // activate the signal mechanism
+    
+sublabel:
+    save_cntxt                        // save the SAM-registers
+    ...                               // possibly reorder waiting list
+    call_cntxt                        // call the new context
+                                      // after executing the process,
+    rest_cntxt                        // restore the old context and proceed
+\end{verbatim}
+
+\section{Data Structures}
+
+
+We have an additional register {\tt susp\_ptr}, a pointer to the list of waiting
+subgoals. This list is kept on the heap (for a first version).
+All assignments and changes to this list are being trailed.
+
+Each subgoal-process has the following data-structure:
+\begin{verbatim}
+typedef struct s_p {
+    WORD        *pc;                 // starting address of process
+    WORD        *argv;               // pointer to argument vector
+    environ     *bp;
+    int         depth; 
+    ...
+    struct s_p  *next;               // pointer to next process
+    struct s_p  *prev;               // pointer to previous process
+    } SAM_process;
+\end{verbatim}
+
+For ease of handling, this list is kept in the {\bf heap} (Version 1).
+
+Whenever a process is activated, a {\tt process-control-block} is being
+allocated on the stack (and pointed to by {\tt bp}). All information
+necessary to restore the old process environment is kept in this
+structure:
+
+\begin{verbatim}
+typedef struct {
+    WORD        *pc;                 // starting address of process
+    WORD        *argv;               // pointer to argument vector
+    environ     *bp;
+    int         depth; 
+    } process_control_block;
+\end{verbatim}
+
+\section{SAM instructions involved}
+Whenever the {\bf dealloc} instruction is being executed,
+it will be checked, if there are any processes to wake up.
+If yes, the function {\tt switch\_cntxt} is called.
+
+\section{New SAM instructions}
+\subsection{scall}
+The {\bf scall} instruction is used in the same context as the {\bf call}
+instruction. In contrast to the call instruction which {\em directly\/} calls
+a subgoal, it generates a new process denoting this subgoal to be executed,
+and proceeds.
+
+This instruction has the following pseudo-code:
+
+\begin{verbatim}
+sam_scall(){
+SAM_process *wp;
+                        // get a new process entry
+wp= (SAM_Process *)hp;
+hp += sizeof(wp)/sizeof(WORD);
+
+// fill up the new process entry
+wp->bp = bp;
+wp->depth = depth;
+...
+
+// fill in the arguments
+wp->pc   = ARG(1);
+wp->argv = ARG(2);
+
+// and link the new process into the list pointed to by susp_ptr
+wp->next = susp_ptr;
+TRAIL_VAR(susp_ptr);
+susp_ptr = wp;
+return 1;               // we are done
+}
+\end{verbatim}
+
+\subsection{save\_cntxt}
+This SAM-instruction is placed in code to which the interpreter branches
+when it detects that a process is waiting to be executed.
+This instruction allocates a {\tt process\_control\_block} on the stack
+in the way similar to an environment, and fills up this block
+with data of the SAM registers.
+
+\begin{verbatim}
+sam_save_cntxt(){
+process_control_block *pcb;
+
+pcb = sp;
+sp += sizeof(process_control_block)/ sizoef(WORD);
+
+// fill up the process control block
+pcb->bp = bp;
+bp = pcb;
+
+// pc, ra ??
+pcb->pc = signal_saved_pc;            // must still be evaluated
+...
+}
+\end{verbatim}
+
+\subsection{call\_cntxt}
+This instruction causes the process selected (pointed to by {\tt susp\_ptr})
+to be executed and the process marked as ``executed''.
+This however, is backtrackable.
+From the outside this instruction works like the {\bf call} instruction.
+\begin{verbatim}
+sam_call_cntxt(){
+
+pc = susp_ptr->pc;
+...
+}
+\end{verbatim}
+
+\subsection{rest\_cntxt}
+This instruction is used to restore the old environment after the execution of
+the process. The process control block (pointed to be {\tt bp}) is
+used to restore the SAM-registers.
+Afterwards, this block is deallocated from the stack if possible.
+
+After execution of this instruction, the SAM resumes the execution of the
+process which had been processed prior to handling the signal.
+
+\begin{verbatim}
+sam_rest_contxt(){
+..
+}
+\end{verbatim}
+
+\section{Required Changes in mplop}
+
+If subgoal reordering is requested, the {\bf call} instructions of those
+subgoals must be replaced by {\bf scall} instructions.
+Furthermore, the instruction {\bf signal} must be inserted before any
+reordering can take place.
+
+The code for handling the signal ({\bf save\_cntxt, call\_cntxt, rest\_cntxt})
+must be generated.
+
+
+\section{Required Changes in wasm}
+
+The new instructions must be understood by the {\bf wasm} and must produce
+the correct op-code.
+
+\end{document}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+\section{History}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

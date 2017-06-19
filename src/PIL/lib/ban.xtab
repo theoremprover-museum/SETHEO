@@ -1,0 +1,7 @@
+holds::100:p
+equal: = :100:i
+and:&:100:i
+nil:.:100:i
+fresh:#:100:p
+subset: > :80:i
+bel: |= :100:i

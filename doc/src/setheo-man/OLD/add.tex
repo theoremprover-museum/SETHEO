@@ -1,0 +1,185 @@
+\subsection{Adding Built-in Predicates}
+
+New built-in predicates can be added easily to the SETHEO system.
+Changes are necessary in the {\bf inwasm} and {\bf setheo} only.
+
+\subsubsection{Built-ins in inwasm}
+
+Two types of built-in predicates can be handled by {\bf inwasm}
+without changing the C-sources:
+\begin{enumerate}
+\item
+predicates which are mapped to an {\bf built} SAM-instruction, and
+\item
+predicates which are defined in a SAM-Assembler library.
+\end{enumerate}
+
+Both predicates are defined in the file {\em .inwasmrc\/} which is
+located in the current directory (or the home-directory)
+and read each time, the {\bf inwasm} is invoked. It
+consists of lines with the format:
+
+\[ : <arity> : b|l : <maj\_nu> : <name> \]
+where
+\begin{description}
+\item[$<$arity$>$]
+is the arity of the predicate,
+\item[b]
+predicates with that type are mapped to the SAM-assembler
+statement {\bf built  $<maj\_nu>$ , argv}.
+\item[l]
+predicates which are defined within a library carry such a type.
+The file-name of the library is $<name>$.lib and located in
+the \$LIBDIR which is an environment variable of {\bf wasm}.
+\item[$<maj\_nu>$]
+is the number which is the first argument of the {\bf built} instruction
+and must be same which is defined in {\em conf.c\/} of setheo.
+This number must be unique for each predicate.
+\item[$<name>$]
+is the name of the predicate to be defined.
+\end{description}
+
+Note that no blanks are allowed between the colons and the data.
+A typical startup file is shown in the following:
+
+\begin{verbatim}
+:2:b:18:size
+:3:l:0:math
+:0:b:19:precut
+:1:b:20:cut
+:0:l:0:prtdepth
+\end{verbatim}
+
+When a predicate in a library is to be called, the generated instruction
+is {\tt call $<name>$\_\_ , argv}.
+The entry-pint of the library must define the label
+{\tt $<name>$\_\_}, as shown in the example, which defines
+a predicate to print the current depth:
+
+\begin{verbatim}
+prtdepth__:
+	nalloc	1 , 137,0	% do not add depth
+	built	15 ,0           % get depth
+	lconst  1               % + 1
+	add
+	sto	0
+	out	avx002003       % print it
+	ndealloc                % and return
+avx002003:
+	.dw	var	0
+\end{verbatim}
+
+Note that the labels which are defined and used within a library must
+not be the same as used in the main program.
+Also the usage of predefined constants (e.g.\ strings) will not lead
+to the desired result.
+
+\subsubsection{Changing SETHEO}
+
+In order to implement a new built-in which can be invoked
+using a {\tt built} SAM-instruction, a C-function has to be written.
+It returns 0 if the predicates succeeds, 1 otherwise.
+The name of the function may be arbitrary, but must not coincide with a function
+name already in use (which will result in an error message during linkage).
+
+Arguments of the predicate which are of the type {\tt WORD}
+can be accessed using the macro {\tt ARGV[$<number>$]}
+where $<number>$ is the argument position staring at 0.
+The Macros returns a pointer to the argument.
+To return a value, the macro {\tt UNIF($<number>$,WORD*)}
+can be used. If the argument $<number>$ is a free variable,
+it will be bound to WORD*, if it is a constant, both values are compared
+and a fail is done if they are not equal.
+All global variables (as defined in {\em machine.h\/})
+and all SETHEO functions can be used inside the predicate.
+
+For the following let us assume that the function has the name {\em foo()\/}
+and is in the file {\em foobar.c}.
+
+As a second step the file {\em conf.c\/} must be modified.
+A Version number of SETHEO and the IDENT may be changed
+in that file. Both data will be printed when setheo is invoked.
+The newly added function {\em foo()\/} must be declared as
+{\bf int foo()}.
+At the end of the stucture {\tt built\_tab}
+the function {\em foo\/} is added.
+In comments the $<maj\_nu>$ is given which is incremented by one and
+gives the index into that structure.
+The file {\em conf.c\/} looks as follows (function {\em foo()\/} already added).
+
+\begin{verbatim}
+/* FILE: conf.c
+...
+/***************************************************************/
+/* identification name of that SETHEO version
+/***************************************************************/
+#define IDENT "MY_VERSION"
+
+/***************************************************************/
+/* Version number of SETHEO
+/***************************************************************/
+#define VERSION "2.56"
+
+int is_compl();
+int getdepth(), getinf();
+...
+int foo();
+
+int (*built_tab[])() =
+         {
+         isempty                /*  0 */
+         issubset,              /*  1 */
+         ...
+         cut,                   /* 20 */
+         foo,                   /* 21 */
+};
+\end{verbatim}
+
+
+A typical file {\em foobar.c\/} must include several setheo-include files.
+
+\begin{verbatim}
+#include <stdio.h>
+#include "machine.h"
+#include "symbtab.h"
+#include "built.h"
+
+
+#define ARGV(I) deref(code + *(pc + 2)+ I, bp);
+
+/******************************************************/
+/* foo
+/******************************************************/
+int foo()
+{
+WORD *arg1;
+
+arg1 = ARGV(0);
+
+if (GETTAG(*arg1) != T_CONST){
+	error("foo: parameter must be a constant",arg1,1);
+	return 1; /* fail */
+	}
+...
+return 0;
+}
+\end{verbatim}
+
+The customised SETHEO can be made by the following makefile:
+
+\begin{verbatim}
+LIBDIR=../gsrc      # here resides the libseth.a
+MACHINE = sun4
+CFLAGS = -c -O -D$(MACHINE) -DGRAPH_TREE -DBUILT_INS\
+         -DSTATISTICS -I../include -I./instruct
+	
+OBJS = foo.o
+
+
+setheo: $(LIBDIR)/libseth.a $(OBJS)
+        cc -o setheo $(OBJS) -L$(LIBDIR) -lseth
+
+foo.o: foo.c  
+        cc $(CFLAGS) foo.c
+\end{verbatim}
+

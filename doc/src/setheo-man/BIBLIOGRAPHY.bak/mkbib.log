@@ -1,0 +1,32 @@
+This is TeX, C Version 3.14t3 (format=lplain 95.7.11)  4 SEP 1995 13:03
+**mkbib
+(mkbib.tex
+LaTeX Version 2.09 <25 March 1992>
+(/usr/local/dist/DIR/TeX/lib/inputs/latex/article.sty
+Standard Document Style `article' <14 Jan 92>.
+(/usr/local/dist/DIR/TeX/lib/inputs/latex/art10.sty)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+)
+(/usr/local/jessen/TeX/lib/inputs/named.sty) (mkbib.aux) (mkbib.bbl) [1
+
+]
+(mkbib.aux)
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+ ) 
+Here is how much of TeX's memory you used:
+ 231 strings out of 11779
+ 2143 string characters out of 150597
+ 29675 words of memory out of 700001
+ 2383 multiletter control sequences out of 9500
+ 5931 words of font info for 24 fonts, out of 72000 for 255
+ 14 hyphenation exceptions out of 1201
+ 18i,4n,15p,432b,127s stack positions out of 300i,40n,60p,3000b,4000s
+
+Output written on mkbib.dvi (1 page, 2828 bytes).

@@ -1,0 +1,483 @@
+#########################################################################
+# makefile for `setheo"
+# VERSION:	@(#)makefile	12.1 01/02/97
+#
+# Max Moser, 12.12.91
+# J. Schumann Modifikationen 
+#########################################################################
+
+MAKEFILE=makefile
+BINSUFFIX = o
+
+include ../make.conf
+
+.PRECIOUS:	libseth.a
+
+#########################################################################
+# get name of instruction files
+#########################################################################
+include make.conf
+
+LIBDIR   = .
+LIBRARY	 = libseth.a
+CFLAGS	 = -c $(G_CFLAGS) 
+#JSC-092016
+CFLAGS	 = -g -c $(G_CFLAGS) 
+LFLAGS	 = $(G_LFLAGS) -L$(LIBDIR) -lseth -lm
+#LFLAGS	  = $(G_LFLAGS) -L$(LIBDIR) -lseth -lm -p    #for DEREF_STATISTICS
+
+
+# general setheo sources which are NOT put into the library
+#
+SOURCES		= full.c unifred.c debug.c itime.c instr.c \
+		  globals.c lcode.c deref.c\
+		  disp.c \
+		  unifeq.c unifyt.c signals.c sighand.c \
+		  init.c errors.c  \
+		  main.c conf.c \
+		  cmdline.c	\
+		  univ_constr.c taut_constr.c reg_constr.c \
+		  unitlemma.c match.c genlemma.c \
+                  antilemma.c termcomplexity.c bounds.c \
+                  weighted_depth.c dynsgreord.c fvars.c ptree.c \
+		  spt_aux.c disp_lit.c \
+		  memory.c
+
+JSC_092016_ADD =  \
+		  store_subg.c iand.c iand_subs.c store_task.c pvm.c eo.c \
+# Last two lines for sptheo
+
+IMPORTDIRS = path
+IMPORTEDSOURCES = path/list.c path/newmemory.c path/path.c \
+                  path/path_interface.c
+
+#########################################################################
+
+OBJS 		= full.o unifred.o debug.o itime.o instr.o \
+		  globals.o lcode.o deref.o \
+		  disp.o \
+		  unifeq.o unifyt.o signals.o sighand.o \
+		  init.o errors.o  \
+		  main.o conf.o \
+		  cmdline.o	\
+		  univ_constr.o taut_constr.o reg_constr.o \
+		  unitlemma.o match.o genlemma.o \
+                  antilemma.o termcomplexity.o bounds.o \
+                  weighted_depth.o dynsgreord.o fvars.o ptree.o \
+		  spt_aux.o disp_lit.o \
+		  store_subg.o iand.o iand_subs.o store_task.o pvm.o eo.o \
+		  memory.o
+
+JSC_092016_OBJ= \
+                  list.o newmemory.o path.o path_interface.o 
+
+# First two lines of the last three lines for sptheo
+
+#########################################################################
+#########################################################################
+#   TARGETS
+#
+#########################################################################
+all:	sam
+
+sam:	$(OBJS) $(INSTROBJS)
+	$(RANLIB) $(LIBRARY)
+	$(CC) -o sam $(OBJS) $(LFLAGS)
+	chmod a+rx sam
+
+#sam:	$(OBJS) $(INSTROBJS)
+#	$(CC) -o sam $(OBJS) $(LFLAGS)
+#	chmod a+rx sam
+
+install: all
+	cp sam $(BINDIR)/sam
+	chmod a+rx $(BINDIR)/sam
+
+#########################################################################
+newrelease:
+	sccs edit -r$(SAMRELEASE) SCCS
+	sccs delta -y"new major release $(SAMRELEASE)" SCCS
+	(cd path; \
+		sccs edit -r$(SAMRELEASE) SCCS && \
+	sccs delta -y"new major release $(SAMRELEASE)" SCCS)
+
+clean:
+	rm -f *.o y.output y.tab.c lex.yy.c core $(LIBRARY)
+	sccs clean
+	(cd path; sccs clean)
+
+clobber:
+	rm -f *.o y.output y.tab.c lex.yy.c core $(LIBRARY) sam
+
+lint:
+	@echo lint -paxbh -DLINT ...
+	@lint -paxbh -DLINT $(SOURCES) $(INSTRSOURCES)
+
+tags: $(SOURCES) $(INSTRSOURCES)
+	@echo ctags -tw ...
+	@ctags -tw $(SOURCES) $(INSTRSOURCES)
+  
+$(GINCLDIR)/symbtab.h: $(GINCLDIR)/codedef.h
+
+$(GINCLDIR)/unitlemma.h: $(GINCLDIR)/path/path.h
+
+#########################################################################
+# make imported sources
+#########################################################################
+# path:
+
+depend:
+# do not consider conditional included files
+# and <> included files
+#
+	@echo 'Enter    sccs edit makefile    before    make depend !'
+	@echo 'Generating dependencies ...'
+	@for j in $(IMPORTEDSOURCES) ; do \
+		( i=`basename $$j`; targ=`basename $$i .c`.o; \
+		grep '^#[ 	]*include[ 	]*"' $$j | sed -n \
+			-e 's/[^"]*"\([^"]*\)".*/$$(GINCLDIR)\/\1/' \
+			-e H -e '$$g' -e '$$s/\n/ /g' \
+			-e '$$s|.*|'$$i': '$$j' &\
+				$$(CC) $$(CFLAGS) $$(IMPORTEDCFLAGS) '$$j'|'\
+			-e '$$s/\.c:/.$(BINSUFFIX):/p' \
+			>> makedep); done
+	@for j in $(INSTRSOURCES) ; do \
+		( i=`basename $$j`; targ=`basename $$i .c`.o; \
+		grep '^#[ 	]*include[ 	]*"' $$i | sed -n \
+			-e 's/[^"]*"\([^"]*\)".*/$$(GINCLDIR)\/\1/' \
+			-e H -e '$$g' -e '$$s/\n/ /g' \
+			-e '$$s/.*/'$(LIBRARY)'('$$i'): '$$i' &\
+				$$(CC) $$(CFLAGS) '$$i' \&\& $$(AR) rv $$(LIBRARY) '$$targ/\
+			-e '$$s/\.c):/.'$(BINSUFFIX)'):/p' \
+			>> makedep); done
+	@for i in $(SOURCES); do \
+		( grep '^#[ 	]*include[ 	]*"' $$i | sed -n \
+			-e 's/[^"]*"\([^"]*\)".*/$$(GINCLDIR)\/\1/' \
+			-e H -e '$$g' -e '$$s/\n/ /g' \
+			-e '$$s/.*/'$$i': '$$i' &\
+				$$(CC) $$(CFLAGS) '$$i/\
+			-e '$$s/\.c:/.$(BINSUFFIX):/p' \
+			>> makedep); done
+	@echo '... dependencies generated.
+#	@echo '/^# DO NOT DELETE THIS LINE/+2,$$d' >eddep
+	@echo '$$r makedep' >>eddep
+	@echo 'w' >>eddep
+	@cp $(MAKEFILE) $(MAKEFILE).bak
+	ed - $(MAKEFILE) < eddep
+	@echo 'Makefile changed.'
+	@rm -f eddep makedep
+	@echo '# DEPENDENCIES MUST END AT END OF FILE' >> $(MAKEFILE)
+	@echo '# IF YOU PUT STUFF HERE IT WILL GO AWAY' >> $(MAKEFILE)
+	@echo '# see make depend above' >> $(MAKEFILE)
+	@rm -f $(MAKEFILE).bak
+
+# DO NOT DELETE THIS LINE
+list.o: path/list.c  $(GINCLDIR)/path/list.h
+			$(CC) $(CFLAGS) $(IMPORTEDCFLAGS) path/list.c
+newmemory.o: path/newmemory.c  $(GINCLDIR)/path/newmemory.h
+			$(CC) $(CFLAGS) $(IMPORTEDCFLAGS) path/newmemory.c
+path.o: path/path.c  $(GINCLDIR)/path/path.h
+			$(CC) $(CFLAGS) $(IMPORTEDCFLAGS) path/path.c
+path_interface.o: path/path_interface.c  $(GINCLDIR)/path/path_interface.h
+			$(CC) $(CFLAGS) $(IMPORTEDCFLAGS) path/path_interface.c
+libseth.a(i_alloc.o): i_alloc.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/bounds.h $(GINCLDIR)/i_nalloc.h $(GINCLDIR)/weighted_depth.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_alloc.c && $(AR) rv $(LIBRARY) i_alloc.o
+libseth.a(i_nalloc.o): i_nalloc.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/i_nalloc.h $(GINCLDIR)/deref.h $(GINCLDIR)/weighted_depth.h
+			$(CC) $(CFLAGS) i_nalloc.c && $(AR) rv $(LIBRARY) i_nalloc.o
+libseth.a(i_dealloc.o): i_dealloc.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/i_ndealloc.h $(GINCLDIR)/weighted_depth.h
+			$(CC) $(CFLAGS) i_dealloc.c && $(AR) rv $(LIBRARY) i_dealloc.o
+libseth.a(i_ndealloc.o): i_ndealloc.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/i_ndealloc.h $(GINCLDIR)/bounds.h $(GINCLDIR)/deref.h $(GINCLDIR)/termcomplexity.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_ndealloc.c && $(AR) rv $(LIBRARY) i_ndealloc.o
+libseth.a(i_fold_up.o): i_fold_up.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_fold_up.c && $(AR) rv $(LIBRARY) i_fold_up.o
+libseth.a(i_reg_fold_up.o): i_reg_fold_up.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/reg_constr.h
+			$(CC) $(CFLAGS) i_reg_fold_up.c && $(AR) rv $(LIBRARY) i_reg_fold_up.o
+libseth.a(i_call.o): i_call.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/deref.h $(GINCLDIR)/reg_constr.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/weighted_depth.h $(GINCLDIR)/sps.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_call.c && $(AR) rv $(LIBRARY) i_call.o
+libseth.a(i_stop.o): i_stop.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_stop.c && $(AR) rv $(LIBRARY) i_stop.o
+libseth.a(i_break.o): i_break.c  $(GINCLDIR)/my_unistd.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_break.c && $(AR) rv $(LIBRARY) i_break.o
+libseth.a(i_jmp.o): i_jmp.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_jmp.c && $(AR) rv $(LIBRARY) i_jmp.o
+libseth.a(i_jmpz.o): i_jmpz.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_jmpz.c && $(AR) rv $(LIBRARY) i_jmpz.o
+libseth.a(i_jmpg.o): i_jmpg.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_jmpg.c && $(AR) rv $(LIBRARY) i_jmpg.o
+libseth.a(i_unvoid.o): i_unvoid.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_unvoid.c && $(AR) rv $(LIBRARY) i_unvoid.o
+libseth.a(i_unconst.o): i_unconst.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/univ_constr.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_unconst.c && $(AR) rv $(LIBRARY) i_unconst.o
+libseth.a(i_unvar.o): i_unvar.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_unvar.c && $(AR) rv $(LIBRARY) i_unvar.o
+libseth.a(i_ungterm.o): i_ungterm.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_ungterm.c && $(AR) rv $(LIBRARY) i_ungterm.o
+libseth.a(i_unngterm.o): i_unngterm.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_unngterm.c && $(AR) rv $(LIBRARY) i_unngterm.o
+libseth.a(i_unglobl.o): i_unglobl.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_unglobl.c && $(AR) rv $(LIBRARY) i_unglobl.o
+libseth.a(i_orbranch.o): i_orbranch.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/i_orbranch.h $(GINCLDIR)/bounds.h $(GINCLDIR)/fvars.h
+			$(CC) $(CFLAGS) i_orbranch.c && $(AR) rv $(LIBRARY) i_orbranch.o
+libseth.a(i_porbranch.o): i_porbranch.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/i_orbranch.h $(GINCLDIR)/unifeq.h
+			$(CC) $(CFLAGS) i_porbranch.c && $(AR) rv $(LIBRARY) i_porbranch.o
+libseth.a(i_fail.o): i_fail.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/defaults.h $(GINCLDIR)/i_fail.h $(GINCLDIR)/antilemma.h $(GINCLDIR)/deref.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/bounds.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_fail.c && $(AR) rv $(LIBRARY) i_fail.o
+libseth.a(i_reduct.o): i_reduct.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unifred.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_reduct.c && $(AR) rv $(LIBRARY) i_reduct.o
+libseth.a(i_ureduct.o): i_ureduct.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unifred.h
+			$(CC) $(CFLAGS) i_ureduct.c && $(AR) rv $(LIBRARY) i_ureduct.o
+libseth.a(i_proceed.o): i_proceed.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/bounds.h $(GINCLDIR)/deref.h $(GINCLDIR)/termcomplexity.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_proceed.c && $(AR) rv $(LIBRARY) i_proceed.o
+libseth.a(i_add.o): i_add.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_add.c && $(AR) rv $(LIBRARY) i_add.o
+libseth.a(i_mul.o): i_mul.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_mul.c && $(AR) rv $(LIBRARY) i_mul.o
+libseth.a(i_sub.o): i_sub.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_sub.c && $(AR) rv $(LIBRARY) i_sub.o
+libseth.a(i_div.o): i_div.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_div.c && $(AR) rv $(LIBRARY) i_div.o
+libseth.a(i_lod.o): i_lod.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_lod.c && $(AR) rv $(LIBRARY) i_lod.o
+libseth.a(i_sto.o): i_sto.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_sto.c && $(AR) rv $(LIBRARY) i_sto.o
+libseth.a(i_glod.o): i_glod.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_glod.c && $(AR) rv $(LIBRARY) i_glod.o
+libseth.a(i_gsto.o): i_gsto.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_gsto.c && $(AR) rv $(LIBRARY) i_gsto.o
+libseth.a(i_lconst.o): i_lconst.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_lconst.c && $(AR) rv $(LIBRARY) i_lconst.o
+libseth.a(i_assign.o): i_assign.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unifyt.h
+			$(CC) $(CFLAGS) i_assign.c && $(AR) rv $(LIBRARY) i_assign.o
+libseth.a(i_genreg.o): i_genreg.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/reg_constr.h
+			$(CC) $(CFLAGS) i_genreg.c && $(AR) rv $(LIBRARY) i_genreg.o
+libseth.a(i_genxreg.o): i_genxreg.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/reg_constr.h
+			$(CC) $(CFLAGS) i_genxreg.c && $(AR) rv $(LIBRARY) i_genxreg.o
+libseth.a(i_genureg.o): i_genureg.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/reg_constr.h
+			$(CC) $(CFLAGS) i_genureg.c && $(AR) rv $(LIBRARY) i_genureg.o
+libseth.a(i_cgen.o): i_cgen.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/taut_constr.h
+			$(CC) $(CFLAGS) i_cgen.c && $(AR) rv $(LIBRARY) i_cgen.o
+libseth.a(i_ptree.o): i_ptree.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/ptree.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_ptree.c && $(AR) rv $(LIBRARY) i_ptree.o
+libseth.a(i_out.o): i_out.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h
+			$(CC) $(CFLAGS) i_out.c && $(AR) rv $(LIBRARY) i_out.o
+libseth.a(i_tell.o): i_tell.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_tell.c && $(AR) rv $(LIBRARY) i_tell.o
+libseth.a(i_told.o): i_told.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_told.c && $(AR) rv $(LIBRARY) i_told.o
+libseth.a(i_eqpred.o): i_eqpred.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unifeq.h
+			$(CC) $(CFLAGS) i_eqpred.c && $(AR) rv $(LIBRARY) i_eqpred.o
+libseth.a(i_eq_built.o): i_eq_built.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unifeq.h
+			$(CC) $(CFLAGS) i_eq_built.c && $(AR) rv $(LIBRARY) i_eq_built.o
+libseth.a(i_neq_built.o): i_neq_built.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unifeq.h
+			$(CC) $(CFLAGS) i_neq_built.c && $(AR) rv $(LIBRARY) i_neq_built.o
+libseth.a(i_equ_unif.o): i_equ_unif.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_equ_unif.c && $(AR) rv $(LIBRARY) i_equ_unif.o
+libseth.a(i_isunifiable.o): i_isunifiable.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_isunifiable.c && $(AR) rv $(LIBRARY) i_isunifiable.o
+libseth.a(i_isnotunifiable.o): i_isnotunifiable.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_isnotunifiable.c && $(AR) rv $(LIBRARY) i_isnotunifiable.o
+libseth.a(i_pre_cut.o): i_pre_cut.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_pre_cut.c && $(AR) rv $(LIBRARY) i_pre_cut.o
+libseth.a(i_cut.o): i_cut.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_cut.c && $(AR) rv $(LIBRARY) i_cut.o
+libseth.a(i_is_var.o): i_is_var.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_is_var.c && $(AR) rv $(LIBRARY) i_is_var.o
+libseth.a(i_is_nonvar.o): i_is_nonvar.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_is_nonvar.c && $(AR) rv $(LIBRARY) i_is_nonvar.o
+libseth.a(i_is_number.o): i_is_number.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_is_number.c && $(AR) rv $(LIBRARY) i_is_number.o
+libseth.a(i_is_const.o): i_is_const.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_is_const.c && $(AR) rv $(LIBRARY) i_is_const.o
+libseth.a(i_is_compl.o): i_is_compl.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_is_compl.c && $(AR) rv $(LIBRARY) i_is_compl.o
+libseth.a(i_rand_reorder.o): i_rand_reorder.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_rand_reorder.c && $(AR) rv $(LIBRARY) i_rand_reorder.o
+libseth.a(i_setrand.o): i_setrand.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_setrand.c && $(AR) rv $(LIBRARY) i_setrand.o
+libseth.a(i_galloc.o): i_galloc.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_galloc.c && $(AR) rv $(LIBRARY) i_galloc.o
+libseth.a(i_size.o): i_size.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_size.c && $(AR) rv $(LIBRARY) i_size.o
+libseth.a(i_tdepth.o): i_tdepth.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_tdepth.c && $(AR) rv $(LIBRARY) i_tdepth.o
+libseth.a(i_getdepth.o): i_getdepth.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getdepth.c && $(AR) rv $(LIBRARY) i_getdepth.o
+libseth.a(i_getinf.o): i_getinf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getinf.c && $(AR) rv $(LIBRARY) i_getinf.o
+libseth.a(i_getmaxinf.o): i_getmaxinf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getmaxinf.c && $(AR) rv $(LIBRARY) i_getmaxinf.o
+libseth.a(i_getlocinf.o): i_getlocinf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getlocinf.c && $(AR) rv $(LIBRARY) i_getlocinf.o
+libseth.a(i_set_depth.o): i_set_depth.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_depth.c && $(AR) rv $(LIBRARY) i_set_depth.o
+libseth.a(i_set_inf.o): i_set_inf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_inf.c && $(AR) rv $(LIBRARY) i_set_inf.o
+libseth.a(i_set_maxinf.o): i_set_maxinf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_maxinf.c && $(AR) rv $(LIBRARY) i_set_maxinf.o
+libseth.a(i_set_locinf.o): i_set_locinf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_locinf.c && $(AR) rv $(LIBRARY) i_set_locinf.o
+libseth.a(i_functor.o): i_functor.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/disp.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_functor.c && $(AR) rv $(LIBRARY) i_functor.o
+libseth.a(i_arg.o): i_arg.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/disp.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_arg.c && $(AR) rv $(LIBRARY) i_arg.o
+libseth.a(i_genlemma.o): i_genlemma.c  $(GINCLDIR)/path/path.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/genlemma.h $(GINCLDIR)/disp.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) i_genlemma.c && $(AR) rv $(LIBRARY) i_genlemma.o
+libseth.a(i_genulemma.o): i_genulemma.c  $(GINCLDIR)/path/path.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/disp.h $(GINCLDIR)/errors.h $(GINCLDIR)/genlemma.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) i_genulemma.c && $(AR) rv $(LIBRARY) i_genulemma.o
+libseth.a(i_checklemma.o): i_checklemma.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_checklemma.c && $(AR) rv $(LIBRARY) i_checklemma.o
+libseth.a(i_checkulemma.o): i_checkulemma.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_checkulemma.c && $(AR) rv $(LIBRARY) i_checkulemma.o
+libseth.a(i_addtoindex.o): i_addtoindex.c  $(GINCLDIR)/path/path.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/genlemma.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_addtoindex.c && $(AR) rv $(LIBRARY) i_addtoindex.o
+libseth.a(i_checkindex.o): i_checkindex.c  $(GINCLDIR)/path/path.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/genlemma.h
+			$(CC) $(CFLAGS) i_checkindex.c && $(AR) rv $(LIBRARY) i_checkindex.o
+libseth.a(i_uselemma.o): i_uselemma.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/path/path.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) i_uselemma.c && $(AR) rv $(LIBRARY) i_uselemma.o
+libseth.a(i_dumplemma.o): i_dumplemma.c  $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) i_dumplemma.c && $(AR) rv $(LIBRARY) i_dumplemma.o
+libseth.a(i_getnrlemmata.o): i_getnrlemmata.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getnrlemmata.c && $(AR) rv $(LIBRARY) i_getnrlemmata.o
+libseth.a(i_delrange.o): i_delrange.c  $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) i_delrange.c && $(AR) rv $(LIBRARY) i_delrange.o
+libseth.a(i_path2list.o): i_path2list.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/disp.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_path2list.c && $(AR) rv $(LIBRARY) i_path2list.o
+libseth.a(i_assume.o): i_assume.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_assume.c && $(AR) rv $(LIBRARY) i_assume.o
+libseth.a(i_init_counters.o): i_init_counters.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) i_init_counters.c && $(AR) rv $(LIBRARY) i_init_counters.o
+libseth.a(i_getcounter.o): i_getcounter.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_getcounter.c && $(AR) rv $(LIBRARY) i_getcounter.o
+libseth.a(i_set_counter.o): i_set_counter.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_counter.c && $(AR) rv $(LIBRARY) i_set_counter.o
+libseth.a(i_get_maxfvars.o): i_get_maxfvars.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_get_maxfvars.c && $(AR) rv $(LIBRARY) i_get_maxfvars.o
+libseth.a(i_set_maxfvars.o): i_set_maxfvars.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_maxfvars.c && $(AR) rv $(LIBRARY) i_set_maxfvars.o
+libseth.a(i_get_maxtc.o): i_get_maxtc.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_get_maxtc.c && $(AR) rv $(LIBRARY) i_get_maxtc.o
+libseth.a(i_set_maxtc.o): i_set_maxtc.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_maxtc.c && $(AR) rv $(LIBRARY) i_set_maxtc.o
+libseth.a(i_get_maxsgs.o): i_get_maxsgs.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_get_maxsgs.c && $(AR) rv $(LIBRARY) i_get_maxsgs.o
+libseth.a(i_set_maxsgs.o): i_set_maxsgs.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) i_set_maxsgs.c && $(AR) rv $(LIBRARY) i_set_maxsgs.o
+libseth.a(i_lpo.o): i_lpo.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/unifeq.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_lpo.c && $(AR) rv $(LIBRARY) i_lpo.o
+libseth.a(i_lpoeq.o): i_lpoeq.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/unifeq.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_lpoeq.c && $(AR) rv $(LIBRARY) i_lpoeq.o
+libseth.a(i_kbo.o): i_kbo.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/unifeq.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) i_kbo.c && $(AR) rv $(LIBRARY) i_kbo.o
+libseth.a(i_sig.o): i_sig.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/bounds.h
+			$(CC) $(CFLAGS) i_sig.c && $(AR) rv $(LIBRARY) i_sig.o
+libseth.a(i_precall.o): i_precall.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) i_precall.c && $(AR) rv $(LIBRARY) i_precall.o
+libseth.a(i_isempty.o): i_isempty.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_isempty.c && $(AR) rv $(LIBRARY) i_isempty.o
+libseth.a(i_issubset.o): i_issubset.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_issubset.c && $(AR) rv $(LIBRARY) i_issubset.o
+libseth.a(i_ismember.o): i_ismember.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_ismember.c && $(AR) rv $(LIBRARY) i_ismember.o
+libseth.a(i_card.o): i_card.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_card.c && $(AR) rv $(LIBRARY) i_card.o
+libseth.a(i_mkempty.o): i_mkempty.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_mkempty.c && $(AR) rv $(LIBRARY) i_mkempty.o
+libseth.a(i_addtoset.o): i_addtoset.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_addtoset.c && $(AR) rv $(LIBRARY) i_addtoset.o
+libseth.a(i_remfromset.o): i_remfromset.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_remfromset.c && $(AR) rv $(LIBRARY) i_remfromset.o
+libseth.a(i_selnth.o): i_selnth.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_selnth.c && $(AR) rv $(LIBRARY) i_selnth.o
+libseth.a(i_selnext.o): i_selnext.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_selnext.c && $(AR) rv $(LIBRARY) i_selnext.o
+libseth.a(i_postunify.o): i_postunify.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_postunify.c && $(AR) rv $(LIBRARY) i_postunify.o
+libseth.a(i_argsize.o): i_argsize.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/disp.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_argsize.c && $(AR) rv $(LIBRARY) i_argsize.o
+libseth.a(i_preunify.o): i_preunify.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_preunify.c && $(AR) rv $(LIBRARY) i_preunify.o
+libseth.a(i_array_assign.o): i_array_assign.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_array_assign.c && $(AR) rv $(LIBRARY) i_array_assign.o
+libseth.a(i_array_glod.o): i_array_glod.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_array_glod.c && $(AR) rv $(LIBRARY) i_array_glod.o
+libseth.a(i_array_gsto.o): i_array_gsto.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h
+			$(CC) $(CFLAGS) i_array_gsto.c && $(AR) rv $(LIBRARY) i_array_gsto.o
+full.o: full.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unification.h $(GINCLDIR)/proto_unify.h $(GINCLDIR)/full.h $(GINCLDIR)/debug.h $(GINCLDIR)/deref.h $(GINCLDIR)/disp.h
+			$(CC) $(CFLAGS) full.c
+unifred.o: unifred.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/unifred.h $(GINCLDIR)/deref.h $(GINCLDIR)/unification.h
+			$(CC) $(CFLAGS) unifred.c
+debug.o: debug.c  $(GINCLDIR)/codedef.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/debug.h
+			$(CC) $(CFLAGS) debug.c
+itime.o: itime.c  $(GINCLDIR)/unitlemma.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/iteration.h $(GINCLDIR)/itime.h $(GINCLDIR)/bounds.h $(GINCLDIR)/errors.h $(GINCLDIR)/genlemma.h $(GINCLDIR)/init.h $(GINCLDIR)/instr.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) itime.c
+instr.o: instr.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/instr.h $(GINCLDIR)/debug.h $(GINCLDIR)/errors.h $(GINCLDIR)/i_fail.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) instr.c
+globals.o: globals.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/codedef.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/sps.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/globals.h
+			$(CC) $(CFLAGS) globals.c
+lcode.o: lcode.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/lcode.h $(GINCLDIR)/errors.h $(GINCLDIR)/init.h
+			$(CC) $(CFLAGS) lcode.c
+deref.o: deref.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) deref.c
+disp.o: disp.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/codedef.h $(GINCLDIR)/disp.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) disp.c
+unifeq.o: unifeq.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/unifeq.h $(GINCLDIR)/deref.h
+			$(CC) $(CFLAGS) unifeq.c
+unifyt.o: unifyt.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/errors.h $(GINCLDIR)/deref.h $(GINCLDIR)/unifyt.h $(GINCLDIR)/full.h
+			$(CC) $(CFLAGS) unifyt.c
+signals.o: signals.c  $(GINCLDIR)/signals.h $(GINCLDIR)/itime.h $(GINCLDIR)/deref.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/my_unistd.h $(GINCLDIR)/sighand.h
+			$(CC) $(CFLAGS) signals.c
+sighand.o: sighand.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/debug.h $(GINCLDIR)/itime.h $(GINCLDIR)/sps.h $(GINCLDIR)/sighand.h
+			$(CC) $(CFLAGS) sighand.c
+init.o: init.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/init.h $(GINCLDIR)/errors.h $(GINCLDIR)/sps.h $(GINCLDIR)/unitlemma.h
+			$(CC) $(CFLAGS) init.c
+errors.o: errors.c  $(GINCLDIR)/my_unistd.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) errors.c
+main.o: main.c  $(GINCLDIR)/my_unistd.h $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/cmdline.h $(GINCLDIR)/sampars.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/iteration.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/sps.h $(GINCLDIR)/pvm3.h $(GINCLDIR)/bounds.h $(GINCLDIR)/cmdline.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/init.h $(GINCLDIR)/itime.h $(GINCLDIR)/lcode.h $(GINCLDIR)/signals.h
+			$(CC) $(CFLAGS) main.c
+conf.o: conf.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/conf.h
+			$(CC) $(CFLAGS) conf.c
+cmdline.o: cmdline.c  $(GINCLDIR)/cmdline.h
+			$(CC) $(CFLAGS) cmdline.c
+univ_constr.o: univ_constr.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/codedef.h $(GINCLDIR)/proto_unify.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/univ_constr.h $(GINCLDIR)/antilemma.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/unifred.h
+			$(CC) $(CFLAGS) univ_constr.c
+taut_constr.o: taut_constr.c  $(GINCLDIR)/tags.h $(GINCLDIR)/constraints.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/taut_constr.h $(GINCLDIR)/univ_constr.h
+			$(CC) $(CFLAGS) taut_constr.c
+reg_constr.o: reg_constr.c  $(GINCLDIR)/tags.h $(GINCLDIR)/constraints.h $(GINCLDIR)/machine.h $(GINCLDIR)/disp.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/reg_constr.h $(GINCLDIR)/univ_constr.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) reg_constr.c
+unitlemma.o: unitlemma.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/opcodes.h $(GINCLDIR)/defaults.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/debug.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) unitlemma.c
+match.o: match.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/opcodes.h $(GINCLDIR)/defaults.h $(GINCLDIR)/match.h $(GINCLDIR)/deref.h $(GINCLDIR)/disp.h $(GINCLDIR)/unifeq.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) match.c
+genlemma.o: genlemma.c  $(GINCLDIR)/path/path.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/genlemma.h $(GINCLDIR)/ptree.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/deref.h $(GINCLDIR)/match.h
+			$(CC) $(CFLAGS) genlemma.c
+antilemma.o: antilemma.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/defaults.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/unitlemma.h $(GINCLDIR)/antilemma.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/univ_constr.h
+			$(CC) $(CFLAGS) antilemma.c
+termcomplexity.o: termcomplexity.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/termcomplexity.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) termcomplexity.c
+bounds.o: bounds.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/bounds.h $(GINCLDIR)/weighted_depth.h
+			$(CC) $(CFLAGS) bounds.c
+weighted_depth.o: weighted_depth.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/weighted_depth.h
+			$(CC) $(CFLAGS) weighted_depth.c
+dynsgreord.o: dynsgreord.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/dynsgreord.h $(GINCLDIR)/bounds.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h $(GINCLDIR)/termcomplexity.h $(GINCLDIR)/weighted_depth.h
+			$(CC) $(CFLAGS) dynsgreord.c
+fvars.o: fvars.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/fvars.h $(GINCLDIR)/deref.h $(GINCLDIR)/errors.h
+			$(CC) $(CFLAGS) fvars.c
+ptree.o: ptree.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/ptree.h
+			$(CC) $(CFLAGS) ptree.c
+spt_aux.o: spt_aux.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) spt_aux.c
+store_subg.o: store_subg.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) store_subg.c
+iand.o: iand.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) iand.c
+iand_subs.o: iand_subs.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/defaults.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) iand_subs.c
+store_task.o: store_task.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/codedef.h $(GINCLDIR)/symbtab.h $(GINCLDIR)/disp.h $(GINCLDIR)/defaults.h $(GINCLDIR)/sps.h $(GINCLDIR)/my_unistd.h
+			$(CC) $(CFLAGS) store_task.c
+pvm.o: pvm.c  $(GINCLDIR)/constraints.h $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/pvm3.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) pvm.c
+eo.o: eo.c  $(GINCLDIR)/tags.h $(GINCLDIR)/machine.h $(GINCLDIR)/sps.h
+			$(CC) $(CFLAGS) eo.c
+# DEPENDENCIES MUST END AT END OF FILE
+# IF YOU PUT STUFF HERE IT WILL GO AWAY
+# see make depend above

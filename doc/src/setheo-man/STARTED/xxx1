@@ -1,0 +1,94 @@
+
+\section{Tutorial 1}
+
+Assume you have been given the following problem to prove\footnote{
+	PELLAAR: citation}:
+\begin{quote}
+Let $p$ and $q$ be two binary relations.
+For the relations we know the following properties:
+$p$ and $q$ are transitive. Furthermore, $q$ is symmentric.
+Additionally, we know that for each pair of elements, this pair is
+either in relation $p$ or in relation $q$.
+
+Now, we have to show that at least one of thr relations $p$ or $q$
+is total.
+\end{quote}
+
+As a first step, we have to write down this problem in a formal
+notation, expanding the definitions of ``transitive'', ``symmetric'',
+and ``total''. 
+A relation $r$\footnote{
+	With $XrY$ we denote that $X$ is in relation $r$ with $Y$.
+	}
+ is transitive, if
+\[ \forall X,Y,Z  XrY \wedge YrZ \rightarrow XrZ,\]
+it is symmetric, if
+\[ \forall X,Y  XrY \rightarrow YrX,\]
+and total (i.e., all elements are in the relation $r$), if
+\[ \forall X,Y  XrY.\]
+
+Now, given the formal definitions of all properties, you are invited
+to take a sheet of paper and try to prove the theorem.
+
+Did you make it?
+If not, don't be desparate. There is a proof in Table~\ref{tab:started:nonob-proof} at the end of this Chapter and furthermore, there is SETHEO to
+support you.
+
+In order to use SETHEO to automatically find a proof, you have to write
+down the problem in first order predicate logic.
+In general, such a formula is of the form
+\[ 
+{\cal A}_1 \wedge \ldots  \wedge {\cal A}_1 \rightarrow {\cal T}
+\]
+where ${\cal A}_i$ are Axioms (in our case, the properties of the relations
+$p$ and $q$, and ${\cal T}$ is the theorem we want to show.
+When we insert the definitions, we obtain:
+
+\vspace*{4cm}
+
+Before starting SETHEO, two further steps must be done:
+the formula must be converted into Conjunctive Normal Form (CNF)
+and the syntax must be changed.
+Although the first step can be performed automatically, we will describe
+how our formula is converted into CNF.
+If you want to do this manually, proceed to Section~\ref{sec:started:2cnf}.
+
+\subsection{Manual Preparation of the formula}
+Since SETHEO does not understand \LaTeX\ and infix mathematical
+notation, we have to modify the syntax according to the following
+rules.
+\begin{itemize}
+\item
+SETHEO does not understand infix notation (well, there are some exceptions).
+Therefore, instead of $XrY$ we have to write our binary relation $r$
+as a predicate of arity two: {\tt r(X,Y)}\footnote{
+	Actually, there is quite a number of different ways to
+	convert the syntax. E.g., one could have written instead:
+	{\tt isInRelation(r,X,Y)}. For further details see our third
+	tutorial.}.
+This predicate has the meaning: $\mbox{{\tt r(X,Y)}} \equiv {\rm\bf T}$
+iff $X$ and $Y$ are in the relation $r$.
+
+\item
+All variables must start with an uppercase letter or an underscore
+e.g.,{\tt X, Y, \_99, \_}, all
+predicate-, function-, and constant symbols must start with a lowercase
+letter (e.g., {\tt r, f(X)}.
+\item
+The connectives and qunatifiers must be changed into an ASCII representation
+(e.g., $\forall$ must be written as {\tt forall}).
+\end{itemize}
+
+For details on the syntax see Chapter~\ref{chap:file-formats}.
+
+
+\subsection{Manual Preparation of the formula}
+The transformation of an arbitrary formula into CNF is described in detail
+in many textbooks. Here, we refer to \cite{Lov78,Chang75}.
+The transformation consists of essentially two activitites: 
+removing all logical operators which do not belong to CNF, and
+elimination of the quantifiers by skolemization.
+
+Furthermore,
+
+

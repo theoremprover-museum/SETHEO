@@ -1,0 +1,217 @@
+\subsection{genulemma/3}
+{\tt genulemma(N1,N2,N3)}
+
+\begin{description}
+	\item[{\tt N1}]
+	This number indicates the number of the literal for which
+	a unit-lemma is to be generated. {\tt N1} must be in the
+	range between $1$ and the length of the clause (including
+	built-in literals).
+	\item[{\tt N2}]
+	If this number is $\neq 0$, the generation of a unit-lemma
+	is considered. Otherwise, this predicate just succeeds.
+	\item[{\tt N3}]
+	If a unit-lemma is stored in the index, this number will be
+	stored together with the lemma. This information can the
+	be used when unit-lemmata are being used (e.g., by {\bf uselemma/1}).
+	\end{description}
+\item[Low Level Name:]
+	{\tt genulemma}
+\item[Result:]\ \\
+	This built-in predicate always succeeds. Memory overflow and
+	wronly instantiated parameters will result in a 
+	non-fatal run-time error.
+\end{description}
+
+%----------------------------------------------------
+This built-in generates a unit-lemma {\tt L<-.} for a literal
+{\tt ~L} in the current clause. Its number is given as the first argument.
+The lemma is generated, if all of the following
+conditions hold.
+The lemma will be annotated by the value of the third argument
+(must be a number).
+
+\begin{itemize}
+\item
+all arguments must be instantitated to numbers,
+otherwise, a run-time error is generated.
+\item
+the first argument must be instantiated to a number
+in the range between $1$ and the length of the clause (including
+built-in literals).
+\item
+the value of the second argument is $\neq 0$,
+\item
+the current instantiation of the given literal is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+%----------------------------------------------------
+Notes:
+\begin{itemize}
+\item
+the range of the first argument is NOT checked
+\item
+it is not checked, if the solution of the given literal required
+reduction steps above the current node in the tableau.
+Therefore, it is easily possible to generate unsound proofs, if
+yet unsolved literals are kept as lemmata.
+\item
+all built-in literals (including this one) count as literals
+\end{itemize}
+
+
+%----------------------------------------------------
+
+\begin{verbatim}
+q(X,Y) <- p(X),genulemma(2,1,5),r(X,Y).
+\end{verbatim}
+
+generates a lemma {\tt p(a)<-.}, if X is instantiated to {\tt a}.
+The lemma carries the number $5$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{uselemma/1}
+
+{\tt uselemma(N)}
+
+
+during run-time, only lemmata from the index may be used which carry
+a number which is smaller than the given parameter.
+
+%----------------------------------------------------
+
+This built-in always succeeds. If the pushed lemmata and the remaining
+alternatives are to be tried, this built-in must be directly followed
+by a {\bf fail}.
+%----------------------------------------------------
+This built-in tries to use lemmata from the lemma-store.
+This built-in must be used within a clause of a specific structure
+as shown below.
+When called, this built-in extracts all lemmata from the index
+and marks them as possible choices, which fulfill the following conditions:
+\begin{enumerate}
+\item
+the lemma in the index must not be marked ``deleted''.
+\item
+the lemma must be unifiable with the head of the current clause.
+\item
+the number stored with the lemma must be smaller ($<$) than the
+given parameter.
+\end{description}.
+
+After adding the choices, this built-in succeeds, If the
+selected lemmata are to be tried, a fail must be executed
+after this built-in.
+Then, the lemmata are tried and then
+all other or-branches for
+the current subgoal which have not yet been touched are tried.
+
+
+%----------------------------------------------------
+
+The following example illustrates the usage of this built-in.
+\begin{verbatim}
+...
+p(a,b) <-..
+p(b,c) <-..
+
+p(_,_) <- uselemma(5),fail.
+
+p(e,f) <-.
+..
+\end{verbatim}
+
+If the clauses are not reordered, SETHEO first tries the alternatives
+{\tt p(a,b)..} and {\tt p(b,c)..}.
+Then it extracts all suitable lemmata from the lemma store.
+
+These lemmata are pushed upon the stack as additional alternatives
+which are tried (caused by the fail), before {\tt p(e,f)..} are tried.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{getnrlemma/1}
+{\tt getnrlemma(N)}
+
+this parameter unifies with the number of lemmata currently in the
+lemma index.
+%----------------------------------------------------
+This built-in fails, if the unification fails.
+%----------------------------------------------------
+This built-in unifies the given argument with the number
+of lemmata which are currently stored (and not deleted) in the
+lemma store.
+
+%----------------------------------------------------
+\begin{verbatim}
+p(X) <- getnrlemmata(Y), X > Y.
+\end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{dumplemma/0}
+{\tt dumplemma}
+
+%----------------------------------------------------
+This built-in always succeeds.
+%----------------------------------------------------
+This built-in dumps all lemmata in the lemma-store
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+Lemmata which have been marked deleted are preceeded by a {\bf \#}.
+This option is present for debugging and testing purposes and may
+be removed in future versions.
+
+%----------------------------------------------------
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dumplemma,told.
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{dlrange/2}
+
+{\tt dlrange(N1,N2)}
+
+N1: lower bound of the range to print
+N2: upper bound of the range to print
+%----------------------------------------------------
+This built-in succeeds, if both parameters are
+instantiated to numbers.
+%----------------------------------------------------
+
+This built-in dumps all lemmata in the lemma-store
+with annotated values between the first and the second parameter
+(inclusive; both parameters must be instantiated to numbers)
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+
+%----------------------------------------------------
+Example:
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dlrange(3,4),told.
+\end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{delrange/2}
+{\tt delrange(N1,N2)}
+N1: lower bound of the range to print
+N2: upper bound of the range to print
+%----------------------------------------------------
+This built-in succeeds, if both parameters are
+instantiated to numbers.
+%----------------------------------------------------
+This built-in deletes all lemmata in the lemma store
+with annotated values between the first and the second parameter
+(inclusive).
+Both parameters must be instantiated to a number.
+

@@ -1,0 +1,130 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{Time-limits for SETHEO}
+\author{Johann Schumann}
+\date{21.9.94}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the changes necessary for introducing
+real-time and CPU-time limits for the SAM.
+tree.
+
+\end{abstract}
+
+\noindent{\bf Keywords:}  time-limits
+
+\noindent{\bf Action: } {\tt EXTENSION}
+
+\section{Detailed Description}
+
+For the SETHEO Abstract Machines, two kinds of run-time limits
+are introduced:
+\begin{description}
+\item[realtimelimit]
+This limit aborts the run of SETHEO after a given number of seconds
+(real, ``wall-clock'' time).
+This limit is useful in combination with interactive systems which
+require a limitiation of the run-time of SETHEO.
+The timer starts, as soon as the parameters of {\bf sam} have been parsed.
+
+\item[cputimelimit]
+This limit aborts the run of SETHEO after the abstract machine
+has consumed a number of seconds user (CPU) time.
+\end{itemize}
+
+Whereas the {\bf realtimelimit} is realised, using the {\bf alarm(2)}
+timer and the signal SIGALRM is used, the implementation of
+the cpu-time limit is more complicated.
+Since a signal which is raised on CPU-time limit (SIGXCPU) is not available
+on each architecture, a portable solution is provided.
+
+\subsection{Informal Description}
+
+For the CPU-time limit we propose the following (portable)
+algorithm:
+
+Let {\tt cputime\_limit} be the given time-limit in seconds.
+Then, a global variable {\tt cputime} is initialized using the
+times(2) system call during start-up of the system.
+Then, an alarm is set to ring after {\tt cputime\_limit} seconds.
+After that time, the current elapsed cpu-time is estimated by
+{\tt now - cputime}, where {\tt now} is the current values as returned
+by times(2). If the difference {\tt now - cputime - cputime\_limit}
+(which is {\em always $\geq 0$}) is greater than 1 second, a new alarm
+is set up with that difference.
+Otherwise, the run of the abstract machine is aborted with
+``CPU time failure''.
+
+If the new alarm rings off, the same procedure applies again.
+
+Therefore we obtain:
+
+\[ {\tt cputime\_limit}-1 \leq t_{CPU} \leq {\tt cputime\_limit} \]
+
+where $t_{CPU}$ is the really consumed CPU time. All times
+are given in seconds. A finer resolution of the limit is not possible.
+\section{Specification of Algorithms and Data Structures}
+\section{SAM-Based Specification}
+\subsection{Data Structures}
+\subsection{SAM instructions involved}
+\subsection{New Instructions}
+\section{Required Changes}
+\subsection{Required Changes in setheo}
+Files to be modified:
+alloc.c, call.c, reduct.c, output*.c
+
+\section{Manual Pages}
+
+\section{Discussion of Problems}
+\section{Testing}
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

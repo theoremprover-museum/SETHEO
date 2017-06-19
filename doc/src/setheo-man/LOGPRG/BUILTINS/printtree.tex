@@ -1,0 +1,46 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$ptree/0}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$printtree}
+\item[Low Level Name:]
+	{\tt printtree }
+\item[Result:]\ \\
+This built-in always succeeds.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+When this built-in is encountered, it appends the current tableau
+to the file {\em file}.tree.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+(1) In the current version, {\bf xptree(1)} can only display one proof at a time.\\
+(2) The entire tableau is printed, not just the part, starting with the
+current clause.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+find_all_proofs :- q(X,Y),$ptree,$fail.
+\end{verbatim}
+When called, this clause tries to find all solutions for the subgoal
+{\tt q(X,Y)}, and appends the proof for each solution to the tree-file.
+
+

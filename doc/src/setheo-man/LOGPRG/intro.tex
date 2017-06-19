@@ -1,0 +1,61 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%	16.12.96
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The basic Model Elimination Calculus and SETHEO's way of
+searching for a proof is quite similar to the way, a PROLOG program
+is executed. 
+Therefore, we have added a variety of techniques to SETHEO which allows
+SETHEO to be used for logic-programming purposes as well as for
+pure automated theorem proving. In particular, these logic programming
+facilities allow to control the behavior of SETHEO.
+Thus, e.g., different search strategies, generation and usage of
+lemmata can be implemented easily (in a prototypical way). 
+
+In the current version of SETHEO, two major extensions are provided:
+global, backtrackable variables (see following Section~\ref{sec:globvar}, 
+and PROLOG-style built-in predicates.
+
+Syntactically, a built-in predicate is an {\tt ATOM} in the LOP-language,
+corresponding to the syntax definition in Section~\ref{sec:lop-syntax}.
+Except for built-ins for arithmetic, all built-in predicates
+are of the form $\$p$ or $\$p(t_1,\ldots,t_n)$.
+The name of the predicate symbol always starts with a $\$ $ sign in order
+to be able to distinguish syntactically between ordinary predicate symbols
+and built-ins. Such a built-in must alway occur in the {\em tail\/}
+of a clause.
+The complete list of built-ins is given in the following sections of
+this Chapter. For each built-in, we give its name, synopsis, a description,
+and one or more example demonstrating the usage of the built-in.
+
+When using built-in predicates, several items must be taken
+into account:
+\begin{itemize}
+\item
+when using built-ins, SETHEO can become both unsound and incomplete.
+\item
+built-in predicates can have side-effects. Therefore, the order in which
+these predicates are executed are important. Since, per default,
+SETHEO reorders the subgoals of the clauses, it is advisable to turn
+off subgoal reordering ({\tt -nosgreord} flag of {\bf inwasm}), or to
+use procedural clauses (with a {\tt :-} as separator.
+
+\item
+Although all built-ins can be used in combination with non-Horn clauses
+as well, no clear semantics can be defined in that case.
+
+\item
+The list, described in this manual, describes all predicates, available
+with SETHEO Version V3.3. Future versions will probably extend this list.
+\item
+When using built-ins and global variables, it might be advisable to turn
+off the search-space reduction techniques, since these might disable
+the execution of clauses with procedural side-effects only.
+\end{itemize}
+
+

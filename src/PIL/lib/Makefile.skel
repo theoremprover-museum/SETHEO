@@ -1,0 +1,15 @@
+# skeleton Makefile
+# Makefile produced by pil     
+
+setheo = ILFBANSETHEO
+SETHEO = ILFBANSETHEO -fakemail
+MKREPORT=mkreport
+
+clean:
+	rm -f $(PROOFS:.tree=.lop)
+	rm -f $(PROOFS:.tree=.log)
+	rm -f $(PROOFS:.tree=.ilf)
+	rm -f $(PROOFS:.tree=.tex)
+	rm -f $(PROOFS)
+
+

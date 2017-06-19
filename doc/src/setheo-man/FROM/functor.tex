@@ -1,0 +1,227 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{The built-in predicate ``functor/3''}
+\author{Johann Schumann}
+\date{27.3.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the behavior and implementation of the built-in
+{\bf functor/3}.
+Additionally, we describe the built-in {\bf negate/2} which negates
+a predicate symbol.
+
+\end{abstract}
+
+\noindent{\bf Keywords:}  built-in, prolog
+
+\noindent{\bf Action: } {\tt EXTENSION}
+
+\section{Solution Provided}
+
+none
+
+\subsection{Problems with Solution Provided}
+	
+No means for assembly and disassembly of complex terms provided.
+
+
+\section{Detailed Description}
+
+\subsection{Informal Description}
+
+The behavior of the built-in {\bf functor/3} is similar to that
+in PROLOG as described in [Clo81], except, that the SETHEO system
+requires all symbols to have a fixed arity.
+
+The built-in is used as follows: {\bf functor(T,F,A)}.
+
+If {\bf T} is instantiated to a term, then {\bf F} is set to the
+Functor, and {\bf A} to its arity. A constant always has the arity $0$.
+%
+If, however, {\bf T} is an unbound variable, a new complex term
+with functor {\bf F} and arity {\bf A} is created with new variables
+$X_1, \ldots, X_{\bf A}$.
+
+
+The built-in {\bf negate(I,O)} must be called with a predicate symbol
+(= constant) as its first argument. If it is one, {\bf O} is unified
+with its negation.
+
+Example: {\tt negate(p,X),write(X)} results in {\tt ~p}.
+
+
+\section{SAM-Based Specification}
+
+\subsection{Data Structures}
+
+none
+
+\subsection{New SAM instructions}
+
+\subsubsection{The functor-instruction}
+
+A new SAM instruction {\bf functor} is being defined. Its argument
+points to a correponding argument vector of length 3.
+
+The pseudo-code of {\bf functor} is as follows:
+
+\begin{verbatim}
+functor(){
+
+// if we have a constant: functor = T and arity = 0
+if (ISCONST(T)){
+	unify(F,T) && unify(0,A);
+	return success;
+	}
+// if we have a complex term (gterm,ngterm,crterm)
+if (ISCOMPL(T)){
+	funct=GETVAL(*T); // get the index of the functor
+	unify(GENOBJ(funct,T_CONST),A) && unify(symbtab[funct].arity,A);
+	return success;
+	}
+// if the first argument is a variable,
+// we have to construct a new term
+if (ISVAR(T)){
+	if (!ISCONST(F)) return failure; // F must be set
+	unify(symbtab[GETVAL(F)].arity,A) &&
+		// create a new term with variables on the heap,
+		// and let the variable T point to it
+	unify(T,heapgen(T_CRTERM,GETVAL(F)); 
+	}
+}
+\end{verbatim}
+
+
+\subsubsection{The negate-instruction}
+
+The pseudo-code for this built-in is as follows. Again, the argument
+of this built-in is a pointer to a one-element argument vector.
+
+\begin{verbatim}
+negate()
+{
+int fu;
+int unsigned_fu;
+
+if (! ISCONST(ARGPTR(1))){
+	return failure;
+	}
+fu = GETVAL(ARGPTR(1));
+// get the unsigned version of the predicate
+if (IS_NEG(fu)) fu = CHANGE_SIGN(fu);
+else 		unsigned_fu = fu;
+if (!symbtab[unsigned_fu].type == predicate) return failure;
+
+// unify the changed predicate with the 2nd argument
+unify(GENOBJ(,CHANGE_SIGN(fu),T_CONST),ARGPTR(1)+1) && 
+	return success;
+}
+\end{verbatim}
+
+\subsection{Additional C-functions within SETHEO}
+\subsubsection{The function heapgen}
+
+The function {\em heapgen\/} generates a new term with new variables
+on the heap, and returns a pointer to it.
+
+\begin{verbatim}
+WORD *heapgen(tag,functor)
+int tag,functor;
+{
+WORD *hp_save = hp;
+int i;
+
+GENOBJ(hp++,functor,tag);   // create new term-head
+for (i=0; i< symbtab[functor].arity;i++){
+	GENOBJ(hp++,0,T_FVAR);
+	}
+return hp_save;
+}
+\end{verbatim}
+
+The generation of the new variables must be conform to the generation
+of constraints.
+
+        
+
+
+\section{Required Changes}
+
+\subsection{Required Changes in sam}
+
+Files to be modified: conf.c
+
+New files: i\_functor.c, i\_negate.c
+
+\subsection{Required Changes in inwasm}
+
+The instructions {\bf functor, negate} must be added to the set of
+built-in predicates.
+
+Furthermore, the user must be allowed to use functors and predicate
+symbols (and their negation) additionally as constants. Changes (still
+to be specified) must be made in the symbol-table, the scanner and
+parser.
+
+\section{Required Changes in wasm}
+
+Must be compiled after makeing setheo.
+
+\section{The Testing}
+\subsection{Test-examples}
+{\tt Beispiele hier angeben}
+
+\subsection{Results of Tests}
+{\tt Resultate: Ausgabe, Zeiten,... angeben}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & inwasm & wasm & sam \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{inwasm} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{sam}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

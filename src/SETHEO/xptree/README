@@ -1,0 +1,11 @@
+usage:
+xpree -td nu -ctab xtab ....  file.tree
+
+xtab:
+
+operator:symbol:prec:ip
+
+operator = lop term functor
+symbols = symbol to display
+prec = operator precedence
+ip = i or p

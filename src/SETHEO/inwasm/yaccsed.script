@@ -1,0 +1,189 @@
+/^typedef struct {.*} yytoktype;/{
+   n
+   N
+   N
+   N
+   N
+   h
+   d
+    }
+/"-unknown-".*\/\* ends search \*\//{
+   N
+   p
+   g
+    }
+/^char \* yyreds\[] =/,/^};/s/\\/&&/g
+/yaccpar 1.10/i\
+#include <stdio.h>\
+#include <ctype.h>\
+static char *yydisplay(ch)\
+register int ch; {  /* Verdeutlichung der terminalen Symbole */\
+register yytoktype *p;  /*nach Schreiner*/\
+static char buf[15];\
+if (ch==0) return "[end of file]";\
+if (ch<0) return "[none]";\
+for (p=yytoks;p->t_val>=0;++p) if (p->t_val==ch) return p->t_name;\
+switch(ch) {\
+  case '\\b': return "'\\\\b'";\
+  case '\\f': return "'\\\\f'";\
+  case '\\n': return "'\\\\n'";\
+  case '\\r': return "'\\\\r'";\
+  case '\\t': return "'\\\\t'";\
+  case '\\v': return "'\\\\v'";\
+  }\
+if (isascii(ch) && isprint(ch)) sprintf(buf,"'%c'",ch);\
+else if (ch<256) sprintf(buf,"char %4.3o",ch);\
+else             sprintf(buf,"token %d",ch);\
+return buf;\
+}\
+yyerror(s)  /* Verbesserte Fehlermeldungen */\
+register char *s; {  /*nach Schreiner*/\
+extern int yynerrs;\
+static int list = 0;\
+if (!list) {\
+  printf("[error %d] ",yynerrs+1); yywhere();\
+  if (list=s[strlen(s)-1]==':') fputs(s,stdout);\
+    else puts(s);\
+  } else if (*s!='\\n') putchar(' '),fputs(s,stdout);\
+    else putchar('\\n'),list=0;\
+}\
+extern char yytext[];\
+extern int yyleng,yylineno;\
+yywhere() {  /* Fehlerplatzierung durch Bezug auf yytext */\
+register int colon=0;  /*nach Schreiner*/\
+if (yylineno>0) {\
+  if (colon) fputs(", ",stdout);\
+   printf("line %d",yylineno-((*yytext=='\\n')||(!*yytext)));\
+   colon=1;\
+  }\
+switch (*yytext) {\
+  case '\\0':\
+  case '\\n': break;\
+  default: if (colon) putchar(' ');\
+    printf("near \\"%.*s\\"",yyleng>20 ? 20 :\
+	   yytext[yyleng-1]=='\\n' ? yyleng-1 : yyleng,yytext);\
+    colon=1;\
+  }\
+if (colon) fputs(": ",stdout);\
+}\
+yyputsy(ind)  /* Zuordnung Zustand-Symbol im Analysekeller */\
+int ind; {\
+int i,j; register char *cp;\
+if ((i=yychk[ind])>=0) printf("%s ",yydisplay(i));\
+  else if (-i<=YYNPROD) { char c;\
+    j=0; while (yyr1[++j]!=(-i)); cp=yyreds[j];\
+    do fputc((c=(*(cp++))),stdout); while (c!=' ');\
+    } else fputs("-- ",stdout);\
+}\
+#define yydbg(x) ((yydebug^yydebug>>x)&1)
+/^#define YYRECOVERING/a\
+#ifndef YYDEBST\
+#       define YYDEBST 8\
+#endif
+/^int yydebug.*;/{
+   s//int yydebug = 0;/
+   s/to 1/> 0/
+    }
+/\*\* Initialize externals/{
+   N
+   a\
+#if YYDEBUG\
+if ( yydebug ) {\
+  printf("yydebug = %d\\n",yydebug);\
+  printf("debug-mode: States, Stack: %3d\\n",yydbg(1));\
+  if ( yydbg(1) )\
+    printf("max. number of stack-items:%3d\\n",YYDEBST);\
+  printf("            Received token:%3d\\n",yydbg(2));\
+  printf("            Pops, uncovers:%3d\\n",yydbg(3));\
+  printf("            Discards token:%3d\\n",yydbg(4));\
+  printf("            Reduce by rule:%3d\\n",yydbg(5));\
+  }\
+#endif /* YYDEBUG */
+    }
+/\*\* we have a new state -/{
+   N
+   a\
+#if YYDEBUG\
+if ( yydbg(1) ) {\
+  register int *yy_i,i;\
+  printf("State %d", yy_state);\
+  if (yychar>=0) printf(",token %s",yydisplay(yychar));\
+  putchar('\\n');\
+  i=0; yy_i=yy_ps;\
+  while ((yy_i>yys) && (i<YYDEBST)) {i++;yy_i--;}\
+  if (i) {\
+  printf("Stack: ");\
+  for(;yy_i<yy_ps;) yyputsy(*(++yy_i));\
+  putchar('\\n');\
+  }\
+}\
+#endif /* YYDEBUG */
+    }
+/\/\* simple state \*\//a\
+#if YYDEBUG\
+yytmp=yychar<0;\
+#endif /* YYDEBUG */
+/			yychar = 0;		\/\* reached EOF \*\//a\
+#if YYDEBUG\
+if ( yydbg(2) && yytmp )\
+  printf("Received token %s\\n",yydisplay(yychar));\
+#endif /* YYDEBUG */
+/yydef\[ yy_state ] ) == -2/{
+   N
+   a\
+#if YYDEBUG\
+yytmp=yychar<0;\
+#endif /* YYDEBUG */
+    }
+/			case 0:/a\
+if ((yy_n=yypact[yy_state])>YYFLAG && (yy_n<YYLAST)) {\
+  register int x,y=0;\
+  for (x=yy_n>0 ? yy_n : 0; x<YYLAST; ++x)\
+    if ((yychk[yyact[x]]==x-yy_n) && (x-yy_n!=YYERRCODE)) {\
+      if (!y) {\
+	yyerror("syntax error, expecting:"); y=1;\
+	}\
+      yyerror(yydisplay(x-yy_n));\
+      }\
+  if (y) yyerror("\\n");\
+    else yyerror("syntax error");\
+  }\
+  else
+/yynerrs++;/{
+   h
+   d
+    }
+/skip_init:/{
+   p
+   g
+    }
+/\*\* "error", pop stack/{
+   N
+   a\
+#if YYDEBUG\
+if ( yydbg(3) ) {\
+  printf("Error recovery pops state %d",*yy_ps);\
+  if (yy_ps>yys) printf(",uncovers state %d\\n",yy_ps[-1]);\
+  else putchar('\\n');\
+  printf("               pops symbol "); yyputsy(*yy_ps);\
+  if (yy_ps>yys) {\
+    printf(", uncovers symbol "); yyputsy(yy_ps[-1]);\
+    } else printf(", stack is empty");\
+  putchar('\\n');\
+  }\
+#endif /* YYDEBUG */
+    }
+/\/\* no shift yet; eat a token \*\//a\
+#if YYDEBUG\
+if (yydbg(4) )\
+  printf("Error recovery discards token %s\\n",yydisplay(yychar));\
+#endif /* YYDEBUG */
+/\*\* put stack tops, etc\. so /{
+   N
+   a\
+#if YYDEBUG\
+if ( yydbg(5) )\
+  printf("Reduce by (%d) \\"%s\\"\\n",yy_n,yyreds[yy_n]);\
+#endif
+    }
+/^#if YYDEBUG/,/^#endif/d

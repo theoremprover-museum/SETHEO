@@ -1,0 +1,98 @@
+\section{Return values of the SETHEO system}
+\begin{description}
+\item[0]
+	print usage or print verbosity levels {\tt inwasm -verbose}
+\item[0]
+	no input file specified
+\item[1]
+	error in command-line parameters
+\item[2]
+	cannot open input or output files
+\item[3]
+	command parameters are not consistent
+\item[1]
+	syntax errors occurred (abort after parsing)
+\item[4]
+	purity removed all clauses. ``Fail'' is generated.
+\item[1]
+	errors occurred during preprocessing (before code
+	generation)
+\item[0]
+	successful termination
+\item[7]
+	code generation: out of memory
+\item[7]
+	code generation: undefined labels during pass2
+\item[11]
+	code generation: symbol table overflow
+\item[9]
+	code generation: optimizer internal: must be a label
+
+\end{description}
+
+\begin{description}
+\item[1]
+	usage
+\item[1]
+	no input file specified
+\item[1]
+	error in command-line arguments
+\item[2]
+	could not open input- or output files
+\item[1]
+	syntax error during pass1
+\item[1]
+	syntax error during pass2
+\item[0]
+	successful termination
+\item[1]
+	illegal nesting of include's
+\item[1?]
+	out of memory
+\end{description}
+
+\begin{description}
+\item[3]
+	error during loading hex-file
+\item[1]
+	usage
+\item[9]
+	illegal parameter
+\item[5]
+	input file missing
+\item[1]
+	error in command-line parameter
+\item[2]
+	no input file
+\item[1]
+	cannot open input file
+\item[0]
+	quit from interactive mode
+\item[5]
+	CPU-time or real-time failure
+\item[?]
+	exit value of ``sam\_error()'' in case, no singals are enabled.
+\item[0]
+	SUCCESS (instr\_result)
+\item[1]
+	FAILURE (instr\_result)
+\item[2]
+	ABORT (instr\_result)
+\item[3]
+	error during \SAM-execution (instr\_result)
+\item[4]
+	memory overflow
+\item[5]
+	total failure
+\item[6]
+	failure (depth bound reached)
+\item[7]
+	failure (copy bound reached ???)
+\item[8]
+	failure (inference bound reached ???)
+\item[9]
+	failure (local inference bound reached ???)
+\item[10]
+	failure (constraints)
+\end{description}
+

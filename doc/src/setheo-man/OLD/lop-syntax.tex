@@ -1,0 +1,152 @@
+\begin{verbatim}
+		-------------------------------------------
+		LOP-SYNTAX FOR THEOREM PROVING APPLICATIONS 
+		-------------------------------------------
+
+The syntax fragment of LOP relevant for theorem proving applications is 
+inductively defined in a BNF-type format. We are using quasi-quotation 
+technique with the following conventions. 
+
+1. `::=' is the definition symbol, and `|' is the logical `or' of the 
+   meta-language. 
+   
+2. Strings of capital letters in the meta-language denote arbitrary strings 
+   of object-level symbols. 
+   
+3. All other symbols in the definienda denote the respective 
+   object-level symbols.
+
+4. Concatenation of strings `s1' and `s2' is expressed by writing `s1^s2'.
+   Accordingly, the empty string in the object language is encoded with 
+   the symbol `^' in the meta-language. 
+   
+5. An empty space in the meta-language between strings designates arbitrary 
+   many concatenations of empty spaces and comments in the object language,   
+   including the empty word; for the definition of comments see `COMMENT' 
+   below. Here, `\N' denotes `newline' and `\T' denotes `tabulator'.
+
+6. The symbol `&' in the meta-language denotes an arbitrary string in the 
+   object language not containing `\', including the empty string.
+
+
+Definiens	Definiendum		
+
+CLAUSE		::= GOAL     
+		|   AXIOM  
+		|   QUERY    
+		|   RULE     
+
+GOAL		::= <- TAIL .
+		|   <- TAIL : CONSTRAINTS .
+
+AXIOM		::= HEAD <- TAIL . 
+		|   HEAD <- TAIL : CONSTRAINTS .
+		|   HEAD <- .  
+		|   HEAD <- : CONSTRAINTS .
+
+
+QUERY		::= ?- TAIL .
+		|   ?- TAIL : CONSTRAINTS .
+
+RULE		::= LITERAL .
+		|   LITERAL : CONSTRAINTS .
+		|   LITERAL :- TAIL .
+		|   LITERAL :- TAIL : CONSTRAINTS .
+
+HEAD		::= LITERAL 
+		|   LITERAL ; HEAD
+
+TAIL		::= SUBGOAL
+		|   SUBGOAL , TAIL
+
+LITERAL		::= ATOM
+		|   ~ ATOM
+
+SUBGOAL		::= LITERAL
+		|   BUILT_IN
+
+ATOM 		::= CONSTANT 
+		|   CONSTANT^TERMLIST
+
+CONSTRAINTS	::= CONSTRAINT
+		|   CONSTRAINTS , CONSTRAINT
+
+CONSTRAINT	::= [ CTERMS ] =/= [ CTERMS ]
+
+TERMLIST	::= ( TERMS )
+
+TERMS	 	::= TERM
+		|   TERM , TERMS
+
+TERM		::= CONSTANT
+		|   VARIABLE
+		|   GLOBAL_VARIABLE
+		|   LIST
+		|   CONSTANT^TERMLIST
+
+CTERMLIST	::= ( CTERMS )
+
+CTERMS	 	::= CTERM
+		|   CTERM , CTERMS
+
+CTERM		::= CONSTANT
+		|   VARIABLE
+		|   STRUCT_VARIABLE
+		|   LIST
+		|   CONSTANT^CTERMLIST
+
+LIST		::= [ ]
+		|   [ TERM | LIST ]
+		|   [ TERMS ]
+
+CONSTANT	::= SMALLCHARACTER^WORD
+		|   NAT
+		|   "^&^"
+
+VARIABLE	::= BIGCHARACTER^WORD
+		|   _^WORD
+
+STRUCT_VARIABLE	::= #^VARIABLE
+
+GLOBAL_VARIABLE ::= $^VARIABLE
+
+WORD		::= ^
+		|   WORD^SMALLCHARACTER
+		|   WORD^BIGCHARACTER
+		|   WORD^CIPHER
+		|   WORD^_
+
+SMALLCHARACTER	::= a | b | c | ... | x | y | z
+
+BIGCHARACTER	::= A | B | C | ... | X | Y | Z 
+
+NAT 		::= CIPHER
+		|   CIPHER^NAT
+
+CIPHER		::= 0 | 1 | 2 | ... | 7 | 8 | 9
+
+COMMENT		::= /*^&^*/
+		| \N^#^&
+		| \T^%^&
+
+
+Additinally, LOP inputs must fulfill the following consistency condition, 
+which is different from PROLOG. No predicate symbol must occur as a function 
+symbol, and conversely. No predicate or function symbol must occur with more 
+than one arity in the input.
+
+GOALS are fanned and taken as top clauses
+AXIOMS are fanned but not taken as top clauses
+QUERIES are not fanned but taken as top clauses
+RULES are not fanned and not taken as top clauses
+
+CONSTRAINS are syntactical disequations of terms. They can be considered as 
+additional subgoals of the clauses which are permanently checked. 
+
+STRUCT_VARIABLES in constraints are treated as universally quantified 
+variables of the whole clause. The constraint [X] =/= [f(#Y)] is
+violated, when X is istantiated to a term of the form f(TERM).
+	            
+
+\end{verbatim}
+

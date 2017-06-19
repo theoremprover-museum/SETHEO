@@ -1,0 +1,47 @@
+proof ::= treelist '.'
+
+treelist ::= '[' seq_of_trees ']'
+
+seq_of_trees ::= '[' tree ']'
+               | seq_of_trees ',' '[' tree ']'
+
+tree ::= literal { ',' '[' infnumber ',' infdescr ']' { ',' treelist } }
+
+literal ::= { '~' } atom
+
+atom ::= pred_funct_symb { '(' seq_of_terms ')' }
+       | term '=' term
+
+seq_of_terms ::= term
+               | seq_of_terms ',' term
+
+term ::= var
+       | pred_funct_symb { '(' seq_of_terms ')' }
+       | number
+
+infdescr ::= ext '(' number ',' number ')'
+           | red '(' number ')'
+           | built_in
+
+infnumber ::= number
+
+ext ::= 'ext'
+
+red ::= 'red'
+
+built_in ::= 'built_in'
+
+number ::= digit 
+         | digit number
+
+digit = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
+
+pred_funct_symb ::= lletter letter*
+
+var ::= uletter letter*
+
+uletter ::= '_' | 'A' | ... | 'Z'
+
+lletter ::= 'a' | ... | 'z'
+
+letter ::= uletter | lletter | digit

@@ -1,0 +1,40 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$fail/0}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$fail}
+\item[Low Level Name:]
+	{\tt fail }
+\item[Result:]\ \\
+This built-in always fails.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in unconditionally fails and thus represents an
+unsolvable subgoal.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- q(X,Y),$write(Y),$write("\n"),$fail.
+\end{verbatim}
+
+This clause tries to find all solutions for the subgoal {\tt q} and
+prints the corresponding substitution of the variable {\tt Y}.
+
+

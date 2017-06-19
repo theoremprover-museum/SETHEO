@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$tell/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$tell(T)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term or string
+	\end{description}
+\item[Low Level Name:]
+	{\tt tell}
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+When this built-in is encountered, the \SAM\ tries to open a file
+with the given name in the ``append mode'' ("+a"). 
+Subsequent outputs (e.g., by
+{\tt \$write} or {\tt \$dumplemma}) will be written into that file.
+If a named file has been open previously, that file is closed prior
+to opening the new one.
+
+In contrast to PROLOG, no nested {\tt \$tell}'s are allowed.
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+Since strings and terms are treated likewise, {\tt \$tell(foo)} and
+{\tt \$tell("foo")} have the same effect.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- $tell("output"),$write(X),$told.
+\end{verbatim}
+
+

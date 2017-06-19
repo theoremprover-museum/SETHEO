@@ -1,0 +1,165 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{inwasm}\label{sec:inwasm}
+
+\Inw\/ (INput for Warren ASeMbler) takes clauses in \LOP\/
+notation and compiles them into \SAM\/ assembler code.  The
+output  may  then  be  processed  by \wasm. As an internal
+representation a weak--unification connection graph  is
+generated and preprocessed. For that purpose constraints can be
+computed in order to avoid redundant substitutions. A simple
+reordering  of  input  clauses (short before long) and their
+subgoals (according to the first fail principle) is  set  by
+default.  For  the syntax of the input language \LOP, see the
+description in section \ref{sec:lop}.  \Inw\/  destinguishes
+between  declarative clauses (axioms) and procedural clauses
+(rules). In the Non--Horn case all  declarative  clauses  are
+fanned  into contrapositives. Also code to perform reduction
+steps is added in this case.
+
+\begin{description}
+\item[Synopsis:]
+     {\ \\
+      \begin{tabular}{lp{10cm}}
+      {\tt inwasm}  &  {\tt [-[no]purity] [-nofan] [-[no]reduct] 
+                            [-nosgreord] [-noclreord] [-notree] 
+                            [-randreord] [-eqpred] [-all] [-reg] 
+                            [-subs] [-taut] [ -cons] [-foldup] 
+                            [-foldupx] [-folddown] [-folddownx]
+                            [-[no]partialtree] [-verbose  [number]]
+                            [-lop]}  \\
+      {\tt file}    &  
+      \end{tabular}}
+\item[Options:]
+     {Switching off (or enforcing) default settings:
+      \begin{description}
+      \item[{\tt -[no]purity}]
+           {\ \\
+            Suppress or enforce purity. Purity is performed by default.}
+      \item[{\tt -nofan}]
+           {\ \\
+            Suppress fanning of declarative clauses.}
+      \item[{\tt -[no]reduct}]
+           {\ \\
+            Suppress or enforce code  generation  for  a  reduction 
+            steps.  Reduction  steps  guarantee  competeness in the
+            Non--Horn case.}
+      \item[{\tt -nosgreord}]
+           {\ \\
+            Turns off subgoal reordering in clauses with more  than
+            two literals.}
+      \item[{\tt -noclreord}]
+           {\ \\
+            Turns off clause reordering.}
+      \item[{\tt -notree}]
+           {\ \\
+            Writing the proof tree to a file is disabled.}
+      \end{description}
+
+      Modifying the search strategy:
+      \begin{description}
+      \item[{\tt -randreord}]
+           {\ \\
+            Insert code for random reordering of or--branches.}
+      \item[{\tt -eqpred}]
+           {\ \\
+            Insert code for detecting 'identical--predecessor--fails'
+            during the proof search.}
+      \item[{\tt -all}]
+           {\ \\
+            With this option all possible proofs within the current
+            bounds  are enumerated. For each proof \SE\/ fails and
+            adds the new proof--tree to the .tree file. Before using
+            \xp\/  the  file  must  be  splitted. The option is
+            especially useful in combination with  write--statements
+            to display answer substituitions of query variables.}
+      \end{description}     
+
+      Enabling constraints:
+      \begin{description}
+      \item[{\tt -reg}]
+           {\ \\
+            Instructions for full regularity check via  constraints
+            are inserted.}
+      \item[{\tt -subs}]
+           {\ \\
+            Instructions to activate 'unit subsumption constraints'
+            are inserted.}
+      \item[{\tt -taut}]
+           {\ \\
+            Instructions to add 'tautology constraints' are added.}
+      \item[{\tt -cons}]
+           {\ \\
+            All kinds of constraints are computed and inserted into
+            the code file.}
+      \end{description}     
+
+      New inference rules:
+      \begin{description}     
+      \item[{\tt -foldup}]
+           {\ \\
+            Insert code to factorize subgoals with previous ones.}
+      \item[{\tt -foldupx}]
+           {\ \\
+            Insert code to use previously solved subgoals for pruning 
+            purposes in an extended regularity check.}
+      \item[{\tt -folddown}]
+           {\ \\
+            Insert code to factorize subgoals with later ones.}
+      \item[{\tt -folddownx}]
+           {\ \\
+            Insert code to use later subgoals for pruning  purposes
+            in an extended regularity check.}
+      \end{description}   
+
+      \begin{remark}
+      Folding up and folding down are  not  compatible  with  each
+      other.   The  extended regularity checks are not complete in
+      combination with antilemmata.
+      \end{remark}  
+
+      Miscellaneous:
+      \begin{description}
+      \item[{\tt -[no]partialtree}]
+           {\ \\
+            Disables or enables access to untouched  nodes  in  the
+            current tableau. The access option is set by default to
+            guarantee consistent data  structures.  {\tt nopartialtree}
+            is  save  iff  no  antilemmata  are  used  in the proof
+            search.}
+      \item[{\tt -verbose [number]}]
+           {\ \\
+            Achieves varying  verbosity  specified  with  {\tt number}.
+            Useful only for debugging purposes.}
+      \item[{\tt -lop}]
+          {\ \\
+            Writes preprocessing output into {\tt file\_pp.lop}.
+            This is a series of \LOP\/ clauses with comments which can
+            be used as an input file for \inw.}
+      \end{description}}
+\item[Inputfile:]
+     {The name of the input file is {\tt file.lop}.}
+\item[Outputfiles:]
+     {The name of the output file is either {\tt file\_pp.lop} 
+      (see option {\tt -lop}) or {\tt file.s} (default). 
+      {\tt file\_pp.lop} is an input file for \inw\/ and {\tt file.s} is an
+      input file for \wasm.}
+%\item[Input language:]
+%     {The input language used for \inw\/ is \LOP.}
+%\item[Sources:]
+%     {The sources are in directory {\tt $\sim$setheo/SOURCES/inwasm}.}
+%\item[Bugs:]
+%     {Take care with formulas containing a mixture of  declarative
+%      and procedural clauses.}
+%\item[Authors:]
+%     {J.\ Schumann, J.\ Breiteneicher and others.}
+\end{description}
+
+
+
+

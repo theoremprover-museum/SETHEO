@@ -1,0 +1,303 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Global Variables}
+\label{LOP:GLOBVAR}
+
+The concept of {\em destructive\/} and {\em multiple\/} assignment
+for variables is one of the basic concepts in a procedural
+programming language.
+In logic programs, however, a variable has quite a different meaning:
+it is a {\em logical variable\/} \cite{Kow79b}.
+A logical variable can be used and modified by the {\em unification\/}
+procedure only which may perform a {\em specialisation\/}.
+
+This means that a variable which is in the beginning of the
+calculation {\em unbound\/} may be given several values during
+the proof, but each value is a specialisation of the previous ones
+(or the same).
+Otherwise unification is not possible.
+This behavior of logical variables does, of course, not allow
+multiple destructive assignments to a variable, e.g.\ {\tt X:=5} and
+afterwards {\tt X:=7}.
+
+Another basic principle of procedural languages is the existence of
+{\em global variables\/} which are visible and valid from all parts
+of the program and in all incarnations of the procedures or functions.
+This is different in logic: in clausal form, a variable is valid only within
+{\em one\/} clause.
+
+For a programmer who is using procedural languages most of the time,
+it would be very convenient to have 
+the possibility of using (global) variables with multiple destructive
+assignment in a logic program.
+This inclusion also partly
+bridges the gap between procedural languages and logic languages, as
+the concept of global variables can be embedded cleanly into the
+logic language as shown below.
+This is in contrast to PROLOG which developed the concept of global
+data by introducing the {\em assert\/} and {\em retract\/}
+predicates. These constructs, however, have no clean and
+natural denotational semantics.
+%%\footnote{The operational semantics for these constructs are
+%%very complicated and unnatural as well [???]}.
+Note that a multiple destructive assignment in a logical language
+must be {\em backtrackable\/} when the underlying execution model
+needs backtracking to find a solution (e.g.\ the \SAM\ and  PROLOG).
+
+So we introduce global backtrackable variables
+(see also \cite{LS88}). This concept has a clean denotational
+semantics, which has been introduced by R.~Letz and will be shown below,
+and allows for a very efficient and easy integration into 
+the \SAM.
+The only draw-back of this construct is that we have to commit ourselves
+to a fixed order of evaluation of the subgoals
+({\em literal selection function}),
+namely left-to-right. Only with this restriction we can make sure
+that the assignment {\tt \$X:=1} will be executed
+{\em prior\/} to {\tt \$X:=2} in the tail of
+a clause {\tt \ldots,\$X:=1,\ldots,\$X:=2,\ldots} which is
+equal to the intuitive meaning of (procedural) evaluation.
+
+In LOP the concept of global variables and multiple destructive assignment
+is employed as a basis for almost all its non-logical and
+meta-programming constructs.
+
+
+\subsection{Syntax and Usage of Global Variables}
+
+In LOP global variables are denoted like variables, but their names
+start with a '\$', e.g.\ {\tt \$X}, {\tt \$World}
+are global variables.
+Global variables can be used like ordinary variables in the terms
+of the predicates. Besides this, they may appear on the left hand side
+of the destructive assignment ({\tt :=}).
+On the right hand side of an assignment any term may be present.
+In such a term the global variable which occurs on the left hand side
+of the assignment may be present as well,  e.g.\
+{\tt \$X:=f(\$X,a)} or {\tt \$X:=[a,\$X]}.
+
+Beside single global variables, {\em arrays\/} of global variables
+can be used. They are one-dimensional.
+These arrays must be declared before
+usage
+by a {\tt globvar(\$X,size)}
+built-in predicate
+where {\tt size} must be a positive number. After execution of this subgoal
+an array of global variables {\tt \$X[0]},\ldots,{\tt \$X[size-1]}
+is available to the user.
+Indexed variables are used like ordinary global variables. The index
+must be a number in the correct range.
+Otherwise an error occurs.
+%If the index is a variable which
+%has not yet been bound, an error occurs or the current subgoal has
+%to be delayed in its execution.
+
+\subsection{Semantics of Global Variables}
+
+The description of the semantics of the global variables follows the
+idea of {\em paraphrasing\/} as presented by R.~Letz in \cite{LS88}.
+A logic program $P$ with global variables is transformed into
+a program $P^\prime$ {\em without\/} global variables, but with the same
+behavior of the variables.
+More formally, this transformation $\cal T$ 
+can be represented by a commutative diagram shown in the
+following Figure.
+The execution calculus is $\cal C$, in our case model elimination.
+In the case of $P$ with global variables with destructive
+assignment the selection function is fixed
+to left-to-right (L-R) denoted by ${\cal C}_{LR}$
+
+\begin{figure}[htb]
+\setlength{\unitlength}{1mm}
+\begin{center}
+\begin{picture}(100,40)
+\put(0,25){\framebox(30,15){\shortstack{$P$ \\ {\footnotesize w.\ global variables}}}}
+\put(70,25){\framebox(30,15){\shortstack{$P^\prime$ \\ {\footnotesize no global variables}}}}
+\put(30,32.5){\vector(1,0){40}}
+\put(15,25){\vector(0,-1){20}}
+\put(85,25){\vector(0,-1){20}}
+
+\put(50,33.5){\makebox(0,0)[b]{$\cal T$}}
+\put(50,0.5){\makebox(0,0)[b]{\shortstack{$=$ \\ same behavior w.r.t.\ \\
+variable substitutions}}}
+
+\put(16,13){${\cal C}_{LR}$}
+\put(86,13){$\cal C$}
+\end{picture}
+\end{center}
+
+\caption{Transformation $\cal T$ and its semantics}
+\end{figure}
+
+The transformation $\cal T$ transforms each literal $L$ of the program
+to a literal $L^\prime$ with a higher arity. The additional arguments are
+used to ``pass'' the values of the global variables.
+Given a clause $c = L_1,\ldots,L_n$ with literals $L_i = p_i(T_i)$, where
+$T_i$ denotes the parameter terms of the literal $L_i$. Then we transform the
+clause $\ldots,p_{i-1}(T_{i-1}),p_i(T_i),p_{i+1},\ldots$ as follows:
+
+\begin{center}
+\setlength{\unitlength}{1mm}
+\begin{picture}(140,25)
+\put(38,10){\makebox(0,0)[rb]{$p^\prime_{i-1}(T_{i-1},$}}
+\put(40,10){\makebox(0,0)[b]{$\circ$}}
+\put(42,10){\makebox(0,0)[b]{,}}
+\put(44,10){\makebox(0,0)[b]{$\bullet$}}
+\put(46,10){\makebox(0,0)[b]{$),$}}
+
+\put(78,10){\makebox(0,0)[rb]{$p^\prime_i(T_i,$}}
+\put(80,10){\makebox(0,0)[b]{$\circ$}}
+\put(82,10){\makebox(0,0)[b]{,}}
+\put(84,10){\makebox(0,0)[b]{$\bullet$}}
+\put(86,10){\makebox(0,0)[b]{$),$}}
+
+\put(118,10){\makebox(0,0)[rb]{$p^\prime_{i+1}(T_{i+1},$}}
+\put(120,10){\makebox(0,0)[b]{$\circ$}}
+\put(122,10){\makebox(0,0)[b]{,}}
+\put(124,10){\makebox(0,0)[b]{$\bullet$}}
+\put(126,10){\makebox(0,0)[lb]{$), \ldots$}}
+
+\put(40,20){\vector(0,-1){8}}   % down
+\put(80,20){\vector(0,-1){8}}   % down
+\put(120,20){\vector(0,-1){8}}   % down
+
+
+\put(44,12){\vector(0,1){8}}   % up
+\put(84,12){\vector(0,1){8}}   % up
+\put(124,12){\vector(0,1){8}}   % up
+
+\put(44,20){\line(1,0){36}}   % horiz
+\put(84,20){\line(1,0){36}}   % horiz
+
+\put(40,20){\line(-1,0){16}}   % horiz
+\put(124,20){\line(1,0){16}}   % horiz
+\end{picture}
+\end{center}
+
+where the ``$\circ$'' denote new logical variables which hold the value of
+the global variables {\em before\/} the execution of the resp.\ literal, the
+variables ``$\bullet$'' hold the values afterwards.
+The interdependance of the values is shown with the arrows and can be gained
+using the same variables.
+Formally we write down the 
+
+{\bf Transformation $\cal T$}. Let $g$ be the number of global variables in
+a program $P$. Then each clause
+of $P$ is transformed as shown in the following table.
+We use
+new (logical) variables denoted by $V^j_i$ for some $i,j$.
+For the sake of readability we abbreviate $ T := t_1,\ldots,t_n$.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline 
+$P$ & $P^\prime$ \\
+\hline \hline
+{$p(T) \leftarrow$. } &
+   $p^\prime(T,V_1^0,V_1^0,\ldots,V_g^0,V_g^0) \leftarrow$. \\
+\hline
+$p(T) \leftarrow$ & $p^\prime(T^\prime,V^0_1,V^n_1,\ldots,V^0_g,V^n_g) \leftarrow$ \\
+\ \ $p_1(T_1),\ldots,p_n(T_n)$ & \ \ 
+  $\ldots,{p^\prime}_i(T_i^\prime,V^{i-1}_1,V^i_1,\ldots,V^{i-1}_g,V^i_g),\ldots
+; 1 \leq i \leq n$ \\
+\hline
+$L_i \equiv {\$G}_k$ := $T$ &
+$V^i_1 = V^{i-1}_1,\ldots,V^i_k = T^\prime,\ldots,V^i_g = V^{i-1}_g$\\
+$1 \leq k \leq g , 1 \leq i \leq n$ & \\
+\hline 
+\hline
+\end{tabular}
+\end{center}
+\vspace{2mm}
+
+with
+\[ T^\prime_i \equiv 
+         \left\{
+  \begin{array}{ll}
+    T_i  &
+    \mbox{if ${\$G}_k \not\in T_i , 1 \leq i \leq n , 1 \leq k \leq g$} \\
+    \ldots V^{i-1}_k \ldots & 
+    \mbox{if ${\$G}_k \in T_i , 1 \leq i \leq n , 1 \leq k \leq g$} \\ 
+    \   &
+    \mbox{replace ${\$G}_k$ by $V^{i-1}_k$.}
+  \end{array}
+         \right.
+\]
+
+The current value of ${\$G}_k$ may occur in $T$ (destructive assignment), its
+value is kept in $Vin^{i-1}_k$ in $P^\prime$.
+It is obvious that the execution of $P$ w.r.t.\ ${\cal C}_{LR}$ and
+of $P^\prime$ on $\cal C$ has the same structure.
+A short example of the transformation is given in the following.
+
+\subsection{Examples of the Usage of Global Variables}
+One short example shows how global variables, in our case {\tt \$X},
+are backtracked.
+
+\begin{center}
+\begin{tabular}{lll}
+& $\leftarrow$ {\em example}.& \\
+ {\em example} & $\leftarrow$ {\tt \$X := a}, {\em p}.& \\
+$p$ & $\leftarrow$ {\tt \$X := b}, {\em fail}.& \% must backtrack\\
+$p$ & $\leftarrow$ {\em write(\/}{\tt \$X}, {\em )}.& \% print value of {\tt \$X}
+\end{tabular}
+\end{center}
+
+When this program is executed, the variable {\tt \$X} is first set to
+the value {\tt a}. After entering the first clause for {\tt p}, the variable
+is set to {\tt b} (destructive assignment). After that, a failure occurs
+which causes a backtracking step to be performed and the second clause
+can be tried, printing the current value of {\tt \$X}.
+If global variables were not
+backtrackable, the value after the last assignment, in our case {\tt b}
+would be printed. This, however, is not correct.
+With the usage of {\em backtrackable\/} global variables as introduced
+above, the correct value, namely {\tt a}, is printed.
+
+We now give the transformation of the program presented above. As we only
+have one global variable, namely {\tt \$X}, only one pair of new variables
+is needed per predicate. The names of the augmented predicates are
+marked by a ``$^\prime$''. The first variable of each predicate can be seen
+as the ``input value'' of the global variable {\tt \$X}, the second one
+as the ``output value'' after execution of the subgoal.
+
+\begin{figure}[htb]
+\begin{center}
+\begin{tabular}{lll}
+& $\leftarrow example^\prime(V_1^0,V_1^1)$. & \\
+$example^\prime(V_1^0,V_1^2)$ & $\leftarrow V_1^1 = a , p^\prime(V_1^1,V_1^2)$. & \\
+$p^\prime(V_1^0,V_1^2)$ & $\leftarrow V_1^1 = b , fail^\prime(V_1^1,V_1^2)$. & \\
+$p^\prime(V_1^0,V_1^1)$ & $\leftarrow write(V_1^0,V_1^0,V_1^1)$. & \\
+\end{tabular}
+\end{center}
+\caption{Transformation of a program with global variables}
+\end{figure}
+
+\subsection{Restictions for Global Variables}
+
+Global variables are in general not compatible with SETHEO's
+anti-lemma mechanism, as is shown with the following example:
+
+\begin{verbatim}
+
+?-p, q($X).
+
+q(b).
+
+p :- $X := a.
+p :- $X := b.
+\end{verbatim}
+
+This logic program first solves the subgoal {\tt p}, whereby {\tt \$X}
+is assigned to {\tt a}. Then the second subgoal is tried, but here
+the unification fails. During backtracking, the anti-lemma mechanism
+determines that {\tt p} has been solved optimally (there are no substitutions
+for logical variables in {\tt p}). Hence it is decided that there exist no
+more solutions, and thus the \SAM\ returns with ``total failure''.
+If the generation of antilemmata is disabled, the above program works
+correctly.

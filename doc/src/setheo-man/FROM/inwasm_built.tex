@@ -1,0 +1,239 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{New handling of built-ins: inwasm}
+\author{Johann Schumann}
+\date{21.5.93,7.6.93,23.6.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the changes necessary for a new and unified
+handling of built-in predicates in the inwasm.
+
+\end{abstract}
+
+\noindent{\bf Keywords:}  built-ins, inwasm, code-generation
+
+\noindent{\bf Action: } {\tt BUGFIX, EXTENSION}
+
+\section{Solution Provided}
+
+In the current version of inwasm, for most built-ins,
+``built nr, argv'' has been generated, where {\tt nr} specified the number
+of the built-in predicate.
+
+
+\subsection{Problems with Solution Provided}
+	
+In Version V3.0, all built-in instructions of the SAM are addressed
+via their names. Therefore the old type of code generation is obsolete.
+
+\section{Detailed Description}
+\subsection{Informal Description}
+
+The table, containing all built-ins are expanded, containing now:
+\begin{enumerate}
+\item
+the LOP-name of the built-in
+\item
+its arity
+\item
+the SAM-instruction name of the built-in
+\item
+the function for generating code for this particular instruction,
+or for this group of instructions
+\item
+the type of built-in, like deterministic, non-deteriminstic
+\item
+visibility, i.e., if the predicate can be used directly from LOP
+\end{enumerate}
+
+All built-ins which are coded into the inwasm are entered into the
+symbol table in function {\tt enter\_built\_ins()}. For each built-in,
+the function {\tt enter\_built} is called to enter that built-in.
+
+Furthermore, a built-in predicate can be defined on the LOP
+level.
+Similar to PROLOG, one should be able to issue (within the
+compiling directives of a module):
+
+{\tt ?- export(name/arity,lowlevel\_name,type).}
+
+The latter type of entering is performed within the scanner and parser.
+Further work is necessary to specify the exact operation of the feature
+wrt.\ the modularity and control concept of MPLOP.
+
+Reading in built-ins from the file ``.inwasmrc'' and the usage of
+libraries have become obsolete now.
+
+
+\section{Specification of Algorithms and Data Structures}
+
+\subsection{Data Structures}
+
+The symbol table element has been modified slightly to:
+
+\begin{verbatim}
+typedef struct sytabel {
+	char name[NAMELENGTH];	/* symbol name (string) 	*/
+	int symbnr;             /* index in symboltable 	*/
+	int modunr;             /* number of modul		*/
+	int type;               /* type of symbol 		*/
+	int arity;              /* store arity  		*/
+	int index;		/* index  different usage 	*/
+	int codenr;		/* index in setheo symbtab, code*/
+	int (*bfun)();		/* pt to built-in function 	*/
+	char *b_instr_name;	/* name of sam-instruction for
+				/* built-in			*/
+	built_in_type	b_type;	/* type of built-in		*/
+	struct preli *loclist;  /* list of occurrencies 	*/
+	struct sytabel * next;  /* pt to next elem 		*/
+	} syel;
+\end{verbatim}
+
+\section{Required Changes}
+\subsection{Required Changes in inwasm}
+
+Each built-in is entered using the function:
+\begin{verbatim}
+int enter_built(lop_name,general_type,built_type,arity,cg_fun,sam_name)
+char *lop_name;         // name of the built-in as seen from LOP
+int general_type;       // CONSTANT or BUILTIN
+built_in_type built_type;   // Tyep of built-in:
+                               * NONE
+                               * DETERMINISTIC
+                               * NONDETERMINISTIC
+                               * INTERNAL
+\end{verbatim}
+
+Several constants and standard built-ins are entered into the
+symbol table at the beginning. This is done via the function
+{\tt enter\_built\_ins()} in {\bf built\_ins.c}.
+For other purposes in the code-generation, it is essential, that
+the first built-ins and constants ALWAYS appear in the same order,
+since their index is defined in {\bf defines.h}. This index is
+used in several places.
+
+When code is generated for the subgoals, it is checked, if
+it is an built-in. If yes, the code-generation function ``b\_fun'' as
+entered in the symbol table is called with a pointer to that predicate.
+Default code generation functions will be described in the following section.
+
+\subsection{Default functions for code-generation}
+\subsection{b\_generic}
+This code-generation function is defined as {\tt b\_generic(predtype *)}.
+For a deterministic built in, it generates the following code:
+({\tt sam\_name} is the name of the SAM-instruction for that built-in.
+
+\begin{verbatim}
+...
+sam_name      avXXXXXX       % if its arity is greater 0
+...
+sam_name                     % otherwise
+\end{verbatim}
+
+\subsection{b\_error}
+This function causes an error message to be printed and is used for
+internal constant symbols, for which no code must be generated.
+
+\subsection{b\_assign}
+This function generates code for the assignment to global
+variables (:=).
+
+\subsection{b\_{\em relop}}
+The functions generate code for the relational operators
+$<, >, \leq, \geq$.
+
+\subsection{b\_globeval}
+This function generates code for the evaluating assignment
+(:is) to global variables.
+
+\subsection{b\_eval}
+This function generates code for the evaluating assignment
+to ordinary variables (is).
+
+\subsection{b\_eqpred}
+This function generates code for the {\bf eqpred} built in.
+The following code is generated for {\bf eqpred($i$)}:
+
+\verb+eqpred avXXX,predicate_number, arity+
+
+where {\tt avXXX}, and the arity and number of the predicate
+belong to predicate $i$ of the current clause.
+
+
+For each literal, the literal-control-block is generated prior to the
+generation of the argument vector.
+
+\subsection{Changed Files}
+The files {\tt symb.h, built\_ins.c, symb.c, codegen/*.c} are
+involved.
+
+\section{TO BE DONE}
+The following items are still to be specified and implemented:
+\begin{enumerate}
+\item
+Entering a built-in on LOP-level
+\item
+Generation of code for non-deterministic built-ins
+\item
+Generation of code for additional inference rules
+(like random reordering, usage of lemmata,...)
+\item
+Access and usage of arrays of global variables
+\item
+The global evaluating assignment.
+\end{enumerate}
+
+
+\section{Testing}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & May/93& & \\
+Implementation &Jun/93 & & \\
+Test &Jun/93 & & \\
+Documentation &May/93 & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& jsc & May/93 & & & & \\
+ Specified:&jsc &May/93  & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& jsc& 4.6.93& & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

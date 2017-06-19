@@ -1,0 +1,307 @@
+\documentstyle[12pt,a4]{article}
+
+\begin{document}
+
+Notes:
+\begin{itemize}
+\item
+currently all references to the index are done via the LCB,
+i.e., by giving the literal-number, and NOT the term itself.
+\end{itemize}
+
+\subsection{genlemma/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt genlemma(Nu1, Nu2)}
+\item[Parameters:]\ \\
+	\begin{description}
+	\item[{\tt Nu1}: Number]\ \\
+	If this number is $\neq 0$, the generation of a unit-lemma
+	is considered. Otherwise, this predicate just succeeds.
+	\item[{\tt Nu2}: Number]\ \\
+	If a unit-lemma is stored in the index, this number will be
+	stored together with the lemma. This information can the
+	be used when unit-lemmata are being used (e.g., by {\bf uselemma/1}).
+	\end{description}
+\item[Result:]\ \\
+	This built-in predicate always succeeds. Memory overflow
+	will result in a run-time error.
+\item[Low Level Name:]
+	{\tt genlemma argvector}
+
+\item[Description:]\ \\
+This built-in generates a unit-lemma {\tt H<-.} for the
+head {\tt H} of the current clause, if all of the following
+conditions hold:
+\begin{itemize}
+\item
+both arguments are instantitated to a number,
+\item
+the value of the first argument is $\neq 0$,
+\item
+The solution of the head of the current subgoal does not involve
+any reduction steps above the current node in the tableau.
+(This means, that we really have a unit-lemma).
+\item
+The current head (with its current instantiation) is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+The lemma will be annotated by the value of the second argument
+(must be a number).
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+\item[Side-effects:]\ \\
+If the {\bf sam(1)} is called with the inline-command flag {\tt -lemmatree},
+the proof tree for the current lemma (if it gets stored in the index)
+is appended to the proof-tree file.
+
+\item[Notes:]\ \\
+The {\bf genlemma/1} built-in must be the last subgoal of a given
+clause or contrapositive.
+Otherwise, correctness of SETHEO is not ensured.
+
+\item[Example1:]\ \\
+\begin{verbatim}
+q(X,Y) <- p(X),r(X,a),genlemma(1,5).
+\end{verbatim}
+
+In this example, a unitlemma {\tt q(X,Y)<-.} --- with the current substitutions of {\tt X} and {\tt Y} --- is generated and labeled with the number $5$.
+
+\item[Example2:]\ \\
+\begin{verbatim}
+q(X,Y) <- p(X),r(X,a),getdepth(D),genlemma(1,D).
+\end{verbatim}
+
+In this example, the generated unit-lemma is labeled with the current
+depth. When lemmata are selected for usage ({\bf uselemma/1}), one
+can select only those unit-lemmata which have been generated on a lower
+depth.
+\end{description}
+
+\subsection{genlemma/2}
+
+This built-in generates a unit-lemma {\tt H<-.} for the
+head {\tt H} of the current clause, if all of the following
+conditions hold.
+The lemma will be annotated by the value of the second argument
+(must be a number).
+
+\begin{itemize}
+\item
+both arguments must be instantitated to a number,
+otherwise, a run-time error is generated.
+\item
+the value of the first argument is $\neq 0$,
+\item
+The solution of the head of the current subgoal does not involve
+any reduction steps above the current node in the tableau.
+(This means, that we really have a unit-lemma).
+\item
+The current head (with its current instantiation) is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+In all cases, this built-in predicate succeeds or generates a run-time
+error.
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+The {\bf genlemma/1} built-in must be the last subgoal of a given
+clause or contrapositive.
+
+Example:
+\begin{verbatim}
+q(X,Y) <- p(X),r(X,a),genlemma(1,5).
+\end{verbatim}
+
+
+\subsection{genulemma/3}
+
+This built-in generates a unit-lemma {\tt L<-.} for a literal
+{\tt ~L} in the current clause. Its number is given as the first argument.
+The lemma is generated, if all of the following
+conditions hold.
+The lemma will be annotated by the value of the third argument
+(must be a number).
+
+\begin{itemize}
+\item
+all arguments must be instantitated to a number,
+otherwise, a run-time error is generated.
+\item
+the value of the first argument is $\neq 0$,
+\item
+The current instantiation of the given literal is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+In all cases, this built-in predicate succeeds or generates a run-time
+error.
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+Notes:
+\begin{itemize}
+\item
+The range of the first argument is NOT checked
+\item
+it is not checked, if the solution of the given literal required
+reduction steps above the current node in the tableau.
+\item
+All built-in literals (including this one) count as literals
+\end{itemize}
+
+
+
+Example:
+\begin{verbatim}
+q(X,Y) <- p(X),genulemma(2,1,5),r(X,Y).
+\end{verbatim}
+
+generates a lemma {\tt p(a)<-.}, if X is instantiated to {\tt a}.
+
+
+\subsection{uselemma/1}
+
+This built-in tries to use lemmata from the lemma-store.
+This built-in must be given within a special clause, as shown
+in the following example:
+
+\begin{verbatim}
+...
+p(a,b) <-..
+p(b,c) <-..
+
+p(_,_) <- uselemma(5),fail.
+
+p(e,f) <-.
+..
+\end{verbatim}
+
+If the clauses are not reordered, SETHEO first tries the alternatives
+{\tt p(a,b)..} and {\tt p(b,c)..}.
+Then it extracts all lemmata from the lemma store, which
+\begin{itemize}
+\item
+are unifiable with the current subgoal $\neg p(\ldots)$, and
+\item
+are annotated by a numeric value which is {\em smaller} than the
+argument of {\bf uselemma}.
+\end{itemize}
+
+These lemmata are pushed upon the stack as additional alternatives
+which are tried, before {\tt p(e,f)..} are tried.
+
+This built-in always succeeds. If the pushed lemmata and the remaining
+alternatives are to be tried, this built-in must be directly followed
+by a {\bf fail}.
+
+\subsection{getnrlemma/1}
+
+This built-in unifies the given argument with the number
+of lemmata which are currently stored (and not deleted) in the
+lemma store.
+
+Example:
+\begin{verbatim}
+p(X) <- getnrlemmata(Y), X > Y.
+\end{verbatim}
+
+\subsection{dumplemma/0}
+
+This built-in dumps all lemmata in the lemma-store
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+Lemmata which have been marked deleted are preceeded by a {\bf \#}.
+
+Example:
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dumplemma,told.
+\end{verbatim}
+
+\subsection{dlrange/2}
+
+This built-in dumps all lemmata in the lemma-store
+with annotated values between the first and the second parameter
+(inclusive; both parameters must be instantiated to numbers)
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+
+Example:
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dlrange(3,4),told.
+\end{verbatim}
+
+\subsection{delrange/2}
+This built-in deletes all lemmata in the lemma store
+with annotated values between the first and the second parameter
+(inclusive).
+Both parameters must be instantiated to a number.
+
+\subsection{checklemma/1}
+check, if the lemma would be stored at all:
+argument unified with 0 if not.
+\subsection{checkulemma/2}
+similar to genulemma
+check, if the lemma would be stored at all:
+argument unified with 0 if not.
+
+\subsection{addtoindex/2}
+add literal unconditionally to index
+
+\begin{verbatim}
+<-... checklemma(X),addtoindex(1,X,5).
+
+same as 
+
+<-... genlemma(1,5).
+\end{verbatim}
+
+\subsection{clearindex/0}
+clears the entire index
+\subsection{clearlemma/2}
+delete all entries, which are unifiable with the given literal
+
+\section{Non-Backtrackable Counters}
+
+\subsection{counters/1}
+This built-in allocates $N$ non-backtrackable counters. They are
+initialized to the numeric value $0$.
+Note, that this built-in must be used prior to any other computation
+(but after the {\bf galloc}).
+
+\subsection{setcounter/2}
+
+The built-in {\bf setcounter(I,N)} destructively sets the counter $I$
+to the numeric or constant value $N$. A run-time error occurs, if
+the parameters are not of the required type.
+The validity of $I$ is {\em not\/} checked.
+
+Example:
+\begin{verbatim}
+p(U) <- X is $D + U, setcounter(3,X).
+\end{verbatim}
+
+\subsection{getcounter/2}
+
+The built-in {\bf getcounter(I,N)} unifies the second parameter $N$
+with the value of the $I$'s counter.
+
+Example:
+\begin{verbatim}
+p(U) <- getcounter(3,X), U is X + 1.
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,38 @@
+// RPC Handshake
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+// KI-Heft version
+Objects:
+principal A,B;
+sharedkey K_a_b, Kp_a_b;
+variable sharedkey K;
+statement N_a, N_b, Np_b;
+//
+Assumptions:
+(A,B) believes sharedkey K_a_b;
+A believes B controls sharedkey(A,B,K);
+B believes sharedkey Kp_a_b;
+A believes fresh N_a;
+B believes fresh (N_b;Np_b);
+//
+Idealized Protocol:
+message 1: A -> B {N_a}(K_a_b);
+message 2: A <- B {N_a,N_b}(K_a_b);
+message 3: A -> B {N_b}(K_a_b);
+// message 4: A <- B {sharedkey Kp_a_b}(K_a_b);
+message 4: A <- B {sharedkey Kp_a_b,N_a}(K_a_b);
+
+//
+Conjectures:
+after message 4: B believes sharedkey Kp_a_b;
+		 B believes A said N_a;
+		 A believes B said sharedkey Kp_a_b;
+		 B sees N_a;
+		 B believes A believes N_b;
+		 A believes B believes |N_a,N_b|;
+// can be proofen with message 4':
+		 A believes B believes sharedkey Kp_a_b;
+		 A believes sharedkey Kp_a_b;
+
+
+

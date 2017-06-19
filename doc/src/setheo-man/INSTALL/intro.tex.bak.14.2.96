@@ -1,0 +1,21 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+
+This Section is about how to install the SETHEO system at your own
+computer. For Sun Sparc stations binaries of the SETHEO code are
+available via ftp. If you run another operation system or if you want
+to look at the code, too, you can also get the sources. 
+The installation both of the binaries and of the sources is described
+in detail.
+
+Not only the programs but also examples and manpages are delivered by
+ftp. 
+If you are interested in being up to date concerning SETHEO you can
+register as a SETHEO user. Just send back the users registration form
+which is part of the ftp--package.

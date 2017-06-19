@@ -1,0 +1,321 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{Interpretation of SAM Instructions\\
+--- CHANGE DESCRIPTION ---}
+\author{Johann Schumann}
+%\date{23.7.92}
+\date{26.10.92}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the changes necessary for a new style
+of interpreting the SAM instructions.
+
+\end{abstract}
+
+\section{Description of Change}
+
+\subsection{Solution Provided}
+
+In the current version of setheo (V3.01 or less), the main command-loop
+(function {\tt instr\_cycle}) mainly consists of an endless for loop.
+The decoding of instructions is done via two nested {\bf switch} commands.
+as shown in the following:
+
+\begin{verbatim}
+instr_cycle()
+{
+...
+// check bounds
+switch (* pc & INSTR_MASK){
+
+case CONTROL:
+     switch (*pc){
+     case ALLOC:
+             ... // code for alloc
+             break;
+     case CALL:
+             ...
+          }
+case UNIFSIMPLE:
+     ...
+
+}
+\end{verbatim}
+
+If an instruction succeeded, just a {\bf break} is executed, otherwise,
+a {\bf goto} to the label {\bf fail} is made.
+
+In order not to have the entire code of the SAM interpreter in one file,
+a file with the extension {\tt .ins} is being used for each instruction.
+Additionally there exist include files for each group of instructions,
+as shown in the following piece of code:
+
+\begin{verbatim}
+instr_cycle()
+{
+...
+// check bounds
+switch (* pc & INSTR_MASK){
+
+case CONTROL:
+     switch (*pc){
+#      include "contrins.h"   ------>   #include "instruct/alloc.ins"
+                                        #include "instruct/call.ins"
+case UNIFSIMPLE:
+     ...
+
+}
+\end{verbatim}
+
+\subsection{The Problem}
+This kind of decoding the SAM instructions is very efficient,
+however, it also exhibits several drawbacks:
+\begin{itemize}
+\item
+poor readability
+\item
+one change causes a recompilation of the entire function {\tt instr\_cycle}
+\item
+a larger number of instructions in one group needs a longer time for
+decoding (linear search within the list of case-labels)
+\end{itemize}
+
+\section{Requirements for new Solution}
+
+\section{Description of New Solution}
+The solution proposed is similar to that which is being used already
+for the built-ins.
+
+Each SAM-instruction is being encoded in a function with zero
+parameters. The outcome of the instruction (success, failure, error)
+is returned as the return value of the function.
+
+Furthermore, a global table which contains all function names,
+the print-names of the instructions, and the length of each instruction
+exists.
+The OP-code for each instruction is the index of this instruction
+in this function table.
+
+This kind of decoding allows for a constant-time decoding, however with the
+additional cost of a function call with no parameters.
+
+As a second restriction, the OP-codes for the instructions must be integers
+in the range of $0\ldots n_{instr}$ without any holes.
+
+As described below, this global function table is used to construct
+the OP-code table for the {\bf wasm} as well.
+
+\section{Data Structures}
+
+\subsection{The Instruction Table}
+
+The instruction table is located in the file {\em conf.c}.
+It replaces the old file, since all built-ins are handled in the same way
+as ordinary SAM instructions.
+
+It contains the following definitions\footnote{The declaration of the instruction
+table itsself is in the file {\em machine.h}.}:
+
+\begin{verbatim}
+...
+// machine.h
+typedef struct _i_tab {
+        int     (*instruction)();/* function for exec.       */
+                                /* the instruction           */
+        char    *name;          /* name of instruction       */
+        int     length;         /* size of instr. in WORDS   */
+        } instr_tab;
+ 
+extern instr_tab        instr_table[];
+extern int              nr_instr;
+\end{verbatim}
+
+The main table of instructions is located in the file {\tt conf.c}:
+
+\begin{verbatim}
+/***************************************************************/
+/* identification name of that SETHEO version
+/***************************************************************/
+char           *ident = "XXX";
+char           *version = "3.0";
+int             magic = 123;
+
+/***************************************************************/
+/* global list of all SETHEO instructions
+/***************************************************************/
+instr_tab       instr_table[] =    {
+
+/*------------------------------------------------------------*/
+/* function             name            length
+/*------------------------------------------------------------*/
+{  i_alloc              ,"alloc"        ,3              },
+{  i_nalloc             ,"nalloc"       ,3              },
+{  i_dealloc            ,"dealloc"      ,1              },
+{  i_ndealloc           ,"ndealloc"     ,1              },
+...
+\end{verbatim}
+
+
+Each SAM-instruction is located in a separate file and contains one
+function:
+
+\begin{verbatim}
+/******************************************************/
+/*    S E T H E O                                     */
+/*                                                    */
+/* FILE: i_cut.c
+/* VERSION:
+/* DATE:
+/* AUTHOR:
+/* NAME OF FILE:
+/* DESCR:
+/* MOD:
+/* BUGS:
+/******************************************************/
+
+#include "machine.h"
+
+#define INSTR_LENGTH            2
+
+
+instr_result i_cut()
+{
+/* your program text comes here */
+fprintf(stderr,"sorry, %s is not implemented\n","cut");
+pc +=INSTR_LENGTH;
+return error;
+}
+\end{verbatim}
+
+The main instruction cycle now has the following form:
+
+\begin{verbatim}
+// FILE: instr.c
+
+inst_cycle()
+{
+...
+for(...
+	if ((res = (*instr_table[*pc].instruction)()) & stop_cycle){
+                /* we break the instruction cycle and   */
+                /* return the cause of the break        */
+                return res & ~stop_cycle;
+                }
+        if (res == failure){
+        if ((res =i_fail()) & stop_cycle){
+                /* we have to break the stuff */
+                return res & ~stop_cycle;
+                }
+        }
+}
+\end{verbatim}
+
+\section{SAM instructions involved}
+
+All SAM instructions are involved, since their structure is changed.
+Note, that all variables which are now declared as automatic in
+{\tt instr\_cycle} have to be declared globally in {\em machine.h}.
+
+For the access of the argments of each instruction, the following
+macro replaces {\tt farg,farg1,...}:
+
+\begin{verbatim}
+/******************************************************************/
+/*** MACROS for argument access
+/******************************************************************/
+#define ARG(I) (*(pc + I))
+#define ARGPTR(I)  (code + *(pc +I))
+\end{verbatim}
+
+
+\section{Required Changes in mplop}
+
+The code-generation of MPLOP must be changed in that way, that for
+built-in instructions the correct name of the instruction is being
+used (in the .s file) instead of the construct {\tt built  number,argptr}
+
+\section{Required Changes in wasm}
+
+The scanner and parser of the wasm must be adapted accordingly to
+the contents of the file {\tt conf.c}.
+This is done by the script {\tt mkstubs}.
+
+\section{Creation of a New SETHEO}
+
+The global basis for all instructions is the file {\tt conf.c}
+containing the print-names and function-names for all instructions.
+From there, the script {\tt mkstubs} generates all necessary files
+for setheo and wasm:
+\begin{itemize}
+\item
+{\tt conf.h} contains external declarations
+\item
+{\tt i\_xxx.c} where xxx is the name of the instruction.
+Such a file which contains an empty frame for that instruction
+is created for each instruction in conf.c (unless such a file already
+exists).
+\item
+{\tt make.conf}
+contains the list of all instruction source (and object) files.
+\item
+{\tt w\_scan.h}
+contains the lex-scanner for the wasm
+\item
+{\tt w\_parse1.h}
+contains parts of the parser for the wasm (token definitions).
+\item
+{\tt w\_parse2.h}
+contains parts of the parser for the wasm (grammar productions).
+\end{itemize}
+
+After that, the wasm must be created newly with a ``make wasm''.
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+\section{History}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

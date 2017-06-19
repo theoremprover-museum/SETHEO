@@ -1,0 +1,30 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{wasm}\label{sec:wasm}
+
+\Wasm\ takes the output file of the \inw\ and generates
+the \SAM\ assembler code which can be interpreted by the \SAM. This is
+the synopsis of \wasm: 
+\begin{verbatim}
+wasm [-verbose][-[no]opt] file
+\end{verbatim}
+
+The input file has to be a file with extension {\bf .s}. From this, a
+file with extension {\bf .hex} is generated. 
+
+The parameters for controlling verbose mode and code optimization are
+optional: 
+\begin{description}
+      \item[--verbose]
+           {Turn on verbose mode.}
+      \item[--opt]
+           {Code optimization is done. The  connection  graph
+            representation is optimized to use less space.}
+      \item[--noopt]
+           {Code optimization is switched off.}
+\end{description}

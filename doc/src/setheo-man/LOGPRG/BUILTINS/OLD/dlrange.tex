@@ -1,0 +1,63 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{ dlrange/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt dlrange(N1,N2)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N1}]
+lower bound of the range to print
+	\item[{\tt N2}]
+upper bound of the range to print
+	\end{description}
+\item[Low Level Name:]
+	{\tt dlrange}
+\item[Result:]\ \\
+%----------------------------------------------------
+This built-in succeeds, if both parameters are
+instantiated to numbers.
+
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+
+ 
+This built-in dumps all lemmata in the lemma-store
+with annotated values between the first and the second parameter
+(inclusive; both parameters must be instantiated to numbers)
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+ 
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example~1.}
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dlrange(3,4),told.
+\end{verbatim}
+
+

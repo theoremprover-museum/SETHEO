@@ -1,0 +1,188 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Additional Modules}
+
+The additional modules are shell scripts which call the basic
+programs. The environment variable {\tt SETHEOHOME} should indicate
+the place where \plop, \inw, \wasm\ and \SAM\ reside\footnote{See
+Section~\ref{sec:environ}.}. If this variable is not defined, a
+default value is taken. 
+
+\subsection{clop}
+
+\Clop\ combines the SETHEO compiler \inw\ with the
+assembler \wasm. Given a file, first \inw\
+is invoked. All of the given parameters are passed to the \inw.
+If the compilation phase terminated successfully, the
+assembler \wasm\ is called with default parameters.
+The following is the synopsis of \clop:
+
+{\tt clop} [-$\mbox{\tt par}_1$]\ldots[-$\mbox{\tt par}_n$] {\tt file}
+
+The input file for \clop\ has to be given. This must be a file with
+extension {\bf .lop}. \Clop\ will produce a temporary file with
+extension {\bf .s} and generate the output file with extension {\bf
+.hex}. The temporary file is not removed automatically. The {\bf .hex}
+file can be used as an input for the \SAM.
+
+\Clop\ returns $0$ in case of successful compilation.
+Otherwise the non--zero return value of the module in which
+the error occurred, is returned.
+
+
+
+\subsection{setheo}\label{sec:setheo}
+
+\Se\ calls the whole SETHEO theorem prover to prove a formula
+contained in a  file  {\it file.lop\/} using default options. \Se\ in turn
+calls \inw, \wasm\ and \SAM. 
+%In case, a proof is found, a proof tree is 
+%generated which can be displayed using \xp. 
+
+This is the synopsis:
+\begin{verbatim}
+setheo file
+\end{verbatim}
+
+The name of the input file must have the extension {\bf .lop}. During
+computation temporary files with the extensions {\bf .s} and {\bf
+.hex} are generated. These are not removed automatically. Two output
+files are generated. The output file with the extension {\bf .tree}
+can be used as an input for \xp\ to visualize a found
+proof. The output file with the extension {\bf .lop} contains the
+output of the prover \SAM, the same as written onto the screen.
+
+The following options are used (for details concerning these options
+see Sections~\ref{sec:inwasm}, \ref{sec:wasm} and \ref{sec:sam}): 
+\begin{description}
+      \item[Compiler:]
+           {Constraints are generated  with {\bf --cons}.   The  output
+            code is optimized with {\bf --opt}.}
+      \item[Prover:]
+           {Iterative deepening over the depth of  the  tableau  is
+            performed   ({\bf --dr}).   Constraints  are  generated  and
+            checked with {\bf --cons}.}
+\end{description}
+
+If the user wants to modify this default set of options, the
+user  should  refer  to the commands \inw\ and \wasm\ for compilation
+and to the \SAM\ for the prover itself.
+
+
+
+\subsection{delta}
+The {\sc Delta}-iterator is a preprocessing module which generates
+unit-lemmata from the input formula in a bottom up way. These unit-lemmata
+are then added to the input formula and then main top-down search for the
+proof is started.
+These additional unit-lemmata often abbreviate long (and difficult to find)
+sub-tableaux and thus often leads to a dramatic decrease of search-time
+for the overall system.
+
+{\sc Delta} has a number of optional parameters and is invoked:
+
+\begin{verbatim}
+delta [-all] [-horn] [-nonhorn] [-noentry] [-debug] [-limit number] [-termsize number]\\
+    [-query] [-nosubs] [-large] [-cputime number] [-lastlevels number] [-termdepth number]\\
+    [-delta number] [-level number] [-pred predsymb arity] ... file
+\end{verbatim}
+
+{\sc Delta}
+is a preprocessing tool for \Se. It generates new single-literal
+clauses (facts) in a bottom-up fashion, using \Se.
+A delta iteration method is used (see below). 
+ The newly generated facts are appended to the original formula in the file
+{\em file}.lop to obtain the output file {\em file}.out.lop.
+
+The orginal file {\em file}.lop remains unchanged.
+The number of newly generated clauses per level and the total
+amount of time needed for compilation and execution of SETHEO
+is printed at the end of the run.
+
+The options for {\sc Delta} are:
+
+\begin{description}
+\item[-all]
+With this option, unit-lemmata for all predicate symbols of the
+formula are generated. Furthermore, it is automatically determined,
+if the formula is Horn or Non-Horn (see {\bf -[non]horn}).
+
+\item[-horn]
+generate positive single-literal clauses only. (default)
+\item[-nonhorn]
+positive and negative facts are generated. These are
+added as additional queries to
+the formula unless {\bf -noentry} is given.
+\item[-noentry]
+all newly generated negative facts are added as such
+to the formula.
+\item[-level {\em number}]
+the given number of iterations are performed, or the given limit
+of newly generated clauses has been reached. (default: level = 1)
+\item[-limit {\em number}]
+generate only less or equal than 
+{\em number\/}
+new clauses. (default: limit = 999)
+\item[-termsize {\em number}]
+generate (and keep) newly generated clauses only, if the total
+number of symbols in the terms of each clause is
+less than or equal than {\em number\/} symbols.
+Default: do not restrict the size.
+\item[-termdepth {\em number}]
+generate (and keep) newly generated clauses only, if the maximal
+nesting level of symbols in the terms of each clause is less than or equal
+{\em number\/}. Default: do not restrict the depth of the terms.
+\item[-level {\em number}]
+use the given number (default: 3) as the depth-bound for the
+\SAM\ during the delta-iteration.
+\item[-pred name arity]
+this option specifies the predicates, for which
+new clauses are to be generated. The arity of the predicate must be given.
+If the option {\bf -all} is not set,
+at least one predictate must be specified.
+\item[-debug] causes
+{\sc delta}
+not to remove the temporary files after processing. Instead, their name
+is given.
+\end{description}
+
+For {\sc Delta} the following algorithm is used:
+\begin{enumerate}
+\item
+For each predicate given in the argument list or for all predicate
+symbols, special code
+is generated and added to the original formula (``special query'').
+Furthermore, code for the meta-level control is generated.
+\item
+This formula is compiled and executed by the \SAM.
+
+\item
+The formula is entierly searched with a given low depth bound (which can be
+set using {\bf -delta {\em number\/}}, default: 3).
+During the run, the newly generated single-literal clauses are stored
+in the Unit-lemma index.
+The unit-clauses are kept only, if their term size and term depth do
+not viaolate the given bounds, and as long the limit of generated lemmas
+is reached.
+\item
+If a stopping condition is met (number of levels or number of
+newly generated clauses is exceeded), the remaining clauses
+are added to the original formula and written into the file
+{\em file}.out.lop.
+Then
+{\sc Delta}
+prints the execution and compilation times and exits.
+\item
+Otherwise, the search starts again (Step~3), whereby all unit-lemmata
+generated in the previous levels can be used during the search.
+\end{enumerate}
+
+\subsection{xvtheo}
+{\tt johann}
+\subsection{xvdelta}
+{\tt johann}

@@ -1,0 +1,148 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{SETHEO System Overview}\label{sec:overwiew}
+
+The SETHEO system consists of a set of (individual) programs,
+as shown in Figure~\ref{fig.1}. Data are exchanged between the
+modules using files. Parameters for each program are given in the
+command line.
+
+\begin{figure}[htb]
+\vspace*{8cm}
+\caption{Parts of the SETHEO system}
+\label{fig.1}
+\end{figure}
+
+The indivual programs will be described in detail below. They are:
+
+\begin{description}
+%\item[plop]
+%This program\footnote{This program is distributed as an ``as is'' version
+%without support. For details see Section~\ref{sec:plop}.} converts
+%formulae in first order notation (with quantifiers and standard
+%(infix-) operators (e.g., $\wedge, \vee$) into a set of clauses.
+
+\item[inwasm]
+This program is the {\em compiler\/} for SETHEO. It takes a formula
+(as a set of clauses) or a logic program as its input. Details of the
+input language (LOP) and its syntax are described in detail in
+Section~\ref{sec:lop-syntax}.
+{\bf Inwasm} performs several preprocessing steps which try
+to reduce the search space spanned by the formula. Typical preprocessing
+steps are the generation of syntactical constraints or the elimination
+of pure literals.
+Then, binary code for the SETHEO Abstract Machine \SAM\ 
+are generated. Optionally, {\bf inwasm} can output 
+the preprocessed formula in LOP-syntax or \SAM-assembler code.
+This option is helpful, if the preprocessed formula is to be
+modified by hand (or some other filter), before it should be compiled
+for the \SAM.
+Details are discussed in Section~\ref{sec:inwasm}.
+
+%\item[wasm]
+%The assembler {\bf wasm} converts assembler instructions (as normally
+%produced by {\bf inwasm} and converts them into a binary
+%(currently actually hexadecimal) representation which can be directly
+%read into the SETHEO Abstract Machine.
+%Symbolic labels and constants are resolved. Furthermore, the
+%code is somewhat optimized to reduce the size of the produced code file.
+ 
+\item[sam]
+This program is the interpreter of the SETHEO Abstract Machine
+\SAM. After loading the code-file as prepared by {\bf wasm}, the
+abstract machine is started with given parameters.
+If a proof could be found, the given time-limit has been exceeded,
+or upon request, statistical information is printed on the screen
+and into a log-file. In case a proof could be found, the tableau
+with instantiated literals is generated and written into a file.
+
+\item[xptree]
+This program is an X-based graphical viewer for tableaux, generated
+by {\bf sam}. The tableau is displayed as a tree with literals
+(and additional information) as its nodes. Scrolling, selection and
+hiding of subtableaux can be accomplished using the mouse.
+
+\item[setheo]
+This script represents the top-level script of the SETHEO system.
+Given a formula in LOP-notation, the compiler (inwasm) and the
+prover (sam) are activated automatically, using {\em default parameters}.
+
+\end{description}
+
+Around these basic programs, additional modules are located which
+use the basic programs. They increase the functionality of the
+SETHEO system and facilitates its usage.
+
+Not all of the modules are currently supported, nor are described in
+this manual.
+(Those described in the following are marked by a $\dagger$.)
+If you are interested in one of the modules, please contact the
+SETHEO-team.
+
+New modules are likely to be added in further distribution versions
+of SETHEO. Therefore, modules which are new for the current version of
+SETHEO are marked clearly.
+The modules are listed in alphabetical order.
+
+\begin{description}
+%\item[clop]
+%This script combines the compiler {\bf inwasm} and the assembler
+%{\bf wasm}. All command-line parameters are passed to the compiler
+%{\bf inwasm}.
+
+
+\item[delta]
+is a preprocessor which takes a formula in LOP syntax, and produces
+one in the same syntax. {\bf Delta} generates unit-lemmata in a bottom-up
+way which are added to the original formula. In many cases, this combination
+of bottom-up preprocessing (using {\bf delta}) and subsequent top-down
+processing by the \SAM\ results in a dramatic increase of efficiency.
+{\bf Delta} uses {\bf inwasm, wasm} and {\bf sam}.
+
+\item[plop]
+This program\footnote{This program is distributed as an ``as is'' version
+without support. For details see Section~\ref{sec:plop}.} converts
+formulae in first order notation (with quantifiers and standard
+(infix-) operators (e.g., $\wedge, \vee$) into a set of clauses.
+\item[rctheo]
+is a parallel theorem prover, based on SETHEO \cite{Ert93}. 
+It uses random competition
+as the underlying model and is running on a network of workstations.
+{\bf Rctheo} is available upon request.
+
+\item[sicotheo]
+is a prototypical implementation for exploiting parameter competition
+with SETHEO. This implementation is based on {\bf pmake} and is available
+upon request.
+
+\item[sptheo]
+exploits parallelism by Static Partinitioning. Implemented upon PVM,
+it is running on networks of UNIX workstations \cite{Sut95}.
+
+\item[wasm]
+The assembler {\bf wasm} converts assembler instructions (as normally
+produced by {\bf inwasm} and converts them into a binary
+(currently actually hexadecimal) representation which can be directly
+read into the SETHEO Abstract Machine.
+Symbolic labels and constants are resolved. Furthermore, the
+code is somewhat optimized to reduce the size of the produced code file.
+ 
+\item[xvdelta]
+This module is a primitve graphical user interface (GUI) for {\bf delta}
+preprocessor.
+It is based on XVIEW toolkit of X. {\bf Xvdelta} facilitates the selection
+of parameters of {\bf delta} and to control its operation.
+
+\item[xvtheo]
+This module is a primitve graphical user interface (GUI) for SETHEO.
+It is based on XVIEW toolkit of X. {\bf Xvtheo} allows to edit
+a formula, to select appropriate parameters (using pull-down menues),
+to start the prover and to view the results.
+{\bf Xvtheo} calls all the basic progams.
+\end{description}

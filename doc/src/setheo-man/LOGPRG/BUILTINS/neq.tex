@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$neq/2, =/=}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$eq(T1,T2) , T1 =/= T2 }
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T1,T2}]
+terms to be checked for syntactical inequality.
+	\end{description}
+\item[Low Level Name:]
+	{\tt neq\_built}
+\item[Result:]\ \\
+This built-in fails, if {\tt T1} is syntactical equal to
+{\tt T2}.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This predicate checks two terms for syntactical equality.
+For the definition of syntactical equality see {\tt \$eq/2}.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X)<- $neq(f(a),X).
+p(X)<- $neq(f(Y),X).
+p(X)<- f(Y) =/= X.
+\end{verbatim}
+The first clause succeeds, unless $X$ is instantiated to $f(a)$.
+The second and third clause, {\em always\/} succeed.
+The third clause is equivalent to the second one.
+ 

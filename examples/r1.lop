@@ -1,0 +1,12 @@
+rel(P,a,b) <- trans(P) , subs(r,P) .
+rel(P,b,c) <- trans(P) , subs(r,P) .
+rel(P,X,Z) <- trans(P) , rel(P,X,Y) , rel(P,Y,Z) .
+#rel(P,f_1(P),f_3(P)) ; rel(P,X,Z) <- rel(P,X,Y) , rel(P,Y,Z) .
+#rel(P,f_1(P),f_3(P)) ; trans(P) <- .
+#rel(P,f_3(P),f_2(P)) ; rel(P,X,Z) <- rel(P,X,Y) , rel(P,Y,Z) .
+#rel(P,f_3(P),f_2(P)) ; trans(P) <- .
+#rel(P,X,Z) <- rel(P,f_1(P),f_2(P)) , rel(P,X,Y) , rel(P,Y,Z) .
+#trans(P) <- rel(P,f_1(P),f_2(P)) .
+subs(r,p) <- .
+trans(p) <- .
+<- rel(p,a,c) .

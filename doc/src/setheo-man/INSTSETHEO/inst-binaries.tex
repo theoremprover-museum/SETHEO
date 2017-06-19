@@ -1,0 +1,25 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Installing the Binaries}\label{sec:inst-bin}
+
+Now you have a local file {\tt setheo.solaris.tar.gz} (respectively
+{\tt setheo.hp.tar.gz}, {\tt setheo.sunos.tar.gz} or {\tt
+setheo.linux.tar.gz}). This is a compressed package containing
+directories and files of the SETHEO system. Unpack the system with:
+\begin{verbatim}
+        gunzip -c setheo.tar.gz
+        tar xvf setheo.solaris.tar
+\end{verbatim}
+You can delete the file {\tt setheo.solaris.tar}, if you want. Go into
+the directory {\tt setheo.solaris} and call the installation process: 
+\begin{verbatim}
+        cd setheo.solaris
+        make
+\end{verbatim}
+If you want to invoke SETHEO from any directory, you must add this
+directory to your path. Now \SE\ is ready for use.

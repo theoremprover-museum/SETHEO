@@ -1,0 +1,48 @@
+This is BibTeX, C Version 0.99c
+The top-level auxiliary file: mkbib.aux
+The style file: named.bst
+Database file #1: /home/schumann/refs/0193.bib
+Database file #2: /home/schumann/refs/0194.bib
+Database file #3: /home/schumann/refs/0195.bib
+Database file #4: /home/schumann/refs/0293.bib
+Database file #5: /home/schumann/refs/fuzzy-nn.bib
+Database file #6: /home/schumann/refs/hw-uka94.bib
+Database file #7: /home/schumann/refs/japanrefs.bib
+Database file #8: /home/schumann/refs/johann.bib
+Repeated entry---line 186 of file /home/schumann/refs/johann.bib
+ : @inproceedings{Sch94a
+ :                      ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 224 of file /home/schumann/refs/johann.bib
+ : @inproceedings{GLMS94
+ :                      ,
+I'm skipping whatever remains of this entry
+Database file #9: /home/schumann/refs/mmb.bib
+Database file #10: /home/schumann/refs/mystuff.bib
+Repeated entry---line 26 of file /home/schumann/refs/mystuff.bib
+ : @inproceedings{SL90
+ :                    ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 104 of file /home/schumann/refs/mystuff.bib
+ : @techreport{Sch89
+ :                  ,
+I'm skipping whatever remains of this entry
+Database file #11: /home/schumann/refs/othref.bib
+Repeated entry---line 480 of file /home/schumann/refs/othref.bib
+ : @phdthesis{Sch91
+ :                 ,
+I'm skipping whatever remains of this entry
+Database file #12: /home/schumann/refs/ref.bib
+Database file #13: /home/schumann/refs/refs.bib
+Repeated entry---line 130 of file /home/schumann/refs/refs.bib
+ : @inproceedings{SL90
+ :                    ,
+I'm skipping whatever remains of this entry
+Repeated entry---line 560 of file /home/schumann/refs/refs.bib
+ : @techreport{Sch89
+ :                  ,
+I'm skipping whatever remains of this entry
+Database file #14: /home/schumann/refs/refs92.bib
+Database file #15: /home/schumann/refs/tableau.bib
+Warning--there's a number but no volume in LMG94
+(There were 7 error messages)

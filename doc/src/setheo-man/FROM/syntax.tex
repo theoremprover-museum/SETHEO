@@ -1,0 +1,230 @@
+%syntax
+\ssection{Syntax of the Input Language}
+\ssubsection{Input Language of PLOP}
+
+In this part we describe the syntax of the input language, which is
+accepted by the formula translator {\bf plop}.
+A formula in that notation has to be in a file with the extension {\bf .pl1}.
+
+Because the grammar of first order logic is well-known it seems
+useless to repeat an inductive definition of the concept 
+{\em ``formula''}. We rather represent the special PLOP
+requirements i.e. the differences to the usual
+standard in giving some comments on the individual
+elements of the accepted language
+
+\paragraph{Variables}
+Variables are strings starting with a capital letter followed 
+by arbitrary letters, digits, or underscore.
+
+\paragraph{Constants}
+Predicate-, function-, and object parameters are strings starting 
+with a lower case letter followed by lower case letters, digits, or underscore. 
+Predicate- and function arguments are to be included in round brackets.
+Multiple arguments are to be separated by a comma ``,''.
+
+\paragraph{Propositional Connectives}
+The symbols for the propositional connectives are:
+
+\begin{center}
+\begin{tabular}{llll}
+(1) &  {\tt $\sim$}  &   - &  not, \\
+(2)  &	 {\tt \& } & -  & and, \\
+(3)   &{\tt ; } & -  & or, \\
+(4)   &{\tt -> } & -  & if ... then, \\
+(5) & 	 {\tt <->}  & -  & iff. 
+\end{tabular}                  
+\end{center}
+
+The binding preference is given by this order:
+1 $>$ 2 $>$ 3 $>$ 4 $>$ 5 . 
+Equal connectives are left associative i.e.,
+\tt 
+\mbox{a -> b -> c} \rm is to be read as \tt \mbox{((a -> b) -> c)} 
+\rm .
+
+\paragraph{Quantifiers}
+The quantifiers are represented by
+``{\tt
+forall}'' and ``{\tt exists}''.
+These symbols must not occur as parts of other names like constants
+or variables.
+The scope of a quantifier extends over the following propositionally 
+complete subformula and ends there.
+E.g. at the formula
+\[\tt 
+\mbox{forall X a -> b(X)}  \\
+\rm
+\]
+the scope of the quantifier does not include {\tt b(X)}.
+To bind {\tt X} by this quantifier one has to write as usual with parenthesis
+\[\tt 
+\mbox{forall X (a -> b(X)).}\\
+\rm
+\]
+Occurences of free variables are understood by PLOP as bound
+from the outside (universal closure).
+
+\paragraph{Brackets}
+Parenthesis are expressed by the usual {\em round brackets} only.
+{\em Square brackets} must not be used in the whole input formula .
+
+\paragraph{Special Characters}
+All characters with ASCII value $<$ 32 are ignored and will be deleted
+during the transformation.
+The {\em space-character} can be omitted if the meaning is not affected and if
+there cannot result any ambiguities. 
+E.g. 
+\[\tt 
+\mbox{forallX} \\
+\rm
+\]
+is recognized as a quantifier and a variable. 
+In other cases a space character must be set, e.g.
+\[\tt 
+\mbox{forall X a(X) }\\
+\rm
+\]
+cannot be written as 
+\[ \tt 
+\mbox{forall Xa(X).}\\
+\rm
+\]
+
+
+Other characters as mathematical function symbols (especially in
+infix notation) are not recognized, which perhaps could affect the
+correctness of the transformation in some cases and are therefore to 
+be treated carefully. 
+If you cannot avoid 
+them at any rate suppress the optimization concerning redundancies
+and tautologies (option -nopti). 
+
+\paragraph{Comments}
+Comments are enclosed in C--like convention in ``{\tt /*}'' and ``{\tt */}''
+and can extend over several lines. Nested comments are not allowed.
+All comments are removed during the conversion.
+
+%\paragraph{Size}
+%The admissible size of the input file is limited and can be displayed
+%by the option -defgro (``groesse1\_\,c'').
+%If it is not sufficient for your example (e.g. a large program) 
+%divide the input in several parts or change the define-statement for
+%groesse1\_\,c in the source-code.
+
+\ssubsection{Input Language LOP}
+
+The language LOP is accepted by the setheo--compiler {\bf inwasm}, and
+parts of it also by the preprocessor. It represents a formula as (conjunctive)
+normal form (clausal form).
+Two different syntax styles may be used: the logic-style and a prolog-like
+style.
+Clauses in logic style have a {\tt <- } as seperator between
+positive and negative literals.
+These clauses are fanned automatically. The subgoals of the fanned
+clauses are reordered, unless the -R option was specified during the
+compilation with inwasm.
+
+Prolog-like clauses have as seperator {\tt ?- } or {\tt :- }.
+The first denotes a query, i.e.\ an entry point for proving,
+the other separates negative and positive literals in one clause.
+Note that there may be more than one queries. In that case, use the
+-q option of inwasm.
+Prolog-style clauses can also contain negated literals, i.e. {\tt ~literal}.
+
+Prolog-style clauses are {\it not\/} fanned. So in the case of non-horn
+formulae completeness may be sacrificed. Again reordering is
+controlled with the -R option of inwasm.
+ 
+Both syntax styles can be mixed.
+If Horn--clauses
+are written in the logic-style, i.e.\ the {\tt headlist} contains a maximum
+of one literal, there is no difference between this notation and prolog-style
+notation. 
+ We give a top-down grammar--specification
+(extended bnf)
+of the syntax:
+
+{
+\begin{verbatim}
+LOP_program ::= clause *
+
+clause      ::= type1_cl .       /* prolog-like                      */
+              | type2_cl .       /* logic-like                       */
+
+type1_cl    ::= ?- tail          /* query                            */
+              | nliteral         /* fact                             */
+              | nliteral :- tail /* rule                             */
+
+tail        ::= nliteral         /* list of literals:     'subgoals' */
+              | nliteral ',' tail
+
+nliteral    ::= literal         /* literal                           */
+              | ~ literal       /* negated literal                   */
+
+literal     ::= <PROLOG-like literal>
+
+type2_cl    ::= headlist <- taillist
+
+headlist    ::= <empty>         /* list of (default) positive        */
+              | nliteral        /*           literal(s)              */
+              | nliteral ';' headlist
+
+taillist    ::= <empty>
+              | nliteral         /* list of (default) neg.           */
+                                 /* literals "subgoals"              */
+              | nliteral ',' taillist
+\end{verbatim}
+}
+
+A literal is written in a PROLOG--like syntax: constants and predicate
+symbols are starting with a lower--case letter, variables with an
+upper--case letter or an underscore \_, e.g.\ {\tt p(X1,\_Yabc,cb12)}.
+Lists have a notation
+like in PROLOG with [ ]. First element and rest
+of a list is separated by a '|'.
+A special data type, global variable, is
+written like an ordinary variable, but starts with a '\$'.
+For details see "Programming in LOP".
+Built--in predicates count as one literal
+and must occur in the tail of a rule or in the query only , i.e.\ only negated
+built--in predicates are allowed.
+A list of all built--in predicates appears in "Programming in LOP".
+
+Some examples show the syntax of LOP and its usage,
+where f denotes fanning, r reordering, and 1 and 2 the clause types 1,2.
+\vspace{5mm}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+LOP formula & logic negation & remarks \\
+\hline
+\hline
+{\tt p(X) $<$-.} & p(X) & 2,f \\
+\hline
+{\tt p(X).} & p(X) & 1 \\
+\hline
+{\tt p;q $<$- r,s.} &
+ p $\vee$ q $\vee \neg$ r $\vee \neg$ s 
+& 2, f, r, non--horn \\
+\hline
+{\tt p :- ~q,r,s.} & p $\vee$ q $\vee \neg$ r $\vee \neg$ s &
+1, non--horn \\ 
+\hline
+{\tt ?- p,q,r.} &
+ $\neg$ p $\vee \neg$ q $\vee \neg$ r 
+& 1 \\
+\hline
+{\tt $<$- p,q,r.} &
+ $\neg$ p $\vee \neg$ q $\vee \neg$ r 
+& 1, same as above, if entire formula is horn \\
+\hline
+\end{tabular}
+\end{center}
+\vspace{8mm}
+
+For examples in LOP see "SETHEO as a Theorem Prover" and "Programming in LOP".
+
+
+                

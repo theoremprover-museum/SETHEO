@@ -1,0 +1,33 @@
+#!/bin/sh
+#******************************************************
+#*     PIL System
+#*     $Id: makeallexamples,v 1.1.1.1 2001/07/16 18:16:09 schumann Exp $
+#*
+#*     (c) Johann Schumann, Klaus Wagner
+#*     TU Muenchen and NASA Ames
+#*
+#*     $Log: makeallexamples,v $
+#*     Revision 1.1.1.1  2001/07/16 18:16:09  schumann
+#*     new CVS project
+#*
+#*****************************************************/
+
+export PATH=$PATH:../bin
+export PILHOME=`pwd`/..
+
+
+#for i in X509 kerb ns nspk otw rpc wmf ya iso10181 ; do
+#for i in rpc ; do
+for i in kerb ; do
+#for i in ya ; do
+#for i in iso10181 ; do
+	echo "processing protocol $i..."
+#	pil -rules ban-rules.lop -ilf -sorts_minimal $i 2>&1
+#	pil -rules autolog-rules.lop -ilf -sorts_minimal $i 2>&1
+	pil -ilf -sorts_minimal $i 2>&1
+	make -f Makefile.$i all
+	make -f Makefile.$i proofs
+	latex $i.tex
+	make -f Makefile.$i clean
+done
+

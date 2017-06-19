@@ -1,0 +1,378 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand\bild[5]{{\tt #1 #2 #3 #4 }\label{#5}}
+
+\section{Introduction} 
+XSETHEO is a graphic user interface for the SETHEO theorem prover.
+This document introduces you to the user--interface by giving a 
+guided tour through all stages of automatically proving an actual theorem.
+To get an impression of the interface have a glimpse at Figure~\ref{fig:whole-thing}.
+%\begin{figure}[htbp]
+%\begin{picture}(100,170)
+%\put(0,0){\framebox(180,170)}
+%\end{picture}
+%\caption{Full fledged XSETHEO}\label{fig:whole-thing}
+%\end{figure}
+
+\bild{xsetheo01.ps}{12cm}{17cm}{Full fledged XSTHEO}{fig:whole-thing}
+
+\section{The Example--Theorem} 
+The theorem we are about to prove is a classic example\footnote{Chang and Lee, 
+Symbolic Logic and Mechanical Theorem Proving, Academic Press, Orlando, 1973.} from ATP.
+It alleges that from the axioms of group theory it follows that any
+left--identity element is also a right--identity element. 
+To recollect the fundamentals of group theory, cast a look at the definition coming up.
+\\ \\
+{\bf Definition}
+\begin{quote}
+A {\it group\/} consists of 
+\begin{quote}
+a set $\cal G$ 
+and 
+a function $* : S \times S \rightarrow S; (s1,s2) \mapsto s1 * s2$. 
+\end{quote}
+Additionally, two axioms must hold.
+\begin{enumerate}
+\item There exists an element $e$ in $\cal G$ such that: \\
+\begin{itemize}
+\item[a.]$e * x = x$ for any element $x$ in $\cal G$. 
+(We call $e$ a left--identity element.) 
+\item[b.] For any element $x$ in $\cal G$ there exists an element $x'$ in $\cal G$ such that 
+$x * x' = e.$ \\ 
+\end{itemize}
+\item For all $x, y, z$ from $\cal G$ it holds that $(x * y) * z = x * (y * z)$.
+\end{enumerate}
+\end{quote}
+
+An example of a group is $(Q\setminus \{0\},*)$, the set of rational numbers with
+standard multiplication. However, $(Q,*)$ is not a group, since axiom 1.b. cannot
+be satisfied\footnote{1 is the only candidate for a (left--) identity but
+$0 * x' = 1$ holds for no $x'$ in $\cal G$.}.
+It also follows from the group axioms that  for any group there is exactly
+one identity element, but we are not to take advantage of this knowledge.
+As far as we are concerned, there
+exist one or more left--identity elements, which may or may not be right--identities.
+Now, rendering axiom 1 in logical notation results in:
+\begin{center}
+	$\exists y (\forall x  (y * x = x) \:\wedge\: \forall x  \exists x' (x' * x = y))$
+\end{center} 
+Axiom 2 reads in logical notation as follows:
+\begin{center}
+	$\forall x \forall y \forall z  ((x * y) * z) = (x * (y * z))$
+\end{center} 
+To prove that indeed every left--identity is a right--identity we proceed
+indirectly, i.e. we assume that there is an element, which is a left--identity 
+but not a right--identity.
+So what we want to do is to state that there is an element that is characterised by axiom 1
+but is not a right--identity.
+In logic notation this can be expressed as:
+\begin{center}
+	$\exists y (\forall x  (y * x = x) \:\wedge\: \forall x  \exists x' (x' * x = y) \:\wedge\:  \sim \forall x  (x * y = x))$
+\end{center} 
+which is equivalent to: There is a left-identity which is not a right--identity.
+These formulae are almost, but not quite, what you can feed the theorem--prover with.
+For one, since there are no provisions for equality in SETHEO's underlying calculus,
+we have to paraphrase equality by introducing the 3--place predicate
+{\it product\/}. The intended
+interpretation for {\it product\/}$(x,y,z)$ is obviously $x * y = z$. 
+Introducing the modification to our input formulae they
+turn out like this:
+\begin{center}
+$\exists y (\forall x  \mbox{ {\it product\/}}(y,x,x) \:\wedge\: \forall x
+\exists x' \mbox{ {\it product\/}}(x',x,y) \:\wedge\:  \sim \forall x
+\mbox{ {\it product\/}}(x,y,x))$
+\end{center} 
+Also, the formulae must be translated from predicate logic to LOP,
+which is a language not unlike Prolog but with some extensions. In
+LOP--syntax\footnote{See Section~\ref{sec:lop-syntax} for a description of
+the LOP--syntax.} the input formulae look like this:
+\begin{center}
+\begin{verbatim}
+product(inverse(X),X,identity) <- .
+product(identity,X,X) <- .
+product(X,V,W) <- product(X,Y,U) , product(Y,Z,V) , product(U,Z,W).
+product(U,Z,W) <- product(X,Y,U) , product(Y,Z,V) , product(X,V,W).
+<- product(a,identity,a).
+\end{verbatim}
+\end{center}
+Before you enter the formula, read on!
+
+
+
+\section{XSETHEO--Window}\label{sec:xsetheo}
+
+ORTRUN: Diese Section beschreibt die XSETHEO-Version aus
+/usr/local/jessen/bin/xsetheo. xsetheo muss noch an die neuen
+Parameter fuer inwasm und sam angepasst werden, und dann muss diese
+Beschreibung geaendert werden.
+
+XSETHEO is a X--window--based interface for the SETHEO
+theorem--prover. To call the main window into existence, change to
+SETHEO's example subdirectory and type {\it xsetheo\/}. XSETHEO's main
+window should now appear on the screen. It looks similar to
+Figure~\ref{fig:xsetheo-main-window}. 
+%\begin{figure}[htb]
+%\begin{center}
+%\begin{picture}(131,95)
+%\input{/u1/johann/papers/setheo/man/xsetheo_main_pic}
+%\end{picture}
+%jfjfj
+%\caption{XSETHEO's Main Window}\label{fig:xsetheo-main-window}
+%\end{center}
+%\end{figure}
+
+\bild{win01.ps}{9cm}{15cm}{XSETHEO's Main Window}{fig:xsetheo-main-window}
+
+The main--window is subdivided into two parts; the upper part is
+called a {\it panel\/}, the lower part a {\it tty--window\/}. On the
+panel you notice a couple of small ovals; these are called {\it
+buttons\/} and this is quite literally what they are: moving the
+cursor to these buttons and clicking the left mouse--button will call
+forward the action selected just as pushing buttons of a vending
+machine does.  
+
+The buttons on the panel labelled {\it File\/}, {\it Show\/}, {\it
+Compile\/}, {\it Prove\/} and {\it Proof--tree\/} represent, applied
+from left to right, the seqence of steps from the input formula in
+input syntax to a graphical representation of the proof--tree,
+provided  there is a proof and SETHEO finds it.  
+
+\paragraph{File}
+The {\it File\/}--button is used to load an input formula. Clicking
+the {\it File\/}--button you get a small window, the {\it Formula
+Files\/} window. At top of this window the name of the current directory
+is printed, followed by the list of filenames and
+subdirectories. Using the scroll--bar on the right you can see the
+whole contents. Below there is a line where you can enter
+filenames.\\ 
+In SETHEO's examples subdirectory there should be a file
+{\it GRP003-1.lop\/}. This is identical to the input formula we
+developed above; so you don't need to type it again.
+Look for the file {\it GRP003-1.lop\/} by using the scroll--bar and
+click on it with the left mouse--button. The filename will appear on
+the line. Either you could type the filename {\it GRP003-1.lop\/} on
+the line. Now click on the {\it LOAD\/}--button. There are two
+possibilities: If anything went wrong, e.g. you misspelled {\it
+GRP003-1.lop\/} or you have not been in SETHEO's examples subdirectory
+when calling XSETHEO, you might see an {\it alert--popup\/} on your
+screen. An alert--popup is a subwindow with a huge black arrow
+pointing into the window. Usually an alert tells you that you made a
+mistake or that you are about to invoke an action that you better
+think about twice. There is no way just to ignore an alert. You cannot
+go on unless having chosen one of the options in the alert--
+subwindow. \\  
+If, on the other hand, things are going smoothly, the file {\it
+GRP003-1.lop\/} is loaded into XSETHEO and the {\it Formula Files\/}
+window disappears.
+
+\paragraph{Show}
+You can change the loaded formula before starting XSETHEO's
+prove mechanism. Click on the {\it Show\/}--button. A small window
+will appear on the screen, the {\it Formula\/} window. In this
+window the input file {\it GRP003-1.lop\/} is shown. On the right side of the
+window there is a scroll--bar. Move the cursor into the {\it Formula\/}
+window. Now you can type or delete parts of the input formula. The
+original file {\it GRP003-1.lop\/} will not be changed, but XSETHEO will
+use the changed formula. 
+
+\paragraph{Compile}
+Before starting the prove mechanism, the formula must be translated
+into a code which can be interpreted by SETHEO. Also some
+simplifications of the input formula can be done. This is the job of
+the compiler. SETHEO's compiler is divided into two parts, {\bf
+inwasm} and {\bf wasm\/}.\\ 
+First {\bf inwasm\/} is called to make some simplifications: Often a
+formula to  be proven conveys a lot of information that will not be
+needed for a particular proof. But proving a theorem is essentially a
+search process and surplus clauses will generally result in a vast
+amount of futile search. Thus there has been some research into
+limiting the set of clauses to those that stand a chance to be needed
+for the proof. In theorem--proving this effort is called
+pre--processing. The best possible kind
+of preprocessing would be to first find a proof and then throw away
+the surplus clauses, but this obviously misses the underlying idea
+completely. Preprocessing is meant to effectively reduce the number of
+clauses without engaging in a search--process.\\
+After the preprocessing {\bf wasm\/} translates the simplified
+input formula into machine code. If you are interested in further
+details on {\bf inwasm\/} and {\bf wasm\/} look at
+Sections~\ref{sec:inwasm} and \ref{sec:wasm}.\\
+Now click on the {\it Compile\/}--button. The {\it Formula Compile\/}
+window will appear on the screen. At the top the name of the formula
+to be compiled is given. Also there is a list of switches which
+represent options for the compilation. If you look at the list you
+will notice that one of the options is already ticked\footnote{To
+tick or untick an option, clicking a mouse button after having moved
+the arrow into the respective box will do the job.}. Standardly {\bf
+inwasm} will be called with the {\it -cons\/}--option for generating
+all possible constraints. Now click on the {\it GO!\/}--button. The {\it
+Formula Compile} window will disappear and the compiler will be
+started. The result of the compilation phase will be displayed in the
+{\it tty--subwindow\/} below the panel. 
+
+\paragraph{Prove}
+SETHEO is a first order predicate logic theorem prover featuring
+completeness, consistency, speed, and a variety of proof
+modi. Clicking the {\it Proof\/}--botton the {\it Prover\/} window
+will appear on the screen. Again the name of the input formula and
+some switches are given. Additional three bounds can be chosen, the
+{\it Depth Bound\/}, the {\it Inference Bound\/} and the {\it Local
+Inference Bound\/} (to get more information on SETHEO's switches and
+bounds read Section~\ref{sec:sam}). Two of the options are already
+ticked and the bounds are initialized with their default values. This
+is SETHEO's standard proof mode. The prover is activated by clicking
+at the button marked {\it PROVE!\/}, the result will be displayed in
+the {\it tty--subwindow\/} below the panel. In our case, i.e. the
+group--example {\it GRP003-1\/}, the result looks like
+Figure~\ref{fig:GRP003-1}.
+
+\input{STARTED/GRP003-1.out.tex}
+
+First SETHEO's defaults, the chosen options and the name of the proven
+file are given. Is is also printed which types of constraints are
+used. The line 
+\begin{verbatim}
+-d:    3  time =     0.01 sec  inferences =       56  fails =      54
+\end{verbatim}
+is caused by the iterative deepening and means that at depth 3 in 0.01
+seconds 56 inferences have been executed which led to 54 fails. This
+was sufficient to find a proof so depth 4 was not tried. The following
+statistics give an overview on the various counters within SETHEO.
+
+\paragraph{Proof--tree}
+If you are interested in the proof you can have a look at the actual
+proof the prover came up with. Click at the {\it Proof--tree\/} button
+to have a canvas displayed with the graphical representation of the
+prooftree on it. For your convenience the proof tree is reproduced in
+Figure~\ref{fig:proof-tree}. 
+%\begin{figure}[htb]
+%\begin{center}
+%\begin{picture}(110,65)
+%\input{ /u1/johann/papers/setheo/man/proof-pic}
+%\end{picture}
+%jfjfj
+%\caption{Proof tree}\label{fig:proof-tree}
+%\end{center}
+%\end{figure}
+
+\bild{tree01.ps}{9cm}{15cm}{Proof tree}{fig:proof-tree}
+
+A canvas is yet another type of window in the X--windows menagerie. As
+the name suggests a canvas is a window type for drawing objects in
+like, e.g. prooftrees. The interesting thing, however, is that a
+canvas can be much larger than the actual window. So with a large
+prooftree you might only see a part of the tree at a given time, but
+you can have the canvas moved under your window like you can move a
+probe under the microscobe. The way to do this is to move the little
+square in the top left corner of the canvas.\\
+Intuitively the root of the prooftree is what you want to show and the
+leaves of the tree are the hard facts. Every node in the tree stands
+for a literal. You might be surprised because the rootnode is a
+literal called {\it $\sim$query\_\/} which is not part of 
+the input file. The reason is the following: Like in prolog notation a
+clause without a head is a query. LOP syntax allowes more than one
+query in an input file, and all of them must be taken into account
+when building up a prooftree. To give the prooftree nevertheless a
+clear rootnode SETHEO adds an artificial query. That means the clauses
+without head literal get the head literal {\it query\_\/} and the clause
+{\it $\sim$query\_\/} is added to the input file.\\
+If you select a literal by clicking on its node you will
+get further information on the usage of this literal within the
+prooftree. In this prooftree you will either find the information {\it
+entry literal\/} or something like {\it InfNr 2}, {\it ext(3,1)}. {\it
+entry literal\/} means that this literal was unified with the negation
+of its parent node\footnote{In the model elimination calculus a clause
+can only be used if one literal of the clause can be unified with the
+negation an open subgoal.}. So this path is closed. SETHEO gives a
+number to each clause of the input file and to each subgoal of a
+clause. The information {\it ext(3,1)} at a literal means that the
+negation of this literal was unified with the first subgoal of the
+third clause. {\it InfNr 2} means that this was the second inference
+step.\\
+Clicking again unselects the literal, i.e.\ the further
+information disappears. At the top left corner there are four
+buttons. The {\it Tree\/}--button provides a pull--down menu. Here you
+can select or unselect literals, too.
+
+SETHEO first showed that $a^{-1^{-1}} * e = a$ using the facts $a^{-1^{-1}} * a^{-1} =e$ and $a^{-1} * a = e$
+and $ e * a = a$ and the instantiation of rule 5: if $a^{-1^{-1}} * a^{-1} =e$ and $a^{-1} * a = e$ and $e * a = a$ then
+$a^{-1^{-1}} * e = a$.\\
+SETHEO actually showed this twice.\\
+It than showed that $a * e = a$ using $a^{-1^{-1}} *e = a$ twice, the fact $e * e = e$, and the instantiation of rule 4:
+if $a^{-1^{-1}} * e = a$ and $e * e = e$ and $a^{-1^{-1}} * e = a$, then $a * e = a$.
+So what did we show? We presumed that there is (at least one) left--identity
+which is not a right--identity. Under this assumption we could show that
+any left--identity picked at random is a right--identity~\footnote{We actually
+picked $e$ but there is nothing special about $e$ to make it behave
+differently from any other left--identity}. So we come up with a 
+contradiction. Since there is nothing wrong with the axioms, our assumption 
+that there exists a left--identity which is not a right--identity
+must be a mistake. This concludes the proof.
+
+Proving this theorem obviously was a very easy task for SETHEO and it only used a tiny fraction of its 
+reasoning power. So we did not need built-in predicates and there did not occur any reduction steps in the proof.
+Reduction steps are needed, e.g. for proving that Sue will be at your party from knowing that:
+(1) if Martin does not come, Sue will be there, and
+(2) if Sue does not come, Martin won't come.
+%\ssubsection{A more advanced example}
+%Let's do one more example and concentrate on the proof rather than on SUN's
+%windowing environment~\footnote{Actually, the environment is called SUNVIEW,
+%being a more advanced version of X--windows, the standard of the Unix
+%X--OPEN group.}.
+%The theorem we want to prove is $$There is no largest prime.$$
+%Or, which is the same thing, there exist infinetly many primes.
+%The proof is attributed to Euclid (300 B.C.). Again, the proof is
+%indirect: Assume there is a largest prime and call it $P$. Then, since
+%the property of being prime is decidable for any number you can
+%collect all primes smaller than $P$, form the product of all these
+%primes including $P$.
+
+
+
+
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+\paragraph{Further hints}
+\begin{itemize}
+\item X--windows can be moved and/or enlarged. Clicking the {\it
+right\/} button on the black bar atop each window, holding the button
+and moving the mouse will do the job.
+\item The canvas settings allow also for a generally more dense
+display of the prooftree possibly using a smaller font. This might be
+useful if you want to get a birds--eye view on the whole proof. You
+can also open a second canvas with the the same proof on it using one
+to get an overview and the other to look at details.
+\item If you want to prove theorems the files of which are not in the
+current directory, you can use the {\it ..(Go up a level)\/} entry on
+the {\it Formula Files\/} window to enter the paths.
+\item Be sure to set your path variable {\tt SETHEOHOME}\footnote{See
+Section~\ref{sec:environ}.}so you can access the XSETHEO modules after
+installation.
+\end{itemize}
+%\ssubsection{BUGS}
+%There are problems with the prooftree output  by SETHEO. Most of the times the information is not
+%sufficient for the construction of a tree. If a prooftree can be constructed there are frequent
+%mistakes in the succession of literals and their instantiation. Often variables are not fully
+%instantiated as this would afford an additional run trough the prooftree. $\not\models$

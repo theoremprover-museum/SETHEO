@@ -1,0 +1,96 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	genlemma/2
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$genlemma/2}\label{subsec:built-in-genlemma}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$genlemma(N1,N2)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N1}]
+	If this number is $\neq 0$, the generation of a unit-lemma
+	is considered. Otherwise, this predicate just succeeds.
+	\item[{\tt N2}]
+	If a unit-lemma is stored in the index, this number will be
+	stored together with the lemma. This information can then
+	be used when unit-lemmata are being used (e.g., by {\bf uselemma/1}).
+	\end{description}
+\item[Low Level Name:]
+	{\tt genlemma}
+\item[Result:]\ \\
+	This built-in predicate always succeeds. Memory overflow and
+	wronly instantiated parameters will result in a 
+	non-fatal run-time error.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in generates a unit-lemma {\tt H<-.} for the
+head {\tt H} of the current clause, if all of the following
+conditions hold:
+\begin{itemize}
+\item
+both arguments are instantitated to a number,
+\item
+the value of the first argument is $\neq 0$,
+\item
+The solution of the head of the current subgoal does not involve
+any reduction steps above the current node in the tableau.
+(This means, that we really have a unit-lemma).
+\item
+The current head (with its current instantiation) is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+The lemma will be annotated by the value of the second argument
+(must be a number).
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+If the {\bf sam(1)} is called with the inline-command flag {\tt -lemmatree},
+the proof tree for the current lemma (if it gets stored in the index)
+is appended to the proof-tree file.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Note.}
+The {\bf genlemma/1} built-in must be the last subgoal of a given
+clause or contrapositive.
+Otherwise, correctness of SETHEO is not ensured, if the lemmata are
+used.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example~1.}
+\begin{verbatim}
+q(X,Y) :- p(X),r(X,a),$genlemma(1,5).
+\end{verbatim}
+
+In this example, a unitlemma {\tt q(X,Y)<-.} --- with the current substitutions of {\tt X} and {\tt Y} --- is generated and labeled with the number $5$.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example~2.}
+\begin{verbatim}
+q(X,Y) <- p(X),r(X,a),$getdepth(D),$genlemma(1,D).
+\end{verbatim}
+
+In this example, the generated unit-lemma is labeled with the current
+depth. When lemmata are selected for usage ({\tt \$uselemma/1}), one
+can select only those unit-lemmata which have been generated on a lower
+depth.

@@ -1,0 +1,52 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$size/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$size(T,N)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term
+	\item[{\tt N}] number or variable
+	\end{description}
+\item[Low Level Name:]
+	{\tt }
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This predicate calculates the size of the term {\tt T} and
+unifies the result with the second parameter {\tt N}.
+The size of a term is the number of its constants, variables, and
+function symbols.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p <- size(f(a,X),2)
+p <- size(f(a,g(Y)),2)  /* will fail */
+\end{verbatim}
+
+

@@ -1,0 +1,56 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{dumplemma}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt dumplemma}
+\item[Parameters:]\ \\[-0.5cm]
+\item[Low Level Name:]
+	{\tt dumplemma}
+\item[Result:]\ \\
+This built-in always succeeds.
+%---------------------------------
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+
+This built-in dumps all lemmata in the lemma-store
+onto the current output-file (as set by {\bf tell/1}), or on
+stdout.
+Lemmata are printed in a LOP-like syntax. Therefore, the output can directly
+be processed by {\bf inwasm(1)}.
+Lemmata which have been marked deleted are preceeded by a {\bf \#}.
+This option is present for debugging and testing purposes and may
+be removed in future versions.
+ 
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+printlemma <- tell("out"),write("Lemmata:\n"),
+              dumplemma,told.
+
+\end{verbatim}
+
+

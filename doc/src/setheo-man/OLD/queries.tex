@@ -1,0 +1,50 @@
+\subsection{Selection of Start Clauses}
+
+Per default, SETHEO takes all clauses which contain negative
+clauses only, as possible start clauses.
+In LOP syntax, these clauses have the following form:
+
+\[ \mbox{\tt <-} L_1, \ldots, L_n. \]
+
+with atoms (non-negated literals) $L_i$.
+These clauses are also referred to as {\em queries}.
+
+The Model Elimination Calculus, however, allows to select
+an {\em arbitrary\/} clause as start clause.
+This can be of interest if the conjecture to be proven is of the form
+$A_1,\ldots,A_n \rightarrow B$. If a true goal-oriented serach is intented,
+the search should start with this clause.
+On the other hand, axioms like {\tt <-equal(X,succ(X)).} should in general
+not be used as a starting clause.
+
+Cases like this can be accomplished by SETHEO without affecting
+the satisfiability of the formula.
+Here, we describe a way to (a) disable a query, and to
+(b) convert an arbitrary clause into a query.
+Please note, that at least one query must be present in the formula in order
+to preserve satisfiability.
+
+\paragraph{Disabling a Query.}
+A query (as shown above) can be disabled by replacing that clause
+with the following one (for any $1 \leq i \leq n$):
+
+\[ {\tt ~}L_i \mbox{\tt <-} L_1, \ldots, L_{i-1},L_{i+1},\ldots,L_n. \]
+
+This rule cannot be used as a starting clause by SETHEO. nevertheless,
+all contrapositives are being generated.
+
+\paragraph{Converting a Clause into a Query.}
+Given a clause
+\[ H_1 ; \ldots ; H_m \mbox{\tt <-} L_1, \ldots,L_n. \]
+with atoms (non-negated literals) $L_i,H_i$.
+Then this clause can be converted into a query by replacing this
+clause by:
+\[ \mbox{\tt <-}
+{\tt ~}H_1, \ldots ,{\tt ~}H_m, L_1, \ldots,L_n. \]
+
+For this clause, all contrapositives are generated.
+
+
+\paragraph{Example:}
+
+{\tt irgend ein GRP bzw. Bledsoe}

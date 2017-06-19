@@ -1,0 +1,66 @@
+begin{figure}
+
+\psset{levelsep=8ex,linewidth=0.5pt,treefit=loose,nodesepB=4pt}
+
+\begin{center}
+
+\parbox{7cm}{
+$
+\begin{array}{l}
+    \begin{array}{l}
+        \left.
+        \begin{array}{l}
+            \longleftarrow p(X), q(X).  \\
+        \end{array}
+        \right.
+    \end{array}  \\
+    \begin{array}{ll}
+        \left.
+        \begin{array}{c}
+            p(a).  \\
+            \vdots \\
+            p(a).  \\
+            p(b).  \\
+            q(b).  \\
+        \end{array}
+        \right\}
+        &
+        100 \times
+    \end{array}
+\end{array}
+$
+}%
+\parbox{9cm}{
+\pstree{\TR{}}
+       {\pstree[nodesepA=4pt]
+               {\TR{$\neg p(X)$}}
+               {\TR{$p(a)$}
+                \pstree{\TR{$\neg q(Y)$}}
+                       {\TR{$q(b)$}}
+                \pstree{\TR{$\neg r(Y)$}}
+                       {\TR{$r(b)$}}}
+        \pstree[linestyle=dotted,nodesepA=4pt]
+               {\TR{$\neg s(X)$}}
+               {\TR{\mbox{\wasy\char18}}}}
+}
+
+\end{center}
+
+\caption{\small{Hier kommt es zu einem Fail, weil $X$ an $a$ gebunden
+         ist und das Subgoal~$\neg s(X)$ nicht mit dem Fakt~$s(c)$
+         extendiert werden kann. Das Tableau kann nur geschlossen
+         werden, wenn das Subgoal~$\neg p(X)$ der Query mit dem
+         Fakt~$p(c)$ extendiert wird. 
+         Das Backtracking erfolgt jedoch nicht
+         bis zum Subgoal~$\neg p(X)$, sondern nur bis
+         zum Subgoal~$\neg q(Y)$ der ersten Regel, weil die \"ubrigen
+         99~Fakten~$q(b)$ weitere Alternativen f\"ur
+         Extensionsschritte sind. Das Subgoal~$\neg q(Y)$ wird also
+         weitere 99--mal mit dem Fakt~$q(b)$ extendiert, bevor zu dem
+         Subgoal~$\neg p(X)$ gebacktrackt werden kann. Erst danach
+         kann das Subgoal~$\neg p(X)$ mit der zweiten
+         Alternative~$p(c)$ extendiert werden. Dadurch wird $X$ an $c$
+         gebunden und das Tableau kann durch die Extension von 
+         $\neg s(X)$ mit $s(c)$ geschlossen werden.}}
+\label{bsp1}
+\end{figure}

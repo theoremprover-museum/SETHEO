@@ -1,0 +1,434 @@
+%lop
+\ssection{Programming in LOP }
+SETHEO can also be used for Logic Programming. The programming
+language LOP (LOgic Programming) is in some sense similar to PROLOG
+[Clo] but has a number of restrictions as well as
+powerful and easy to
+use enhancements.
+How programs can be written in LOP is shown in the following
+sections. As a first example a program to calculate the first 10
+fibonacci numbers is shown.
+
+\begin{verbatim}
+?-nfib(10),write($Fiblist),write("\n").
+                /* the \n is a newline  */
+
+nfib(X) :- X > 0, $Fiblist := [], calfib(X,0).
+nfib(X) :- write("must_be_greater_zero\007\n").
+                /* the \007 is the ASCII-code 7 (Bell)  */
+
+calfib(X,I) :- X <= I, fib(X,F), $Fiblist := [$Fiblist | F],
+               I1 is I + 1, calfib(X,I1).
+calfib(Y,Z).
+
+fib(0,1).
+fib(1,1).
+fib(N,F) :- N1 is N-1, N2 is N-2,
+            fib(N1,F1), fib(N2,F2), 
+            F is F1+F2.
+\end{verbatim}
+
+The global variable {\tt\$Fiblist} is used to collect a list of all the
+fibonacci numbers. At the end of the calculation, the list is printed.
+
+\ssubsection{Pure LOP}
+Pure LOP (i.e. LOP) without built-ins is described in the 
+section ''SETHEO as a Theorem Prover`` and ''Syntax of the Input Language``.
+ For programming in LOP
+all these features can be used as well. Note, however, the use
+of procedural built--ins in formulae with clauses which
+are fanned and reordered automatically (using the $<$-) is very problematic,
+so stay away from this in the beginning.
+
+\ssubsection{Restrictions wrt. PROLOG}
+LOP does not support some features of PROLOG which are described in
+[Clo].
+These are:
+\begin{itemize}
+\item
+The {\bf cut} is not supported.
+\item
+There is no dynamic entry or deletion of clauses in the internal data--base.
+This means that there are no {\bf assert} and {\bf retract} predicates.
+However, a similar effect (with a more clear denotational semantics) can
+be reached, using global variables.
+\item
+The I/O predicates of LOP are somewhat restricted. Especially when 
+LOP is used to program in NON-Horn formulae, one should be very careful
+using I/O predicates, since they have (non--backtrackable) side effects.
+\end{itemize}
+
+\ssubsection{Special Data Types}
+Two special data types are provided in LOP:
+\begin{itemize}
+\item Global Variables and
+\item Sets.
+\end{itemize}
+
+Global variables are denoted like variables but with a starting \$,
+e.g.\ \$Xyz is a global variable (\$xyz is garbage only).
+They can be used as parameters in subgoals of a clause or in
+assignments but never in the head of a clause.
+Global variables can be assigned (destructively) a value via
+the assignment instruction ({\it :is\/}). This value is valid through
+the entire logic program. However, if a backtrack occurs, the old
+value, i.e. the value before the last assignment is restored. Thus 
+global variables can be used for:
+\begin{itemize}
+\item
+as a type of assert and retract of facts,
+\item
+global description of the ''world`` in planning problems,
+\item
+keeping system status etc.\ and
+\item
+explicit control of clause usage.
+\end{itemize}
+
+The following example calculates the minimum and maximum of a list
+
+\begin{verbatim}
+?-minmax([1,5,3,0,9,34,23]),write($Min),write($Max).
+
+minmax([]).
+minmax([F|X]) :- $Min := F, $Max := F, minsearch(X).
+
+minsearch([]).
+minsearch([F|R]) :- setval(F), minsearch(R).
+
+setval(F) :- F > $Max, $Max := F.
+setval(F) :- F < $Min, $Min := F.
+setval(F).
+\end{verbatim}
+
+Another example shows how global variables are backtracked:
+
+\begin{verbatim}
+?-exa.
+
+exa :- $X := a, p.
+
+p :- write($X), $X := b, write($X), fail.
+p :- write($X).
+
+will produce:
+a
+b
+a
+\end{verbatim}
+
+
+{\it Sets} in SETHEO are a very restricted form of sets:
+they may be sets of constants only. This is a severe
+restriction, however enabling a very efficient implementation. Sets
+have to be initialized before usage. They can be assigned or unified
+to variables or global variables like ordinary terms. A number of
+built in predicatess allow comparison, selection of members, subset
+testing etc. 
+Note that the maximal cardinality is restricted to a fixed (but in
+the source--code definable)
+number.
+If a variable is bound to a set and printed with the write statement,
+a standard notation with \{ ... \} is used.
+
+\ssubsection{Built--Ins}
+In the following a list of all built ins{\footnote{
+Note: Not all built-ins have been implemented in Version V2.55 yet.
+Those built ins are marked by a $\dag$}} is given. The names
+of the built-ins are reserved and must not be used as constants
+or simple prediate symbols. Also the negated use of a built--in
+is illegal.
+\ssubsubsection{Global Assignment {\it :=}}
+The global assignment {\it :=\/} is used to assign a term to
+a global variable destructively. The left hand side (LHS) of this infix
+expression must be a global variable, the RHS may be any term.
+
+{\bf Example:}
+\begin{center}
+{\tt $X := f(X,g($X))}
+\end{center}
+
+
+\ssubsubsection{Arithmetic Assignment {\it is}}
+The infix {\it is\/} is used to assign the evaluated numeric expression
+to an unbound variable. If variables are used on the right
+hand side of the {\it is\/} they must be bound to a number.
+The right hand side is an arithmetic expression containing numbers
+and variables with the operators +, -, *, / with the usual preference
+and associativity rules. Parenthesis may be used.
+Note that there is no unary minus. Use $0 -$ expr instead.
+
+{\bf Example:}
+\begin{center}
+{\tt X is (3 + X) / Y - 44}
+\end{center}
+
+\ssubsubsection{Global arithmetic Assignemt {\it :is}$\dag$}
+To assign the result of an arithmetic expression to a global variable,
+the {\bf :is} is used. The RHS is exactly as described before.
+Note that we have a destructive assignment here.
+This is not implemented in 2.55. Use
+{\tt X is expr, \$X := X, }
+instead.
+
+\ssubsubsection{Relational Arithmetic Operators}
+The relational operators for comparing numerical values are
+implemented: "$<, \leq\dag$" and "$>, \geq\dag$".
+On the RHS and LHS of the operator
+an arbitrary numerical expression may be placed which is
+evaluated.
+
+\ssubsubsection{Output of an Object {\it write}}
+To print an object, only a very primitive built--in predicate is 
+provided: {\it write\/} displays its argument on the screen.
+The argumant may be an arbitrary term. Variables are handled in
+a special way: each variable is given a unique number so that
+an unbound variable "Y" may be displayed as {\tt X\_1346}.
+Strings which have special characters ,e.g\ newline ,are interpreted.
+Special characters start with a $\backslash$.
+After that a character or a 3--digit octal number may follow.
+The octal number is the ASCII--code of the character to
+be printed.
+The character which may stand after the $\backslash$ may be one of the following:
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+$\backslash$b & Backspace\\
+$\backslash$t & Tabular\\
+$\backslash$n & Newline\\
+$\backslash$ddd & ASCII character ddd (octal)\\
+$\backslash$x & character x (if not one of the above \\
+\hline
+\end{tabular}
+\end{center}
+
+Note that the '"' may not be used inside a string. (in version V2.55)
+The length of a string is limited to 20 characters (V2.55)
+
+%\ssubsubsection{Short Arithmetic Operators {\bf inc, dec}}
+
+\ssubsubsection{Arrays of Global Variables {\it mkglob}$\dag$}
+An array of global variables can be allocated during run-time
+with a given size. {\it mkglob(n,\$X)\/} allocates space for
+$n$ global variables accessible under the name \$X.
+$n$ must be a numeric constant. Individual variables can be accessed
+using the construct \$X[$i$] to access the $i+1$th variable.
+Note that the index starts with $0$ and ends with $n-1$.
+Index boundaries are checked and errors reported.
+
+\ssubsubsection{Set Predicates}
+A number of built--in predicates deal with sets. Note that
+these sets may only contain constants.
+In the following list of predicates, some of the arguments
+must have special data types, like {\it set\/},{\it number\/}, or
+{\it var\/} or must be variables bound to such a data--type.
+Otherwise a runtime error is produced and the predicate fails.
+The run-time complexity of the predicates is given in parenthesis.
+
+\begin{description}
+\item[isempty({\it set\/})]
+tests if the set is empty. It fails if the {\it set\/} contains
+any elements. (O(1)).
+\item[issubset({\it set1\/},{\it set2\/})]
+succeeds if {\it set1\/} is a subset of or is equal to {\it set2\/}.
+(O(card(MAXSET))).
+\item[ismember({\it const\/},{\it set\/})]
+This predicate tests, if the constant {\it const\/} is a member
+of the set {\it set\/}. Note that the first argument of the
+{\it ismember}--predicate MUST be a bound constant. This predicate is not
+useable for selecting members from a set. (O(1)).
+\item[smember({\it const\_var\/},{\it set\/})]
+If the first parameter of {\it ismember\/} is a constant, a test is made,
+if this constant is a member of the set {\it set\/}.
+If the first argument is a variable, all members of the {\it set\/} are
+produced one after the other. {\it Smember\/} is the same as the standard
+member definition for lists as shown below. (O(1) -- O(card(set)).
+\item[card({\it set\/},{\it numvar\/})]
+The cardinality of the set {\it set\/} is returned in {\it numvar\/} 
+if it is a variable. If it is a number, the number is checked against
+the cardinality and a fail is made if they are not equal.
+(O(card({\it set\/}))).
+\item[mkempty({\it var\/})]
+This predicate always succeeds and generates an empty set which
+is bound to the variable {\it var\/}. Normally {\it var\/} will be a
+global variable, but normal variables can be used as well.
+\item[addtoset({\it const\/},{\it set\/})]
+adds an element {\it const\/} to the set {\it set\/}. This predicates
+always succeeds. (O(1)).
+\item[remfromset({\it const\/},{\it set\/})]
+removes the element {\it const\/} from the set {\it set\/}.
+It does not test, if the element is in the set {\it set\/}.
+(O(1)).
+\item[selnth({\it var\/},{\it set\/},{\it number\/})]
+is used in combination with the {\it selnext\/} predicate to
+select elements contained in a set one after the other.
+An example shows how a standard member--predicate may be defined.
+The next member of the set {\it set\/} after the index {\it number\/}
+is returned in the variable {\it var\/}.
+\item[selnext({\it var\/},{\it set\/},{\it number\/},{\it variable\/})]
+is also used to define a member--predicate.
+This predicate returns the next found member of a set in its first parameter.
+Its index is returned in the last parameter.
+\end{description}
+
+\begin{verbatim}
+% Member definition using the built--in set predicates
+% this is equivalent to the smember built--in
+member(X,Y) :- isconst(X),ismember(X,Y).
+member(X,Y) :- isvar(X),selnext(X,Y,0,I),selmem(X,Y,I).
+
+selmem(X,Y,I) :- selnth(X,Y,I).
+selmem(X,Y,I) :- selnext(X,Y,I,I1),selmem(X,Y,I1).
+
+% standard member definition for lists
+member(X,[X|R]).
+member(X,[Y|R]) :- member(X,R). 
+\end{verbatim}
+
+The following example illustrates the usage of the set predicates
+{\it smember, selnext,} and {\it selnth}.
+A given set \$S is to be printed. This can be done in three ways:
+using the {\it write\/} built-in, selecting one element of the set
+after the other with the help of backtracking
+and print each individual element, or have a recursive loop to
+print the elements.
+
+\begin{verbatim}
+prtset1 :- write($S).         /* built in printing of set */
+
+                              /* select and fail          */
+prtset2 :- smember(X,$S),write(X),write(" "),fail.
+prtset2.
+
+prtset3 :- gothru(0).         /* recursive loop           */
+gothru(I) :- selnext(X,$S,I,In),selnth(X,$S,In),
+             write(X),write(" "),gothru(In).
+gothru(_X).
+\end{verbatim}
+
+\ssubsubsection{Checking for equality {\it eq, neq}}
+These two predicates {\it eq(arg1, arg2)\/}
+and {\it neq(arg1, arg2)\/} test if {\it arg1\/} and {\it arg2\/}
+are equal or not. This is equivalent to the == and =/= operators
+in PROLOG.
+
+\ssubsubsection{Pruning of the search space {\it eqpred\/}}
+The predicate {\it eqpred(number)\/} fails, if there exists
+a predecessor in the current path in the model elimination tree, 
+which is equal (lisp--like {\it eq\/}) to the literal {\it number\/}
+in the current clause. This built--in is normally used in theorem--proving
+only. Note that this predicate can occur in a clause {\em before\/}
+the mentioned literal. 
+\ssubsubsection{Artificial Query}
+The artificial query {\it query\_\_\/} is added automatically
+if the {\it inwasm\/} is invoked with a '-q' option. This is
+necessary, if the formula or program contains more than one clause
+with negative literals only.
+This situation occurs with non-horn clause formulae and when using SETHEO
+for theorem--proving.
+
+{\bf Example:}
+\begin{verbatim}
+FORMULA:                is transformed into:
+                        ?-query__
+p(a).                   p(a).
+...                     ...
+<-p(X).                 query__ :- p(X).
+<-q(X,a).               query__ :- q(X,a).
+\end{verbatim}
+\ssubsubsection{Failing: {\it fail\/}}
+This predicate causes a fail.
+\ssubsubsection{Testing Data Types: {\it isvar, isconst, isnumber\/}}
+These predicates test, if their resp. argument is an unbound variable,
+a constant or a number. Note that isconst fails with a number given as its parameter.
+
+\ssubsubsection{Calling Predicates: {\it call\/}$\dag$}
+The predicate {\it call(sign,expr)\/} starts the execution of a query,
+which is described by {\it expr\/}. Sign is the sign of the query.
+This predicate can be used only when 
+a special option {\it --l\/} has been used when {\it inwasm\/} was invoked.
+In the current version (V2.55), this predicate can be used on the assembler--level
+only.
+
+\ssubsubsection{Reading Terms: {\it read\/}$\dag$}
+Note: This built--in predicate is useable in SETHEO only.\\
+The {\it read(var)\/} reads a term from stdin which is terminated
+by a '.\@'\ . The read term is put onto the heap and new variable cells are
+created for variables in the read term.
+
+\ssubsubsection{Delaying: {\it delay}$\dag$}
+The predicate {\it delay(var, predicate)\/}
+delays the execution of the predicate {\it predciate\/} until the variable
+{\it var\/} has been instantiated. In 2.44 this predicate is not implemented.
+
+\ssubsubsection{Stopping the Setheo: {\it stop\/}}
+The {\it stop\/}--predicate stops the SETHEO--machine with
+a success.
+\ssubsubsection{Entering the Monitor mode: {\it monitor\/}}
+NOTE: This predicate can be used with SETHEO only !\\
+When a {\it monitor\/}--prodicate is executed, the SETHEO
+goes into the monitor mode. A number of commands can be executed
+in this mode which is described below.
+This predicate always succeedes, if the monitor mode is left with
+a continue--command. NOTE: This predicate is normally used for debugging
+only.
+The following commands are available:
+\vspace{5mm}
+
+\begin{tabular}{|l|l|}
+\hline
+Command & description \\
+\hline
+\hline
+reg  &
+displays a number of essential control registers of the SAM.\\
+\hline
+!  &
+escapes to a UNIX shell. On this shell, arbitrary commands can be executed. \\
+& With a "exit" a return to the SETHEO monitor mode is accomplished.\\
+\hline
+stack  &
+displays the stack. Beside the absolute address of each cell, \\
+&  its value and tag is displayed.\\
+\hline
+trail  &
+displays the trail.\\
+\hline
+heap  &
+displays the heap\\
+\hline
+cont  &
+continues the proof at the current location.\\
+\hline
+help or ?  &
+prints a list of available commands\\
+\hline
+re  &
+starts a reproof to generate a (partial) proof--tree.\\
+\hline
+temps  &
+is used to display the contents of the {\it temp\/} registers.\\
+\hline
+choice  &
+lists in hexadecimal or symbolic form the contents of the current
+choice--point.\\
+\hline
+links  &
+The dynamic link--list (list of environments) and the list of choice--points \\
+ & (their stack--relative address) is printed.\\
+\hline
+todo  &
+Lists the OR-nodes in the search tree and the clauses which have to be
+entered \\
+&  when the proof procedure continues.\\
+\hline
+quit  &
+Leaves SETHEO.\\
+\hline
+\end{tabular}
+\vspace{8mm}
+
+Many of the monitor command only work properly, if {\it setheo\/} was
+invoked with the -g option. Otherwise only hexadecimal values are displayed.
+

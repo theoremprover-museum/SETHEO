@@ -1,0 +1,63 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Getting the Binaries}\label{sec:get-bin}
+
+The SETHEO system can be obtained via an anonymous ftp--server. The
+ftp--server provides a 
+package containing the binaries of the basic SETHEO programs for Sun
+Sparc computers, the available shell scripts, manpages, example
+problems, a users registration form and a file with
+installation hints. 
+
+To get this package you have to connect the ftp--server either by
+\begin{verbatim}
+        ftp 131.159.8.35
+\end{verbatim}
+or by
+\begin{verbatim}
+        ftp flop.informatik.tu-muenchen.de
+\end{verbatim}
+If the connection is established the ftp--server will ask for your
+name and your e--mail address:
+\begin{verbatim}
+        Name: anonymous
+        Password: <your-e-mail-address>
+\end{verbatim}
+The next thing you have to do is change to the right directory, set
+the transfer mode to {\tt binary} and get the {\tt setheo.tar.gz}
+file: 
+\begin{verbatim}
+        ftp> cd pub/fki
+        ftp> binary
+        ftp> get setheo.tar.gz
+\end{verbatim}
+You can get a short SETHEO info as well. After this leave the
+ftp--server: 
+\begin{verbatim}
+        ftp> get setheo.info
+        ftp> bye
+\end{verbatim}
+
+Now you have a file {\tt setheo.tar.gz}. First uncompress it:
+\begin{verbatim}
+        gunzip setheo.tar.gz
+\end{verbatim}
+After this the name of the file has changed to {\tt setheo.tar}. This
+is a package containing directories and files. Before unpacking it
+create a SETHEO directory and move the package into:
+\begin{verbatim}
+        mkdir setheo
+        mv setheo.tar setheo/setheo.tar
+\end{verbatim}
+Now unpack the {\tt setheo.tar} file:
+\begin{verbatim}
+        tar xf setheo.tar
+\end{verbatim}
+You can delete the file {\tt setheo.tar} if you want. Before you try
+to start the SETHEO theorem prover read
+Section~\ref{sec:inst-bin}. 

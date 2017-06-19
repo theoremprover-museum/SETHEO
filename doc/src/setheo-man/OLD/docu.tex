@@ -1,0 +1,436 @@
+\documentstyle[12pt,a4wide,showlab]{report}
+
+
+\def\SAM{{\sc S\kern-.13em\lower.45ex\hbox{A}\kern-.13emM}}
+
+\begin{document}
+
+\title{SETHEO V3.3\\
+Reference Manual}
+
+\author{Johann Schumann \and Ortrun Ibens}
+
+\maketitle
+
+\tableofcontents
+
+\section*{\bf History of SETHEO}
+
+\section*{\bf CopyRight and Licence for SETHEO}
+
+setheo mailing-list
+
+\section*{\bf What's New?}
+
+\section*{Notation}
+
+
+
+\chapter{Introduction}
+
+\section{Getting Started}
+
+--- from old manual ---
+
+\input{/home/schumann/papers/setheo-man/getting-started.tex}
+
+\section{SETHEO System Overview}
+
+The SETHEO system consists of a set of (individual) programs,
+as shown in Figure~\ref{fig.1}. Data are exchanged between the
+modules using files. Parameters for each program are given in the
+command line.
+
+\begin{figure}[htb]
+\caption{Parts of the SETHEO system}
+\label{fig.1}
+\end{figure}
+
+The indivual programs will be described in detail below. They are:
+
+\begin{description}
+\item[plop]
+This program\footnote{This program is distributed as an ``as is'' version
+without support. For details see Section~\ref{sec:plop}.} converts
+formulae in first order notation (with quantifiers and standard
+(infix-) operators (e.g., $\wedge, \vee$) into a set of clauses.
+\item[inwasm]
+This program is the {\em compiler\/} for SETHEO. It takes a formula
+(as a set of clauses) or a logic program as its input. Details of the
+input language (LOP) and its syntax are described in detail in
+Section~\ref{sec:lop}.
+{\bf Inwasm} performs several preprocessing steps which try
+to reduce the search space spanned by the formula. Typical preprocessing
+steps are the generation of syntactical constraints or the elimination
+of pure literals.
+Then, assembler instructions for the SETHEO Abstract Machine \SAM\ 
+are generated. Optionally, {\bf inwasm} can output 
+the preprocessed formula in LOP-syntax.
+This option is helpful, if the preprocessed formula is to be
+modified by hand (or some other filter), before it should be compiled
+for the \SAM.
+Details are discussed in Section~\ref{sec:inwasm}.
+\item[wasm]
+The assembler {\bf wasm} converts assembler instructions (as normally
+produced by {\bf inwasm} and converts them into a binary
+(currently actually hexadecimal) representation which can be directly
+read into the SETHEO Abstract Machine.
+Symbolic labels and constants are resolved. Furthermore, the
+code is somewhat optimized to reduce the size of the produced code file.
+
+\item[sam]
+This program is the interpreter of the SETHEO Abstract Machine
+\SAM. After loading the code-file as prepared by {\bf wasm}, the
+abstract machine is started with given parameters.
+If a proof could be found, the given time-limit has been exceeded,
+or upon request, statistical information is printed on the screen
+and into a log-file. In case, a proof could be found, the tableau
+with instantiated literals is generated and written into a file.
+
+\item[xptree]
+This program is X-based graphical viewer for tableaux, generated
+by {\bf sam}. The tableau is displayed as a tree with literals
+(and additional information) as its nodes. Scrolling, selection and
+hinding of subtableaux can be accomplished using the mouse.
+\end{description}
+
+Around these basic programs, additional modules are located which
+use the basic programs. They increase the functionality of the
+SETHEO system and facilitates its usage.
+
+New modules are likely to be added in further distribution versions
+of SETHEO. Therefore, modules which are new for the current version of
+SETHEO are marked clearly.
+Where appropriate, these modules are described in detail in separate
+subsections.
+The modules are listed in alphabetical order.
+
+\begin{description}
+\item[clop]
+This script combines the compiler {\bf inwasm} and the assembler
+{\bf wasm}. All command-line parameters are passed to the compiler
+{\bf inwasm}.
+\item[delta]
+is a preprocessor which takes a formula in LOP syntax, and produces
+one in the same syntax. {\bf Delta} generates unit-lemmata in a bottom-up
+way which are added to the original formula. In many cases, this combination
+of bottom-up preprocessing (using {\bf Delta}) and subsequent top-down
+processing by the \SAM\ results in a dramatic increase of efficiency.
+{\bf Delta} uses {\bf inwasm, wasm,} and {\bf sam}.
+\item[rctheo]
+\item[idtheo]
+\item[setheo]
+This script represents the top-level script of the SETHEO system.
+Given a formula in LOP-notation, the compiler, assembler, and the
+prover are activated automatically, using {\em default parameters}.
+\item[xvdelta]
+This module is a primitve graphical user interface (GUI) for {\bf delta}
+preprocessor.
+It is based on XVIEW toolkit of X. {\bf xvdelta} facilitates the selection
+of parameters of {\bf delta} and to control its operation.
+\item[xvtheo]
+This module is a primitve graphical user interface (GUI) for SETHEO.
+It is based on XVIEW toolkit of X. {\bf xvtheo} allows to edit
+a formula, to select approriate parameters (using pull-down menues),
+to start the prover and to view the results.
+{\bf xvtheo} calls all the basic progams.
+\end{description}
+
+
+%/home/schumann/papers/setheo-man
+\input{/home/schumann/papers/setheo-man/filenames.tex}
+
+\chapter{The Basic Programs}
+
+\section{plop}\label{sec:plop}   % ORTRUN: label ergaenzt
+von altem setheo-manual
+
+\input{/home/ibens/Setheo/Users-Manual/style}            % ORTRUN
+\input{/home/ibens/Setheo/Users-Manual/sec-inwasm}       % ORTRUN
+\input{/home/ibens/Setheo/Users-Manual/sec-wasm}         % ORTRUN
+\input{/home/ibens/Setheo/Users-Manual/sec-sam}          % ORTRUN
+\input{/home/ibens/Setheo/Users-Manual/sec-xptree}       % ORTRUN
+
+\chapter{Additional Modules}
+\section{The Environment}
+
+SETHEOHOME
+
+\section{clop}
+{\bf Clop} combines the SETHEO compiler {\bf inwasm} with the
+assembler {\bf wasm}. Given a {\em file\/}, first {\bf inwasm}
+is invoked.
+If the compilation phase terminated successfully, the
+assembler {\bf wasm} is called with default parameters.
+All parameters of {\bf clop} are passed to {\bf inwasm}.
+
+\begin{description}
+\item[Synopsis:]
+clop [-$par_1$]\ldots[-$par_n$] {\em file}
+\item[Input:] {\em file}.lop
+\item[Output:] {\em file}.hex
+\item[Temp:] {\em file}.s (not removed)
+\item[Return Values:]
+	{\bf Clop} returns $0$ is case of successful compilation.
+	Otherwise the non-zero return value of the module in which
+	the error occurred, is returned.
+\item[Parameters:]
+	All given parameters are passed to the {\bf inwasm}.
+\item[Environment:]
+	The variable {\tt SETHEOHOME} indicates the place where
+	{\bf inwasm} and {\bf wasm} reside. If this variable is
+	not defined, a default value is taken.
+\end{description}
+
+\section{setheo}
+\input{/home/ibens/Setheo/Users-Manual/sec-setheo}       % ORTRUN
+\section{xvtheo}
+\section{xvdelta}
+\section{delta}
+
+\chapter{The Interactive SETHEO}
+
+\chapter{File Formats}
+\section{The FOL Syntax}
+\input{/home/schumann/papers/setheo-man/plop-syntax}
+\section{The LOP Syntax}
+\label{sec:lop}   % ORTRUN: label ergaenzt
+von reinhold unter setheo
+\input{/home/schumann/papers/setheo-man/lop-syntax}
+
+\section{\SAM\ Assembler Syntax}
+Assembler code for the SETHEO Abstract machine \SAM\ is typically
+generated by the compiler {\bf inwasm}. Per default, \SAM-assembler
+code is kept in files with the extension ``.s''. The assembler code
+can be processed by {\bf wasm} in order to generate binary code for the
+\SAM.
+The assembler language of SETHEO is defined in a very straight forward
+way. Each line of the input file can be empty, may contain
+a {\em directive\/}, a {\em label}, or an {\em assembler instruction}.
+
+\begin{verbatim}
+assembler_code ::= line '\n'
+	| line '\n' assembler_code
+
+line ::= 
+         | LABEL ':' 
+         | '.' directive
+         | statement 
+
+LABEL ::= [A-Za-z][A-Za-z0-9_]*
+\end{verbatim}
+
+Comments are C-like and enclosed in {\tt /* \ldots */}.
+
+\subsection{Directives}
+Each directive starts with a '.', followed by an identifier and
+arguments. Directives control the operation of the assembler and do
+not generate any code.
+
+\begin{verbatim}
+directive ::=
+            'include' STRING
+          | 'equ' LABEL numexpr
+          | 'dw'  exprlist
+          | 'ds'  numexpr
+          | 'start' numexpr
+          | 'org' numexpr
+          | 'symb' STRING ',' symbtype ',' numexpr
+          | 'clause' numexpr ',' numexpr
+          | 'red'   numexpr
+          | 'optim'
+          | 'noopt'
+
+symbtype ::=
+          'const' | 'var' | 'pred' | 'global' | 'gterm' | 'ngterm'
+
+exprlist ::= expr
+          | exprlist ',' expr
+
+exprlist ::= numexpr
+          | TAG numexpr
+
+TAG ::=
+        'const' | 'cref' | 'eostr' | 'var' | 'gterm'
+        | 'ngterm' | 'crterm' | 'cstrvar'
+\end{verbatim}
+
+A numeric expression {\tt numexpr} can be a number, a label, or a
+sum or difference of numeric expressions. Labels need not be defined
+when they are used. However, if a label occurrs in a sum or difference,
+it must be defined in order to yield a defined result.
+Both {\tt +} and {\tt --} are left associative.
+
+\begin{verbatim}
+numexpr ::=
+	LABEL
+        | NUMBER
+        | numexpr '+' numexpr
+        | numexpr '-' numexpr
+
+NUMBER  ::= [0-9][0-9]*
+\end{verbatim}
+
+\noindent{\bf include}
+includes the named file {\tt STRING}. Nested includes are possible up
+to 8 levels.
+
+\noindent{\bf equ}
+\noindent{\bf dw}
+\noindent{\bf ds}
+\noindent{\bf start}
+\noindent{\bf org}
+\noindent{\bf symb}
+\noindent{\bf clause}
+\noindent{\bf red}
+\noindent{\bf optim, noopt}
+
+\subsection{Statements}
+
+\begin{verbatim}
+statement ::=
+	instruction0
+        | instruction1 expr
+        | instruction2 expr ',' expr
+        | instruction3 expr ',' expr ',' expr
+
+instruction0 ::=
+        'stop' | 'told' | ...
+
+instruction1 ::=
+        'alloc' | 'isunifiable' | ...
+
+instruction2 ::=
+        'assign' | 'call' | ...
+
+instruction3 ::=
+        'eqpred' | 'porbranch' | ...
+
+expr ::=
+        NUMBER
+        | LABEL
+\end{verbatim}
+
+\section{\SAM\ Machine Code Syntax}
+Machine code for the SETHEO Abstract Machine \SAM\ is always located
+in files with the extension ``.hex''. 
+Each entry in this file occupies one line.
+A one-character identifier is used
+to select the appropriate type of data, contained in the current
+line.
+Blank lines, comments or extra spaces are not allowed.
+
+The following grammar shows the definition of the \SAM\ Machine
+Code:
+
+\begin{verbatim}
+file    ::= lines
+
+lines   ::= line
+          | lines line
+
+line    ::= 
+       ':' ident ':' address ':' data ':' string '\n'
+
+ident   ::= 'C' | 'Y' | 'E' | 'S' | 'M' | 'N'
+
+
+address ::= [0-9A-F]{8}
+data    ::= [0-9A-F]{8}
+string  ::= [A-Za-z_0-9]
+\end{verbatim}
+
+The following table shows the meaning of the fields, corresponding to
+the given identifier:
+
+\begin{center}
+\begin{tabular}{lllll}
+C & word in code area of \SAM &
+	\SAM-code-address & contents & --- \\
+Y & symbol &
+	type of symbol & arity & printname \\
+S & set start-address &
+	\SAM-code-address & --- & --- \\
+M & highest address in code area of \SAM &
+	 0 & highest \SAM-code-address & --- \\
+N & number of symbols &
+	 0 & number of symbols & --- \\
+\end{tabular}
+\end{center}
+
+\noindent{\bf Notes:}
+\begin{enumerate}
+\item
+A ``highest memory address'' (identifier: ``M'')
+directive must be placed prior to any code words (``C'') in order
+to be effective. Otherwise, the size of the code-area of the \SAM\ is
+determined by a default value (or the {\bf sam} parameter -code).
+\item
+The relative line number of a ``symbol'' directive determines the index
+of that symbol in the symbol table. Therefore, the order of these
+directives must not be changed and their number must not be 
+increased or decreased.
+\item
+Special characters in a symbol are encoded by: \verb+\OOO+
+where {\tt OOO} is the 3-digit octal value of the ASCII code of that
+character. E.g. \verb+\007+ is for {\tt BELL}.
+\item
+The maximal length of a symbol is limited to 42 on the 
+generation side ({\bf wasm}), and to 200 in the reader of
+the abstract machine.
+This limit includes special characters (see above). Each such character
+contributes 4 to the total length of the symbol.
+\item
+all other directives may be intermixed and arbitrarily changed in order.
+\item
+A file with machine code must at least contain one line.
+\end{enumerate}
+
+\section{Syntax Definition of a Proof Tree}
+xptree .y file
+
+\section{The Operator Translation Table}
+
+\section{The \SAM\ Logfile}
+
+\chapter{Logic Programming with SETHEO}
+\section{Introduction}
+\section{Global Variables}
+von diss
+\section{Built-in Predicates}
+\input{/home/schumann/papers/setheo-man/built-ins-intro}
+\input{/home/schumann/papers/setheo-man/built-ins.tex}
+
+\section{How to \ldots}
+\input{/home/schumann/papers/setheo-man/queries}
+\subsection{Answer Substitutions}
+\subsection{Bounds and iterative deepening}
+\subsection{Restart Model Elimination}
+
+\subsection{The SETHEO C-Interface}
+\input{/home/schumann/papers/setheo-man/add}
+
+\chapter{Odds and Ends}
+\section{Default Values}
+von specs/limits nehmen
+\section{Limitations of the SETHEO System}
+\input{/home/schumann/papers/setheo-man/limits.tex}
+
+\section{Known Bugs}
+\section{How to Report a Bug}
+
+\chapter{Installations Guide}
+\section{Introduction}
+\section{Getting the Binaries}
+\section{Getting the Sources}
+\section{Installing the SETHEO System (Binaries)}
+\section{Installing the SETHEO System (Sources)}
+
+\appendix
+\chapter*{Annotated Bibliography}
+
+\chapter*{Glossary}
+
+\chapter*{Index}
+
+\end{document}

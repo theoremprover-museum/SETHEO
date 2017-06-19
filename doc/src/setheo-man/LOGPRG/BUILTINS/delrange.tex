@@ -1,0 +1,48 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$delrange/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$delrange(N1,N2)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N1}]
+lower bound of the range to delete
+	\item[{\tt N2}]
+upper bound of the range to delete
+	\end{description}
+\item[Low Level Name:]
+	{\tt delrange}
+\item[Result:]\ \\
+This built-in succeeds, if both parameters are
+instantiated to numbers.
+
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in deletes all lemmata in the lemma store
+with annotated values between the first and the second parameter
+(inclusive).
+Both parameters must be instantiated to a number.
+ 
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p :- delrange(3,5).
+\end{verbatim}
+
+

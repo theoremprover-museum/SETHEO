@@ -1,0 +1,60 @@
+\begin{thebibliography}{}
+
+\bibitem[\protect\citeauthoryear{Goller \bgroup \em et al.\egroup
+  }{1994}]{GLMS94}
+Chr. Goller, R.~Letz, K.~Mayr, and J.~Schumann.
+\newblock {SETHEO V3.2: Recent Developments (System Abstract) }.
+\newblock In {\em Proc. CADE 12}, pages 778--782, June 1994.
+
+\bibitem[\protect\citeauthoryear{Letz \bgroup \em et al.\egroup
+  }{1992}]{LSBB89}
+R.~Letz, J.~Schumann, S.~Bayerl, and W.~Bibel.
+\newblock {SETHEO}: {A} {H}igh-{P}erformance {T}heorem {P}rover.
+\newblock {\em Journal of Automated Reasoning}, 8(2):183--212, 1992.
+
+\bibitem[\protect\citeauthoryear{Letz \bgroup \em et al.\egroup }{1994}]{LMG94}
+R.~Letz, K.~Mayr, and C.~Goller.
+\newblock {C}ontrolled {I}ntegration of the {C}ut {R}ule into {C}onnection {T}
+  ableau {C}alculi.
+\newblock {\em Journal Automated Reasoning (JAR)}, (13):297--337, 1994.
+
+\bibitem[\protect\citeauthoryear{Schumann and Letz}{1990}]{SL90}
+J.~Schumann and R.~Letz.
+\newblock {PARTHEO}: a {H}igh {P}erformance {P}arallel {T}heorem {P}rover.
+\newblock In M.~E. Stickel, editor, {\em CADE10}, Lecture Notes in Artificial
+  Intelligence, pages 40 -- 56. Springer, 1990.
+
+\bibitem[\protect\citeauthoryear{Schumann \bgroup \em et al.\egroup
+  }{1990}]{Sch89}
+J.~Schumann, N.~Trapp, and {M.\ van der} Koelen.
+\newblock {SETHEO/PARTHEO}: {U}ser's {M}anual.
+\newblock Technical Report TUM-I\ 9010. SFB342/7/90 A, Technische
+  {Universit\"at M\"unchen}, SFB 342, 1990.
+
+\bibitem[\protect\citeauthoryear{Schumann}{1991}]{Sch91}
+J.~Schumann.
+\newblock {\em Efficient Theorem Provers based on an Abstract Machine}.
+\newblock PhD thesis, Technische Universit\"at M\"unchen, 1991.
+
+\bibitem[\protect\citeauthoryear{Schumann}{1994}]{Sch94a}
+J.~Schumann.
+\newblock {DELTA --- A Bottom-up Preprocessor for Top-Down Theorem Provers,
+  System Abstract}.
+\newblock In {\em CADE~12}, 1994.
+
+\bibitem[\protect\citeauthoryear{Schumann}{1995}]{Sch95focus}
+J.~Schumann.
+\newblock {Using SETHEO for Verifying the Development of a Communication Pro
+  tocol in {\sc Focus} -- A Case Study --}.
+\newblock In P.~Baumgartner, R.~H{\"a}hnle, and J.~Posegga, editors, {\em
+  Proc.~of Workshop Analytic Tableaux and Related Methods, Koblenz}, volume 918
+  of {\em LNAI}, pages 338--352. Springer, 1995.
+
+\bibitem[\protect\citeauthoryear{Sutcliffe \bgroup \em et al.\egroup
+  }{1994}]{SSY94}
+G.~Sutcliffe, C.B. Suttner, and T.~Yemenis.
+\newblock {The TPTP Problem Library}.
+\newblock In {\em Proceedings of the 12.\ International Conference on Automated
+  Deduction (CADE)}, pages 252--266. Springer LNAI 814, 1994.
+
+\end{thebibliography}

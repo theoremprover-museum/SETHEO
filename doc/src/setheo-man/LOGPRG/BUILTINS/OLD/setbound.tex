@@ -1,0 +1,73 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$set{\em bound\/}/1}
+
+This section describes a number of built-ins which allow to destructively 
+set the current (or maximal) values of the search bounds.
+All assignements to the bounds are backtrackable, i.e., their effect
+is undone as soon a a backtracking occurrs over the corresponding built-in.
+\begin{description}
+\item[Synopsis:]
+	{\tt \$set{\em bound}(N)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}] term which must evaluate to a non-negative number.
+	\end{description}
+\item[Low Level Name:]
+	{\tt set{\em bound}}
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+A built-in of this group sets the current or maximal value
+of a search-bound.
+\begin{description}
+\item[{\tt \$setdepth(N)}]
+sets the bound to the maximum tableau depth
+            (allowed for a final tableau) minus current depth.
+\item[{\tt \$setinf(N)}]
+   sets the number
+            of inferences.
+\item[{\tt \$setlocinf(N)}]
+   sets the number
+            of local inferences.
+\item[{\tt \$setmaxinf(N)}]
+Obtains the maximum number
+            of inferences (allowed for a final tableau).
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+These built-in effect global registers of the SETHEO Abstract Machine
+\SAM.
+Therefore, a wrong usage of these built-ins can have undesired effects
+and can destroy the completeness of the proof procedure.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+These built-ins are used to adapt the iterative deepening, or to implement
+Meta-interpreters. For details and examples refer to Section~\ref{chap:How-to}.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- getdepth(D),D1 is D+1,setdepth(D1),q(X),setdepth(D).
+\end{verbatim}
+
+When this clause is called, then its subgoal {\tt q} can use  the same
+resources (here, the depth), as the clause itsself.

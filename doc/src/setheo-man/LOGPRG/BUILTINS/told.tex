@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$told/0}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$told}
+\item[Low Level Name:]
+	{\tt told}
+\item[Result:]\ \\
+This built-in always succeeds
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+When encountered, this built-in closes a named file which have previously
+been opened by {\tt \$tell(T)}.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) :- $tell("output"),$write(X),$told,$write("done").
+\end{verbatim}
+This clause writes the current values of {\tt X} into the file
+{\tt output}. Then, the word {\tt done} is printed to stdout.
+
+

@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Destructive Assignment, :=}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$V := T}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt \$V}]
+
+\$V is the name of a global variable.
+	\item[{\tt T}]
+
+T is an arbitrary term which is gets (destructively) assigned
+to the global variable.
+
+
+	\end{description}
+\item[Low Level Name:]
+	{\tt assign}
+\item[Result:]\ \\
+This statement always succeeds.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+The term {\tt T} is not copied during the assignment.
+This means that later substitutions of variables present in {\tt T}
+also alter the contents of the global variable.
+Copying of the entire term can be accomplished using
+{\bf functor/3}.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+Destructive term assignment to global variables.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p <- $G := [p_entered | $G],...
+\end{verbatim}
+
+Here, we enter a symbol to a list which is kept in the global
+variable {\tt \$G}.
+
+
+
+

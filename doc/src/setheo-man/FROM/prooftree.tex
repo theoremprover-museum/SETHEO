@@ -1,0 +1,355 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{Generation of Proof-trees for SETHEO}
+\author{Johann Schumann}
+\date{22.7.92}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the changes necessary for the output of the proof
+tree.
+
+\end{abstract}
+
+\section{Description of Change}
+Within this document, necessary changes are described to debug the
+generation of the proof-tree during the run of setheo.
+
+\subsection{Solution Provided}
+
+In the current version of setheo (V3.01 or less), the three commands
+{\bf disp, dptree}, and {\bf ptree} are used to generate the proof
+tree. In the first run (the proof-search mode) where {\tt pmode = 0},
+information necessary for the {\em reproof-mode}
+is assembled.
+
+After a proof could be found, a second run is started with {\tt pmode} set to
+1. This causes the {\bf call} instruction to get the branching address
+not from the code-area (ie. from the argument), but rather from the proof-tree
+area. Therefore, a {\em deterministic} construction of the tableau is be
+obtained. An instruction {\bf disp} at the end of each contrapositive
+causes the current clause-head to be printed.
+
+The proof-tree is printed then in a bottom-up\footnote{This means
+that the nodes of the tableau are listed in post-order.}
+manner in a given format.
+
+
+\subsection{The Problem}
+With the algorithm as described above, the following problem occurrs:
+
+In certain cases, the literals which have been printed
+carry not the full instantiation.
+This is the case, whenever a variable gets instantiated {\em after\/} the
+resp.\ clause or contrapositive has been displayed.
+
+\section{Requirements for new Solution}
+
+\begin{itemize}
+\item
+all instantiations of the literals printed must be correct,
+\item
+the overhead wrt.\ time and space within the SAM is to be kept as
+minimal as possible,
+\item
+the generation and especially the display of the proof-tree must be optional,
+\item
+a (partial) tableau is to be displayed on request whenever the system
+is interrupted,
+\item
+the generation of the proof tree must be flexible in order to allow
+for an additional display of all subgoals still to be proven
+in case, the proof has not been found yet,
+\item
+the generation of the proof-tree is needed only, if NO tail-recursion
+optimisation is being made within setheo, and
+\item
+the solution proposed must allow for extensions of setheo and
+the dynamic reordering of subgoals (local and global).
+\end{itemize}
+
+\section{Description of New Solution}
+The solution proposed is based on the fact, that the entire proof-tree (or
+tableau) is present (after a proof could be found) in the {\em environments\/}
+on the stack. This, of course requires that no tail-recursion optimisation
+takes place. The dynamic links between the environments, however, do not
+describe the entire proof-tree, they only describe the
+{\bf branches} of the tree.
+
+Therefore, additional structures must be generated such that a proof-tree can
+be displayed in the correct order {\em without\/} a reproof.
+
+This means, that for {\em each\/} environment there must exist pointers
+to the environment of each child (i.e. for each subgoal of the
+clause/contrapositive).
+This information is kept on the atack and is appended to each environment.
+One additional pointer (TP) is added to the environment.
+
+For a more optimised version, the entry {\tt ps\_symb} in the environment
+is replaced by a pointer into the newly defined {\bf Literal Control Block}.
+This control-block which resides in the code-area and which also contains
+the argument vector the contains this information.
+
+\newpage
+\section{Data Structures}
+
+\subsection{The new Environment}
+
+From the environment, the entry {\tt ps\_symb} is removed. Instead, it contains
+the following entries:
+
+\begin{verbatim}
+bp-->+--------------------------+
+     |      dyn_link            |
+     +--------------------------+
+     |      ret_addr            |
+     +--------------------------+
+     |      gpr                 |
+     +--------------------------+
+     |      lit_cntrl_blck *--------------------------> Lit_cntrl_block
+     +--------------------------+
+     |      TP             *------------------------+
+     +--------------------------+                   |
+     |      TP_start       *--------------------+   |
+     +--------------------------+               |   |
+     |       variables          |               |   |
+                ...                             |   |
+                                                |   |
+     |                          |               |   |
+     +--------------------------+               |   |
+     |         etc              |               |   |
+                ...                             |   |
+     +--------------------------+ <-------------+   |
+     |     >for SG1 <           |                   |
+     +--------------------------+                   |
+               ...               <------------------+
+     +--------------------------+
+     |     >for SGn<            |
+     +--------------------------+
+
+\end{verbatim}
+
+The {\tt Lit\_cntrl\_block} in the code area contains all information
+necessary to describe the contrapositive with the given head.
+It is placed {\em in front} of the {\bf argument vector} used to describe
+its arguments. Henceforth, it has {\em negative\/} offsets wrt.\ the
+argument pointer.
+
+It is defined as a struct and has to contain at least the following
+items:
+
+\begin{verbatim}
+struct list_cntrl_block {
+        WORD        ps_symb             // the same as ps_symb in the old
+                                        // environment
+        WORD        sign;
+        WORD        clause_nr;
+        WORD        lit_nr;        
+        WORD        nr_sgls;
+        ....
+        };
+// the argument vector directly follows:
+argvxxx:
+        .dw        xxx
+\end{verbatim}
+
+Furthermore, this literal control block may contain additional
+(static) information like
+\begin{itemize}
+\item
+name of the local variables,
+\item
+number of distinct and common variables in this contrapositive, and
+\item
+information for heuristic control.
+\end{itemize}
+
+This control block is being generated statically during compile time.
+    
+
+In the {\bf choice-point}, the entry {\tt red\_lvl} is being ommitted.[
+
+\section{SAM instructions involved}
+
+\subsection{The alloc-instruction}
+
+The alloc instruction must be modified as follows:
+
+The syntax is changed into 
+\centerline{\bf alloc nrvars, argv}
+where {\bf argv} points to the argument-vector.
+
+The pseudo-code for alloc will be:
+
+\begin{verbatim}
+alloc:
+        ...
+        // link to the old environment
+        if (proof-tree && bp) bp->TP = (environ *)sp;
+
+        // create the environment as usual
+        // ... bp = (environ *)sp;
+        // ... bp->ret_addr = ra;
+        // ... bp->gpr = gp;
+
+        // NEW
+        bp->lit_cntrl_block = ARG(2);
+        ...
+        sp +=...
+                // need that block only, if there are subgoals
+        if (proof-tree && (ARG(2).nr_sgls ){
+                // set TP to one below the ``TP-list''
+		// and TP_start to its beginning
+                bp->TP = sp -1;      
+		bp->TP_start = sp;
+                // allocate space for the ``TP-list''
+                sp +=  (ARG[2]).nr_sgls;
+        else
+                bp->TP_start = bp->TP = NULL ;      
+        ...
+\end{verabatim}
+
+\subsection{The call-instruction}
+
+The call instruction just has to modify the {\tt TP} pointer of its
+current environment. This change must be trailed.
+
+\begin{verbatim}
+call:
+        ...
+        if (proof-tree){
+                trailvar(&(bp->TP));
+                bp->TP ++;
+                }
+        ...
+\end{verbatim}
+
+\subsection{The reduct-instruction}
+
+In this instruction, all references to {\tt chp->red\_lvl} are removed.
+
+\subsection{Other instructions}
+Due to the changed data within the environment, each reference to
+{\tt bp->ps\_symb} must be modified to {\tt bp->lit\_cntrl\_block->ps\_symb}.
+
+Furthermore, all occurrences of {\tt pmode} are removed.
+
+
+\subsection{New instruction: disptree}
+
+This new instruction does not take any arguments. It prints the 
+proof-tree {\em below\/} the current environment (if {\tt proof-tree} is set)
+into the proof-tree file.
+This instruction always succeeds.
+
+This instruction calls the function {\tt disp\_proof\_tree(environ *bp)}.
+
+\section{Additional functions within SETHEO}
+
+The additional function {\tt disp\_proof\_tree(environ *bp)} prints
+the current proof-tree below the environment given by bp.
+
+\begin{verbatim}
+disp_proof_tree(environ *bp)
+{
+if (!proof-tree) return;
+
+tp = bp->TP_start;
+
+if (tp){
+    // for all subgoals (accessible via bp->lit_cntrl_block->nr_sgls))
+    //
+    while (tp <= bp->TP){
+         if (tp <= bp) {
+             // this is an reduction step
+             // go up the dynamic link-list starting at bp
+             // until it is equal *tp. With this code, the reduction
+             // level can be obtained
+             ... }
+         else {		
+             // we have an extension step
+             //
+             disp_proof_tree(*tp);
+             tp++;
+             }
+        }
+print-head-info of current subgoal...
+}
+\end{verbatim}
+        
+
+
+
+\section{Required Changes in mplop}
+
+The instructions {\bf dptree, disp, ptree} are not generated when the
+tree-option is active.
+
+The tree-generation option is skipped
+
+For each literal, the literal-control-block is generated prior to the
+generation of the argument vector.
+
+In front of the {\bf stop} instruction ( or the {\bf fail}
+instruction, if the {\bf -all} option is activated)
+ in the query, the new instruction
+{\bf disptree} is placed.
+
+\section{Required Changes in wasm}
+
+\begin{itemize}
+\item The {\bf alloc} instruction takes two arguments only
+
+\item The new {\bf disptree} instruction takes 0 arguments
+
+\item The instructions {\bf dptree, disp, ptree} are removed.
+\end{itemize}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+\section{History}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

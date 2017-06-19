@@ -1,0 +1,58 @@
+SAM V4.0[LINUX,PIL] Copyright TU Munich (June 1999)
+  64 bit word format
+  main.c built on Sep 28 2016 at 15:02:48
+TIMER STARTED...
+Options : -cons -dr nonob 
+
+using antilemma-constraints
+using regularity-constraints
+using tautology-constraints
+using subsumption-constraints
+
+Loading code...
+
+
+Initializing memory...
+
+
+Initializing registers1...
+
+
+Initializing registers2...
+
+
+Initializing bounds...
+
+
+Initializing signals...
+
+
+Start proving...
+
+-d:    2  time     < 0.01 sec  inferences =        9  fails =        7
+-d:    3  time     < 0.01 sec  inferences =       30  fails =       23
+-d:    4  time     < 0.01 sec  inferences =      100  fails =       79
+-d:    5  time     < 0.01 sec  inferences =      359  fails =      285
+-d:    6  time     < 0.01 sec  inferences =     1321  fails =     1097
+-d:    7  time     < 0.01 sec  inferences =     2697  fails =     2284
+
+                    ******** SUCCESS ************
+
+Number of inferences in proof      :       21
+        - E/R/F/L                  :       19/       2/       0/       0
+Intermediate free variables        :        5
+Intermediate inferences            :       29
+Intermediate open subgoals         :        6
+Generated antilemmata              :       21
+Number of unifications             :     4516
+    - E/R/F/L                      :     2608/    1908/       0/       0
+Number of generated constraints    :     3165
+    - anl/reg/ts                   :       57/    1306/    1802
+Number of fails                    :     3775
+    - unification                  :     1057
+    - depth bound                  :     1009
+    - constraints                  :     1709
+        - anl/reg/ts               :       25/     249/    1435
+Instructions executed              :    18235
+Abstract machine time (seconds)    :   < 0.01
+Overall time          (seconds)    :   < 0.01

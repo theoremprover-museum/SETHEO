@@ -1,0 +1,368 @@
+#!/bin/sh
+#
+#
+echo "delta iterator V2.2.4 (%W% %G%) for SETHEO V3.3"
+# changes
+#	2.8.93	johann		- special query with add'tl subgoal
+#				- parameters into out-file
+#	1.9.93	johann		-additional parameters: termsize,termdepth
+#				- and delta
+#	24.9.93	johann		-additional parameters: -nosubs -large
+#
+#   8.6.94	johann		new sam with lemma generation
+#
+#	19.6.	johann		delta wo compilation
+#	1.2.95	johann		-all mode
+#	1.2.95	johann		-inf mode NYI
+#	2.2.95	johann		with delrange: may delete lemmata,
+#				if there are too many
+#				try: if DISABLEQUERIES are set,
+#				use:  qq__zz <- query and ~qq__zz
+#				to prevent errors on multiple-literal
+#				queries
+#	17.2.95	johann		generate up to LIMIT units ONLY
+#	26.11.96 johann		for new SETHEO
+#
+#	18.5.98	jsc		lemmatree
+#				-batch
+
+
+#################################################
+# SHELL VARIABLES which must be set
+#################################################
+#SETHEOHOME=/home/schumann/bin.solaris
+#SETHEOHOME=/usr/local/jessen/bin
+SETHEOHOME=/home/schumann/bin
+
+#	default inwasm flags
+INWASMFLAGS="-noclreord -nosgreord -cons"
+#	inwasm flags with ``-nosubs''
+NOSUBSINWASMFLAGS="-noclreord -nosgreord -reg -taut"
+
+WASMFLAGS="-verbose -noopt"
+
+#	default sam flags
+SAMFLAGS="-batch -cons "
+#	sam flags with ``-large'' option
+LARGESAMFLAGS="-batch -code 250000 -anl -reg -st"
+
+INWASM=$SETHEOHOME/inwasm
+WASM=$SETHEOHOME/wasm
+SAM=$SETHEOHOME/sam
+#INWASM=$SETHEOHOME/inwasm/inwasm
+#WASM=$SETHEOHOME/wasm/wasm
+#SAM=$SETHEOHOME/sam/sam
+
+NAWK=gawk
+#NAWK=gawk
+#NAWK=/usr/local/bin/gawk
+
+#################################################
+# Names of temp. files
+#################################################
+	# TMP = prefix for all temp files
+TMP=/tmp/delta$$
+	# BU = file holding current formula + special query + add'tl clauses
+BU=$TMP.bu
+	# ALL-LOG: log-file for first run with -all option
+	# deleted, if inwasm-run for that was OK
+ALL_LOG=$TMP.alog
+
+	# NEWFACTS = file to keep newly generated clauses
+NEWFACTS=new$$
+	# LOGFILE = guess what
+LOGFILE=$TMP.log
+
+
+# definitions
+#
+HORN=y
+LIMIT=999
+LEVEL=1
+ENTRY=y
+DEBUG=n
+TERMDEPTH=0
+TERMSIZE=0
+DEFAULTLEVEL=3
+	# for sam -d 3
+DISABLEQUERIES=y
+ALL=n
+DEEPENING="-d"
+
+#
+# clean up a little bit first
+#
+rm -f ${TMP}.* $NEWFACTS
+
+#
+# process arguments
+#
+ARGS=$*
+cp /dev/null $TMP.pred
+
+while [ -n "$1$EMPTY" ] ; do
+#	echo "processing $1"
+	case $1 in
+	
+	-horn) HORN=y 	;;
+	-nonhorn) HORN=n 	;;
+	-limit) LIMIT=$2; shift		;;
+	-level) LEVEL=$2; shift		;;
+	-pred) echo "$2	$3" >>$TMP.pred	; shift;shift ;;
+	-termsize) TERMSIZE=$2; shift		;;
+	-termdepth) TERMDEPTH=$2; shift		;;
+	-delta) DEFAULTLEVEL=$2; shift		;;
+	-noentry) ENTRY=n;;
+	-inf) DEEPENING="-i";;
+	-all) ALL=y;;
+	-tree) SAMFLAGS=$SAMFLAGS" -lemmatree ";;
+	-tree) TREE="-lemmatree";;
+	-query) DISABLEQUERIES=n ;;
+	-debug) DEBUG=y;;
+	-nosubs) INWASMFLAGS=$NOSUBSINWASMFLAGS	;;
+	-large) SAMFLAGS=$LARGESAMFLAGS	;;
+	-verbose) SAMFLAGS=$SAMFLAGS" - v 1";;
+	-cputime) SAMFLAGS=$SAMFLAGS" -cputime "$2; shift ;;
+	-*) echo "illegal flag $1 " ; exit 1 ;;
+	*) FILE=$1			;;
+
+	esac
+
+	shift
+	done
+
+if [ -z "$FILE$EMPTY"  ] ; then
+	echo "no input file"
+	exit 2
+	fi
+	
+
+if [ ! -f $FILE.lop ] ; then
+	echo "cannot open input file $FILE"
+	exit 2
+	fi
+
+#################################################
+# clean up after an interrupt
+#################################################
+trap 'if test $DEBUG = "n" ; then rm -f $TMP.* $NEWFACTS; fi ; exit 3' 2 3 9 
+
+#################################################
+# extract all predicate symbols (-all)
+#################################################
+if [ $ALL = "y" ] ; then
+echo "xxx on $FILE"
+	$INWASM  -scode $FILE >$ALL_LOG 2>&1 
+
+    if [ $? -eq 0 ] ; then
+	sed -e '1,/"\$told"/d' \
+            -e 's/^	\.symb	"\([a-z][A-Za-z0-9_]*\)",	pred,[ 	]*\([0-9][0-9]*\).*$/\1 \2/' $FILE.s >$TMP.pred
+
+	if [ -n `fgrep 'non H' $FILE.s`"$EMPTY" ] ; then
+		HORN=n
+	fi
+	
+	rm -f $ALL_LOG
+    else
+	echo "syntax error in formula: delta aborted"
+	cat $ALL_LOG
+	rm -f ${TMP}.* $NEWFACTS
+	exit 1
+    fi
+fi
+
+if [ `wc -l $TMP.pred | awk '{print $1}'` -eq 0 ] ; then
+	echo "must specify -pred or -all "
+	echo "if -all was given: syntax error in formula"
+	exit 1
+	fi
+
+echo "parameters for delta are:"
+echo "HORN = $HORN"
+echo "FILE = $FILE"
+echo "LEVEL= $LEVEL"
+echo "LIMIT= $LIMIT"
+echo "DEFAULTLEVEL= $DEFAULTLEVEL"
+echo "predicates:"
+cat $TMP.pred
+
+#################################################
+# preprocessing the formula
+#################################################
+echo "-------------------------------------------------"
+echo "Generating BU-queries..."
+
+$NAWK  \
+-v HORN=$HORN -v TERMSIZE=$TERMSIZE -v TERMDEPTH=$TERMDEPTH \
+-v DEFAULTLEVEL=$DEFAULTLEVEL -v LEVEL=$LEVEL -v LIMIT=$LIMIT \
+-v NEWFACTS=$NEWFACTS \
+'BEGIN {
+ print "/* bottom up queries */"
+ printf("?-iterate(1,%d).\n",LEVEL+1);
+ print "iterate(X,X) :- $write(\"Iteration done. Nr. units:\\t\"),$getnrlemmata(NRL),"
+ print "$write(NRL),$write(\"\\n\"),$tell(\"" NEWFACTS "\"),$dumplemma,$told."
+ print "iterate(I,N) :- I<N, $G := I,$U := I,"
+ print " $write(\"Level: \"),$write(I),query,$write(\"		\"),"
+ print " $getnrlemmata(X),$write(X),$write(\"\\n\"),iterate(N,N)."
+ print "iterate(I,N) :- I<N, $write(\"		\"),"
+ print " $getnrlemmata(X),$write(X),$write(\"\\n\"),"
+ print " chknadd(I,N,X,I1),iterate(I1,N)."
+ print
+ printf( "chknadd(I,N,X,N) :- X >= %d.\n",LIMIT)
+ printf( "chknadd(I,N,X,I1) :- X < %d,I1 is I+1.\n",LIMIT)
+ print
+	off=0; }
+      {
+	if ($2 > 0){
+		PAROPEN="(";
+		PARCLOSE=")";
+		}
+	else {
+		PAROPEN="";
+		PARCLOSE="";
+		}
+
+	printf("query :- $setdepth(%d), %s%s",DEFAULTLEVEL-2,$1,PAROPEN);
+
+	for (i=0; i< $2; i++){
+		printf("X%d ",i+off);
+		if (i < $2 -1) printf(",");
+		}
+	print PARCLOSE ","
+
+	if (TERMSIZE > 0){
+		for (i=0; i< $2; i++){
+			printf("$size(X%d,S%d),",i+off,i+off);
+			litnu++;
+		}
+		for (i=0; i< $2; i++){
+			printf("S%d",i+off);
+			if (i < $2 -1) printf("+");
+			}
+		print " < " TERMSIZE+1 ","
+		}
+	if (TERMDEPTH > 0){
+		for (i=0; i< $2; i++){
+		printf("$tdepth(X%d,T%d),T%d < %d,",i+off,i+off,i+off,TERMDEPTH+1);
+			}
+		}
+	print "$genulemma(3,1,$G),q_xx_zz,$getnrlemmata(NRL),NRL >= " LIMIT "."
+	print "q_xx_zz."
+
+	if (HORN == "n" ) {
+		printf("query :- $setdepth(%d), ~%s%s",DEFAULTLEVEL-2,$1,PAROPEN);
+	
+		for (i=0; i< $2; i++){
+			printf("X%d ",i+off);
+			if (i < $2 -1) printf(",");
+			}
+		print PARCLOSE ","
+
+	if (TERMSIZE > 0){
+		for (i=0; i< $2; i++){
+			printf("$size(X%d,S%d),",i+off,i+off);
+		}
+		for (i=0; i< $2; i++){
+			printf("S%d",i+off);
+			if (i < $2 -1) printf("+");
+			}
+		print " < " TERMSIZE+1 ","
+		}
+	if (TERMDEPTH > 0){
+		for (i=0; i< $2; i++){
+		printf("$tdepth(X%d,T%d),T%d < %d,",i+off,i+off,i+off,TERMDEPTH+1);
+			}
+		}
+	
+	print "$genulemma(3,1,$G),q_xx_zz,$getnrlemmata(NRL),NRL >= " LIMIT "."
+		}
+
+	printf( "%s%s",$1,PAROPEN);
+	for (i=0; i< $2; i++){
+		printf "_";
+		if (i < $2 -1) printf(",");
+		}
+	print PARCLOSE ":- $uselemma($U),$fail."
+	if (HORN == "n" ) {
+		printf( "~%s%s",$1,PAROPEN);
+		for (i=0; i< $2; i++){
+			printf "_";
+			if (i < $2 -1) printf(",");
+			}
+		print PARCLOSE ":- $uselemma($U),$fail."
+		}
+
+	}
+' $TMP.pred >$BU.lop
+#' -v HORN=$HORN -v TERMSIZE=$TERMSIZE -v TERMDEPTH=$TERMDEPTH \
+#-v DEFAULTLEVEL=$DEFAULTLEVEL -v LEVEL=$LEVEL -v LIMIT=$LIMIT \
+#$TMP.pred >$BU.lop
+
+#################################################
+# append  original formula at the end of the new queries
+# and deactivate all original queries
+#################################################
+if [ $DISABLEQUERIES = "y" ]; then
+#	sed -e 's/^[ 	]*<-\(.*\)\./~\1<-./' $FILE.lop >>$BU.lop
+	sed -e 's/^[ 	]*<-/q__zz<-/' $FILE.lop >>$BU.lop
+	echo '~q__zz<-.' >>$BU.lop
+else
+	cat $FILE.lop >>$BU.lop
+fi
+
+# there are no newly generated clauses up to now
+rm -f $NEWFACTS
+
+	##############################################
+	# compile and assemble
+	##############################################
+echo "preprocessing $FILE ..."
+$INWASM $INWASMFLAGS $BU >>$LOGFILE 2>&1
+# BAD PATCH if [ $? -ne 0 ] ; then
+if [ 0 -ne 0 ] ; then
+	echo "Syntax error during compilation"
+	exit 2
+	fi
+#$WASM $WASMFLAGS $BU >>$LOGFILE 2>&1
+
+	##############################################
+	# start the SAM 
+	##############################################
+echo "iterating..."
+$SAM $SAMFLAGS $BU 
+	
+#################################################
+# we are done
+#################################################
+echo "generating output file $FILE.out.lop"
+echo '/*' "Delta-Iterator: delta $ARGS"'*/'  >$FILE.out.lop
+cat $FILE.lop >>$FILE.out.lop
+
+if [ $ENTRY = "y" ] ; then
+	sed -e 's/~\(.*\)<-/<-\1/' $NEWFACTS >>$FILE.out.lop
+else
+	cat $NEWFACTS >>$FILE.out.lop
+fi
+
+#################################################
+# print statistics
+#################################################
+sed -e '/seconds/!d' -e '/generated/!d' \
+	-e 's/^.*[^0-9]\([0-9][0-9]*\.[0-9][0-9]*\) *seconds.*$/\1/' $LOGFILE |\
+	$NAWK ' BEGIN { SUM=0.0; }
+{ SUM = SUM + $1; }
+END { print "compilation time: "SUM " s"}'
+
+sed -e '/Overall/!d' \
+-e 's/^.*[^0-9]\([0-9][0-9]*\.[0-9][0-9]\).*$/sam overall time: \1 s/' $BU.log 
+
+
+#################################################
+# clean up
+#################################################
+if [ $DEBUG = "y" ] ;
+	then
+	echo "temp files: ${TMP}.*"
+else
+	rm -f ${TMP}.* $NEWFACTS
+fi

@@ -1,0 +1,174 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{Placing Literals into the current path}
+\author{Johann Schumann}
+\date{23.12.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the technique which is necessary to place
+a given literal into the current path of the tableau.
+\end{abstract}
+
+\noindent{\bf Keywords:}  assume, fold-up
+
+\noindent{\bf Action: } EXTENSION
+
+\section{Detailed Description}
+
+\subsection{Informal Description}
+
+\section{Compilation into Code of the Abstract Machine}
+
+The built-in ``assume(P)'' is compiled into several instructions
+of the SAM, according to the way described above.
+
+Given a clause {\tt H :- T1,...,assume(L),...,Tn.} is converted
+into the following clauses:
+
+\begin{verbatim}
+
+H :- T1,...,L[connect_to_clause: (2),noreduct],...Tn.
+
+clause (2).
+compile(fold_up1).
+L.
+\end{verbatim}
+
+The subgoal ``assume(L)'' is transformed into a subgoal with
+the literal {\tt ~L} which only has one connection into a newly
+generated clause {\tt (2)}. This clause consists of the a
+single literal {\tt L}. As soon as this subgoal has been solved,
+it is folded up by one level.
+This action causes the literal {\tt L} to be placed in the
+current path (above the node {\tt ~H}).
+
+The follwoing piece of code is generated for each ``assume'':
+
+\begin{verbatim}
+
+      ...     // code of clause H:- T1,...,Ti,assume(L),Ti+1,...,Tn.
+      call   OR_Ti, LCB_T_i
+             // convert the assume into an ordinary subgoal
+             // with only one connection
+      call   newclause_L,LCB_L
+      call   OR_Ti+1, LCB_T_i+1
+      ...
+
+/* newly generated clause for L. */
+newclause_L:
+        nalloc	LCB_newclause_L
+        unvoid  0
+        ...
+        unvoid  m                  /* for an m-ary Literal L*/
+             // we fold up this node one level
+        fold_up1                 
+        ndealloc
+
+LCB_newclause_L:
+        .dw	newclause_L
+        .dw	const	code_of_~L
+        ...
+\end{verbatim}
+
+\newpage
+\section{Specification of Algorithms and Data Structures}
+
+\subsection{New SAM Instructions}
+
+The code of the new SAM instruction {\tt fold\_up1} can be easily
+derived from the code of {\tt fold\_up}. Actually, only several
+lines have to be deleted.
+The pseudo-code of {\tt fold\_up1} is the following:
+
+\begin{verbatim}
+instr_result i_fold_up1()
+{
+
+   environ *pdp =  bp->dyn_link;     // we move up ONE level
+
+   trail_var(&(bp->path_link));      // link the current environment
+   trail_var(&(pdp->path_link));     // and note all changes
+   bp->path_link = pdp->path_link;
+   pdp->path_link = bp;
+
+   trail_var(&(bp->flags));          // note that we have folded up
+   bp->flags |= FOLDED_UP;           // this environment
+   pc +=INSTR_LENGTH;
+   return success;
+}
+\end{verbatim}
+
+\section{Required Changes}
+
+\subsection{Required Changes in sam}
+
+Changed files: conf.c, i\_fold\_up1.c
+
+
+\subsection{Required Changes in mplop}
+
+
+\section{Manual Pages}
+
+\section{Discussion of Problems}
+
+{\tt noch bestehende Probleme, moegliche Verbesserungen hier eintragen}
+
+\section{The Testing}
+\subsection{Test-examples}
+{\tt schwierige/spezielle Beispiele fuer die Erweiterung/Aenderung hier angeben}
+
+\subsection{Results of Tests}
+{\tt Resultate: Ausgabe, Zeiten,... angeben}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & mplop & wasm & setheo \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{mplop} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{setheo}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

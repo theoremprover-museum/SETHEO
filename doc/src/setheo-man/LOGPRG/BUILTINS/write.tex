@@ -1,0 +1,47 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$write/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$write(T)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term to be printed
+	\end{description}
+\item[Low Level Name:]
+	{\tt out}
+\item[Result:]\ \\
+This built-in always succeeds
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+The printable representation of the given term is printed.
+Logical variables are printed in the form {\tt X\_}{\em number}, where
+{\em number\/} identifies the variable in a unique way.
+Please note that these numbers may differ from run to run.
+
+Quoted special characters (e.g., {\verb+ \n+}) in strings are expanded.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) :- $write("X="), $write(X), $write("\n\007").
+\end{verbatim}
+
+When called with {\tt <- p(f(a))} this clause will print
+{\tt X=f(a)}, a new-line, and will ring the bell.
+

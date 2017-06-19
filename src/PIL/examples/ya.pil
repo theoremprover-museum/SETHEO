@@ -1,0 +1,53 @@
+// Yahalom Protocol
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+Objects:
+principal A,B,S;
+sharedkey K_a_s, K_b_s, K_a_b;
+variable sharedkey K;
+statement N_a, N_b;
+variable statement N;
+//
+Assumptions:
+(A,S) believes sharedkey (A,S,K_a_s);
+(B,S) believes sharedkey (B,S,K_b_s);
+S believes sharedkey (A,B,K_a_b);
+
+(A,B) believes S controls sharedkey (A,B,K);
+
+A believes fresh N_a;
+B believes fresh N_b;
+
+S believes fresh sharedkey (A,B,K_a_b);
+B believes S controls fresh sharedkey (A,B,K);
+B believes A controls S believes fresh sharedkey (A,B,K);
+A believes S controls B said N;
+B believes secret (A,B,N_b);
+
+
+//
+Idealized Protocol:
+message 2: B -> S      {N_a,N_b}(K_b_s);
+message 3:      S -> A {sharedkey(A,B,K_a_b),fresh sharedkey(A,B,K_a_b),
+			N_a, N_b, B said N_a}(K_a_s),{sharedkey(A,B,K_a_b)}(K_b_s);
+message 4: B    <-   A {sharedkey (A,B,K_a_b)}(K_b_s),	
+		       {<N_b,sharedkey(A,B,K_a_b),
+                        S believes fresh sharedkey(A,B,K_a_b)>(N_b)}(K_a_b);
+//
+Conjectures:
+after message 3: A believes sharedkey (A,B,K_a_b);
+                 A believes S believes fresh sharedkey (A,B,K_a_b);
+		 A believes B believes N_a;
+after message 4: B believes S said sharedkey K_a_b;
+		 B believes A said S believes fresh sharedkey (A,B,K_a_b);
+		 B believes A believes S believes fresh sharedkey K_a_b;
+		 B believes S believes fresh sharedkey K_a_b;
+		 B believes fresh sharedkey (A,B,K_a_b);
+                 B believes sharedkey (A,B,K_a_b);
+		 A believes sharedkey (A,B,K_a_b);
+		 A believes B believes N_a;
+	    	 B believes A believes sharedkey (A,B,K_a_b);
+
+
+                 
+

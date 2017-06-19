@@ -1,0 +1,90 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Reporting SETHEO Errors}
+\label{subsec:reporting-errors}
+
+If the SETHEO-system behaves strangely (e.g., core dump, irregular
+output, funny error messages) and it is suspected that one or more
+modules of the SETHEO system contain a bug, the user is
+adviced to report this bug to the SETHEO's development group
+in Munich.
+Before doing so, the user should carry out the following steps.
+
+\begin{enumerate}
+\item
+Check,
+if an error message is produced by one (or some) of the modules.
+If an error is reported by one of the modules, one should not run the
+others with faulty output. E.g., if the inwasm reported an error,
+the assembler wasm and the sam should not be executed, even if code has
+been produced.
+\item
+Check,
+if the formula file is non-empty.
+\item
+Check,
+if at least one start clause (with a {\tt <-} or a {\tt ?-}
+in the beginning)
+is present (and not being removed by inwasm's purity reduction).
+\item
+Check the command-line parameters used or this example.
+Does the error occur with a different parameter setting as well?
+\item
+Check, if the error is reproducable.
+\item
+If logic-programming features of LOP and built-ins are used:
+is the subgoal-reordering (inwasm {\tt -sgreord})
+and the clause reordering (inwasm {\tt -clreord})
+turned off where necessary?
+Do all built-in predicates start with a {\tt\$}?
+Be aware of the fact that all clauses with a {\tt <-} separator
+are being fanned (if there is at least one Non-Horn clause in the formula)
+and their subgoals are reordered.
+When subgoals are reordered, built-in predicates are placed
+at the beginning of the clause.
+\item
+If logic-programming features of LOP and built-ins are used:
+are the required variable bindings for the built-in predicates OK?
+E.g., a {\tt X is Y + 1} requires {\tt Y} to be instanitated to
+a numeric value.
+\item
+Try to minimize the example by leaving out clauses or literals or
+by simplifying them, until the error disappears.
+The smaller the resulting formula, the easier it is to detect a possible
+error (both for you and the SETHEO development group).
+\end{enumerate}
+
+If all of the above steps have been tried to no avail,
+send in your error report to
+\begin{center}
+{\tt setheo@informatik.tu-muenchen.de}
+\end{center}
+The report should contain:
+
+\begin{enumerate}
+\item
+Name and address of the user,
+\item
+Version number of the SETHEO system (any modifications of the
+code by the user?),
+\item
+Hardware platform and version of the operating system,
+\item
+a short description of the error,
+\item
+a complete set of parameters which have been used to produce the
+error,
+\item
+a run-time protocol (e.g., the {\tt .log} file), and
+\item
+the formula which produced the error (as small as possible).
+\end{enumerate}
+
+The SETHEO development group in Munich then will have a look at the
+problem and will try to solve it ASAP.

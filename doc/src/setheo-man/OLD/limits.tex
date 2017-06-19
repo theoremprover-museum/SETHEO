@@ -1,0 +1,48 @@
+\subsubsection{Limitations in the WASM}
+
+\begin{tabular}{|l|r|l|l|c|}
+Name & value & Description & Type & Action \\
+\hline
+M\_SYMB\_LENG & 42 & Maximal length of a symbol & D & T\\
+MAXID & 15000 & Max.~number of symbols & D & E \\
+LABSTART & 200 & Max.~number of ``equ''s & D & E\\
+NAMELENGTH & 30 & Max.~length of a label & D & T\\
+PATHLENGTH & 100 & length of path+filename (incl .s) & D & F\\
+MAX\_INCL & 8 & max.~level of includes & D & E\\
+MAXWORDS & 2000 & nr.~data in one readlist-part & D & F\\
+MAXNAMES & 200 & max.~length of one orbranch (optimizer) & D & F\\
+MAXDTREE & 10000 & number of elements allocated in one step & D & -\\
+TOKENLENGTH & 255 & max. length of a token (=YYLMAX) & D & T \\
+YYMAXDEPTH & 150 & stack-limit of yacc & D & E \\
+\hline
+\end{tabular}
+
+\subsubsection{Limitations in the SAM}
+
+\begin{tabular}{|l|r|l|l|c|}
+Name & value & Description & Type & Action \\
+\hline
+int &$-2^{15},\ldots,2^{15}-1$ & numeric values & F & T\\
+IDMASK & $2^24-1$ & Max.~number of symbols & F & F \\
+M\_SYMB\_LENG & 42 & Maximal length of a symbol & D & T\\
+DEF\_CODE & 100000B & default size of code area & C & E \\
+DEF\_STACK & 100000B & default size of stack area & C & E \\
+DEF\_HEAP & 300000B & default size of heap area & C & E \\
+DEF\_TRAIL & 100000B & default size of trail area & C & E \\
+DEF\_C\_STACK & 100000B & default size of constraint stack area & C & E \\
+DEF\_PU\_TRAIL & 4000B & default size of trail for constraint unification & D & E \\
+DEF\_SYMBSIZE & 1000 & max.~nr.~of symbols & D & E \\
+DEF\_DEPTH & 2147483647 & default depth limit & C & - \\
+DEF\_MIN\_DEPTH & 3 & default starting depth & D & - \\
+DEF\_DEPTH\_INC & 1 & default increment for depth & D & - \\
+DEF\_INF & 2147483647 & default inference limit & C & - \\
+DEF\_MIN\_INF & 3 & default starting inference & D & - \\
+DEF\_INF\_INC & 5 & default increment for inference & D & - \\
+DEF\_LOCINF & 2147483647 & default local inference bound limit & C & - \\
+DEF\_MIN\_LOCINF & 3 & default starting local inference bound & D & - \\
+DEF\_LOCINF\_INC & 1 & default increment for local inference bound & D & - \\
+CLNU\_LEMMA & 20000 & start of clause-numbers for unit-lemmata & D & - \\
+MAXPREDSYMB & 10000 & max.~number of predicate symbols+1  & D & F \\
+\hline
+\end{tabular}
+

@@ -1,0 +1,55 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	O. Ibens
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$setcounter/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$setcounter(N,T)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}] number of counter to access
+	\item[{\tt T}] value to store in the {\tt N}--th counter
+	\end{description}
+\item[Low Level Name:]
+	{\tt set\_counter}
+\item[Result:]\ \\
+        If {\tt N} is not a number or less than $1$ or greater than
+        the number of provided counters this built--in returns an
+        error state.
+        If {\tt T} is not a number this built--in returns an
+        error state as well.
+        Otherwise this built--in succeeds.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+{\tt \$Setcounter} first checks if {\tt N} is a correct index to the
+block of provided counters and if {\tt T} is a number. If so, {\tt
+\$setcounter} stores the value of {\tt T} in the {\tt N}--th counter.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+The values to be stored have to be numbers and they have to be in the
+range $[-32768,32767]$.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+:- $initcounters(5), p(X), $setcounter(2,10), q(X).
+\end{verbatim}
+
+
+

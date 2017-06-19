@@ -1,0 +1,49 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$isnonvar/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$isnonvar(T)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term
+	\end{description}
+\item[Low Level Name:]
+	{\tt isnonvar}
+\item[Result:]\ \\
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in predicate succeeds, if {\tt T} is
+{\em not\/} a variable or bound to a variable.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- isvar(X),...
+p(X) <- isnonvar(X),...
+\end{verbatim}
+
+

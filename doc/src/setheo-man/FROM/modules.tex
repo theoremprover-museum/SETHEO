@@ -1,0 +1,306 @@
+%modules
+\ssection{Description of the Modules}
+\ssubsection{plop}
+{\bf Plop} 
+takes formulae of first order predicate logic in standard notation
+and converts them into LOP clausal sets preserving the property
+of unsatisfiability. Obvious tautological clauses and redundant
+literals are removed. 
+Both, the first-order-language syntax and the LOP syntax is described in
+a later section. Plop can be invoked by the following command line or via
+the Xtheo interface:
+\begin{center}
+{\bf plop} [ {\bf --necho} ][ {\bf --nopti} ][
+{\bf --sko} ][ {\bf --neg} ][ {\bf --baum]} ][
+{\bf --debu} ][ {\bf --defgro} ] {\it file\/}[{\bf .pl1}]
+\end{center}
+The only parameter which has to be given is the name of the input file.
+It must have the extension {\bf .pl1}. The generated output file
+has the extension {\bf .lop} which can be handled by preproc or inwasm.
+
+The other parameters are optional and have the following meaning:
+\begin{description}
+\item[--necho]
+suppresses the screen output. 
+Otherwise the input- and output formula is displayed.
+\item[--nopti]
+suppresses the removal of tautologies and redundancies. 
+\item[--sko]
+yields output clauses not in LOP form but in skolemized
+normal form, i.e. clauses containing disjunction
+and negation symbols but neither conditional nor conjunction
+symbols.
+\item[--neg]
+negates the input formula before doing the transformation.
+(Some examples or programs may be formulated affirmatively.)
+\item[--baum]
+displays statistics of the internal formula tree.
+\item[--debu]
+turns on the verbose debugging mode of plop.
+\item[--defgro]
+displays constraints concerning the size of some elements
+of the input formula. If a given example exceeds them, define-statements
+in the source code of PLOP are to be modified.
+\end{description}
+
+\ssubsection{preproc}
+The preprocessing module can be started optionally and tries to reduce
+the size and complexity of a given LOP formula, without affecting
+its provability. A number of currently 5 reductions are performed in
+sequence as long as the formula can be reduced. 
+\begin{itemize}
+\item Purity--reduction
+\item Subsumption--reduction
+\item Isolated Literal reduction
+\item Sema--Isolated Literal reduction, and
+\item Restricted Unit Resolution.
+\end{itemize}
+For details of the reduction steps see [LSBB89,BLS88].
+The command line syntax of preproc is:
+\begin{center}
+{\bf preproc}
+[{\bf --c}]
+[{\bf --b}]
+[{\bf --d} {\it number}]
+{\it file}
+\end{center}
+
+The input file {\it file\/} must have the extension {\bf .lop}, the output file,
+which is generated has the name {\bf p\_}{\it infile}{\bf .lop}.
+This is necessary as input-- and output--files must have different
+names.
+In some cases, the formula can be proved by the preprocessor already.
+In that case, no output file is generated, instead a message is displayed
+on the screen, and the program returns an appropriate exit code.
+
+All parameters of {\bf preproc} except the input--file name are optional:
+\begin{description}
+\item[--d {\it nu}]
+A debugging level of {\it nu\/} is set, causing the program to generate
+a lot of intermediate output. The default value is 10.
+\item[--c]
+If a formula, which contains no query (e.g.\ a program without a request)
+has to be processed, that option has to be given. In that case, no
+purity reduction is performed (which would possibly eliminate all clauses).
+\item[--b]
+If this option is set, the isolated reductions may generate bigger clauses.
+\end{description}
+
+Note, that in the current version, no built--ins and global variables are
+allowed.
+
+
+\ssubsection{inwasm}
+The SETHEO compiler {\bf inwasm} takes a formula or program
+written in LOP and compiles it into SETHEO assembler code. 
+The resulting 
+code can be assembled by {\bf wasm} and executed by {\bf setheo}.
+The input file must have the extension {\bf .lop\/}, the file genererated
+has the extension {\bf .s\/}.
+If the {\bf --t} option is selected, an additional file with the extension
+{\bf .symb} is generated, holding symbol table information needed by the
+{\bf xtheo} graphic interface to display the proof tree.
+
+Also a fast version of the purity--reduction is performed.
+The additional run of that reduction (cf. {\bf preproc}) does not increase
+the compile--time considerably, but is very convinient esp.\ for logic
+programming.
+When using SETHEO for logic programming, normally no option is needed
+when invoking {\bf inwasm}.
+A number of options must be given to control code generation for theorem
+proving purposes.
+The following line gives a list of all available parameters and a short
+description of each. Details will be given in the section: SETHEO as a
+Theorem Prover.
+
+\begin{center}
+{\bf inwasm}
+[ {\bf --v}]
+[ {\bf --w}]
+[ {\bf --a}]
+[ {\bf --f}]
+[ {\bf --q}]
+[ {\bf --t}]
+[ {\bf --T}]
+[ {\bf --p}]
+[ {\bf --c} [{\it nu\/}]] 
+[ {\bf --P} [{\it nu\/}]] \\ \,
+[ {\bf --o}]
+[ {\bf --R}]
+[ {\bf --r}]
+[ {\bf --C}]
+[ {\bf --i}]
+[ {\bf --I}]
+[ {\bf --h{\bf [}s{\bf ][}f{\bf ][}y{\bf ]}}]
+[ {\bf --O}{\it file\/}]
+{\it file\/}
+\end{center}
+
+Here we only describe a number of essential options, the entire list of
+options can be found in the manual pages.
+\begin{description}
+\item[--a]
+Find all solutions for a given query. If the theorem prover is started
+in the DFS mode or the --r mode (iterative deepening), all solutions
+are searched, otherwise only the solutions within the given 
+limits are searched. If solution substitutions have to be displayed,
+{\it write\/} statements must be added manually to the LOP--formula.
+\item[--c {\it nu\/}]
+A global copy-bound of {\it nu\/} is set to all clauses with more than
+one literal, i.e.\ a maximum of {\it nu\/} copies of each clause may be
+used with the proof. If, however, the limits must be set to different values
+for different clauses, changes in the output file of the inwasm have to
+be made.(experts only)
+\item[--C] suppress code generation.
+\item[--i] generates code to allow for a counting of all inferences
+made during the proof. An inference is a successful unification of two
+literals or a successful reduction step.
+\item[--I] is similar to the {\bf --i} option, but counts the {\em attempted\/}
+unifications and successful reductions.
+\item[--o]
+If this option is selected, the weak unification graph is generated
+by an algorithm, {\it without\/} occurs check.
+\item[--p]
+This option inserts code to perform the equal predecessor fail pruning.
+\item[--q] If a LOP formula has more than one query, i.e.\ more than one
+clause with negative literals only, or if it is a non--horn formula,
+the --q option is needed to add an artificial query, which allows setheo
+to work properly. Note that with the --q option one additional inference
+and one additional depth level is needed.
+Details are described in the section "Built--ins".
+\item[--r] Code for performing reduction steps is added.
+This option is needed for most non--horn formulae to guarantee
+completeness.
+\item[--T] Code for generating a proof tree is added to the code.
+(This is a default parameter when using the xtheo user interface)
+Also the list of literals and additional information is written
+into {\it file.symb\/} in order to be read by {\it xtheo\_graphics}.
+\item[--v] turns on the verbose mode.
+\item[--R] turns off the reordering of the subgoals in non-horn
+formulae.
+\item[--hs] turns on static reordering or OR-branches consisting of
+at least 2 clauses with more than one literal.
+\end{description}
+
+{\bf Note:} Please ensure that either the local directory or your home
+directory contains a copy of the file  \verb-.inwasmrc- which contains
+definitions of predefined built-ins and can be found in the subdirectory
+containing the inwasm sources.
+
+
+
+
+
+
+\ssubsection{wasm}
+The SETHEO assembler {\bf wasm} takes files produced by {\bf inwasm}
+with the extension {\bf .s} and converts them into hexadecimally coded
+binary files. Also libraries may be included at this time. Symbolic labels
+are resolved. If the assembler is invoked with the optimize option {\bf -O}
+the connection graph will be stored in a compressed format.
+Details of the {\bf wasm} are only interesting for the very experienced
+user who wishes to program in SETHEO assembler language. 
+The input file must have the extension {\bf .s\/}, the output file
+the extension {\bf .hex\/}.
+
+{\bf Wasm} has the following options:
+(all except the {\it file\/} are optional)
+
+\begin{center}
+{\bf wasm}
+[{\bf --v}]
+[{\bf --O}]
+[{\bf --l}]
+[{\bf --lx}]
+[{\bf --d}]
+[{\bf --o\/}{\it file\/}]
+{\it file\/}
+\end{center}
+\begin{description}
+\item[-v]
+produce a verbose output (for debugging purposes only)
+\item[-O]
+invoke the optimizer to compactify the connection graph.
+\item[-l [x ]]
+give a listing of all labels and their addresses. This option only
+works in conjunction with the {\bf -v} option.
+\item[-d]
+generates debugging information which can be used in the monitor
+mode of {\bf setheo}. It allows to display clause and literal numbers
+instead of pure addresses.
+\item[-o file]
+uses the {\bf file} as an output instead of the default {\bf infile.hex}.
+i\end{description}
+
+\ssubsection{setheo}
+{\bf Setheo} is the kernel of the {\small SETHEO} system. It is realised
+as an abstract machine
+based on Model Elimination, a specialisation of the Connection Method.
+Setheo executes the instructions generated by the inwasm and wasm commands
+in a file with the extension {\bf .hex}.
+If a proof of the formula or LOP program could be found within given limits,
+a success message is displayed, together with the number of
+nferences used in the proof. If no proof could be found,
+the reason is displayed (reaching a certain boundary or total fail).
+Additionally the total number of abstract instructions and the
+elapsed time is displayed. Note
+that due to the incorrectness of the internal clock (ticks every 60 ms)
+the accurracy of that time is not very high. 
+
+If an internal error occurs, the monitor is entered (see description
+of the {\bf monitor} built--in predicate.
+Hopefully, only a "Stack overflow" has occurred, which can be overcome
+by using the {\bf --S} option or setting a depth- or inference--bound.
+Setheo has quite a lot of parameters, all except the input file being optional.
+If setheo is started without parameters, the abstract machine runs in
+a depth--first left--to--right mode with an almost unlimited depth bound
+(9999).
+
+When called from the shell, setheo has the following synopsis:
+\begin{center}
+{\bf setheo}
+[{\bf --t}]
+[{\bf --g}]
+[{\bf --r\/}[{\it number\/}]]
+[{\bf --l\/}[{\it number\/}]]
+[{\bf --d} {\it number\/}] \\
+
+[{\bf --i} {\it number\/}]
+[{\bf --S} {\it number\/}]
+[{\bf --H} {\it number\/}]
+[{\bf --B} {\it number\/}]
+{\it file}
+\end{center}
+
+\begin{description}
+\item[{\it file\/}]
+The input file must have the extension {\bf .hex}.
+\item[--t]
+If the inwasm was invoked with {\bf --t} and this option is set,
+a proof tree will be generated and saved the file {\it file\/}.{\bf tree}.
+This tree can be displayed graphically by the xtheo--user interface.
+\item[--g] This option loads debugging information, which is used
+in the monitor mode of setheo. For details see the description of
+the built--in predicate {\bf monitor}.
+\item[--d {\it nu\/}]
+Sets the depth bound to the number {\it nu\/}. Due to historical reasons,
+the number given must be 1 greater than the actual maximal depth.
+\item[--i {\it nu\/}]
+Sets the inference bound to the number {\it nu\/}. Due to historical reasons,
+the number given must be 1 greater than the actual maximal number of inference.
+\item[--r [{\it nu\/}]]
+With this option, setheo is started in a dfs--iterative deepening mode,
+i.e.\ starting with a depth of 3 (or {\it nu\/} if given), setheo
+tries to find a proof. If a fail occurs, the depth limit is incremented
+by 1.
+\item[--l [{\it nu\/}]]
+allows the generation and usage of lemmata. In the current version
+this is not supported by the inwasm--compiler, so setheo-assembler files
+have to be modified. (for expert users only)
+\item[--S {\it nu\/}]
+set the size of the stack space to {\it nu\/} bytes. (default: 30000)
+\item[--H {\it nu\/}]
+set the size of the heap space to {\it nu\/} bytes. (default: 30000)
+\item[--B {\it nu\/}]
+set the size of the trail space to {\it nu\/} bytes. (default: 30000)
+\end{description}

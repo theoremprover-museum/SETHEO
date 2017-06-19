@@ -1,0 +1,67 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Assembly and Display of Answer Substitutions}
+
+{\tt ueberarbeiten, Johann}
+
+
+   To obtain the full answer substitution the write statement 
+         must be the last subgoal of a QUERY (rather than a GOAL). 
+	 This is because goal clauses are fanned.
+
+	 In order to output disjunctive answer substitutions 
+	 global variables are needed:
+
+Example:
+
+   Given the clause
+
+\begin{verbatim}
+        p(a) ; p(b) <-.
+\end{verbatim}
+
+   the `disjunctive answer' for the query
+
+\begin{verbatim}
+	<- p(X).
+\end{verbatim}
+
+   is {\tt X = a ; X = b}.
+
+
+  A program which computes this answer needs a new `artificial query' 
+  containing a subgoal to enter the original goal. In this way, the 
+  goal is transformed into an axiom. The axiom however, is fanned into
+  contrapositives. The program is given below.
+
+\begin{verbatim}
+# In order to initialize list $X:
+
+   ?- $X := [], query, write_list($X).
+   
+# In order to collect the answer substitutions in the list $X:
+
+   query <- $X := [X|$X], p(X).
+
+# The disjunctive fact remains unchanged:
+
+   p(a) ; p(b) <-.
+
+# In order to output the elements of $X:
+
+   write_list([]) :- write(".").
+   write_list([H|T]) :- write(H), write(";"), write_list(T).
+   
+\end{verbatim}
+
+Note: It would be helpful if you try this program by your own with SETHEO 
+      and then have a closer look onto the proof tree using `xptree'.
+
+
+

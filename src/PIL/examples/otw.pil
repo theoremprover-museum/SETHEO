@@ -1,0 +1,38 @@
+// Otway-Rees Protocol
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+Objects:
+principal A,B,S;
+sharedkey K_a_s, K_b_s, K_a_b;
+variable sharedkey K;
+statement N_a, N_b, M_a;
+variable statement X;
+//
+Assumptions:
+(A,S) believes sharedkey K_a_s;
+(B,S) believes sharedkey K_b_s;
+S believes sharedkey K_a_b;
+(A,B) believes S controls sharedkey (A,B,K);
+A believes S controls B said X;
+B believes S controls A said X;
+	
+A believes fresh N_a;
+A believes fresh M_a;
+B believes fresh N_b;
+//
+Idealized Protocol:
+message 1: A -> B      {N_a,M_a}(K_a_s);
+message 2:      B -> S {N_a,M_a}(K_a_s),{N_b,M_a}(K_b_s);
+message 3:      B <- S {N_a, sharedkey K_a_b, B said M_a}(K_a_s),
+                       {N_b, sharedkey K_a_b, A said M_a}(K_b_s);
+message 4: A <- B      {N_a, sharedkey K_a_b, B said M_a}(K_a_s);
+//
+Conjectures:
+after message 2: S believes A said |N_a,M_a|;
+                 S believes B said |N_b,M_a|;
+after message 3: B believes sharedkey K_a_b;
+		 B believes A said M_a;
+after message 4: A believes sharedkey K_a_b;
+//		 A believes B said M_a;
+                 A believes B believes M_a;
+

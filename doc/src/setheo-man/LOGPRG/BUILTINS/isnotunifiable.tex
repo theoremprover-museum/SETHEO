@@ -1,0 +1,45 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$isnotunifiable/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$isnotunifiable(T1,T2)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T1,T2}]
+two terms to be checked.
+	\end{description}
+\item[Low Level Name:]
+	{\tt is\_notunifiable}
+\item[Result:]\ \\
+This built-in succeeds, if both terms are not unifiable.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in tests, if both terms are unifiable, and fails, if they are. 
+The terms are not modified.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- $isnotunifiable(X,f(g(Y,b),c)).
+\end{verbatim}
+tests, if  {\tt X} is not unifiable with {\tt f(g(Y,b),c)}.
+ 
+
+
+

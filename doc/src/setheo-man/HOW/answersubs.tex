@@ -1,0 +1,102 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Assembly and Display of Answer Substitutions}
+
+In contrast to PROLOG systems, SETHEO does not automatically
+display answer substitutions of the variables in the query of
+a logic program or a theorem.
+Answer substitutions, however, are always present in the proof,
+SETHEO generates. They can be displayed, using the {\bf xptree}
+tool.
+
+A more convenient and elegant way to display the answer substitutions
+(both for the Horn and Non-Horn case) can be easily accomplished, using
+SETHEO's logic programming facilities.
+
+In the following, we will describe, how it is possible to print
+one answer substitution or all substitutions in the Horn and Non-Horn case.
+
+\subsection{The Horn Case}
+
+For a formula (or logic program) which only consists of Horn-clauses,
+the answer substitution consists of exactly one substitution for each
+variable in the query.
+E.g., for a query {\tt <- p(X,Y)}, an answer substitution could be
+$ X\backslash a, Y\backslash b$. 
+
+Such a query can easily be instrumented in such a way that such
+answer substitutions are printed, as soon as a proof could be found.
+We just print the substitution, using the {\em \$write/1\/} built-in.
+In our above example, one would have to write:
+\begin{center}
+{\verb+?- p(X,Y),$write("X="),$write(X),$write(" Y="),$write(Y),$write("\n").+}
+\end{center}
+
+Please note that the {\tt <-} now has been converted into a {\tt ?-}
+in that clause in order to prevent reordering of subgoals 
+(i.e., to prevent the output of the variables before the main goal is called).
+
+If you want to print all answer substitutions whcih can be found within
+given bounds, you have to add a {\tt \$fail} at the end of the clause.
+This forces SETHEO to backtrack, after a proof has been found.
+
+\subsection{The Non-Horn Case}
+
+For a non-horn formula, the answer substitution can be {\em disjunctive}.
+As an example, consider the following (non-Horn formula):
+
+\begin{verbatim}
+<- p(X).
+p(a); p(b)<-.
+\end{verbatim}
+The disjunctive answer substitution in that case is
+\[ X = a \vee X = b. \]
+
+If we want to print such an answer substitution, our query must be transformed
+as follows:
+\begin{verbatim}
+?- $ANS := [], query, $write("X= "), $write($ANS), $Write("\n").  /*(1)*/
+
+query :- p(X), $ANS := [X|$ANS].
+~p(X) :- $ANS := [X|$ANS].
+\end{verbatim}
+The rest of the formula remains unchanged.
+When SETHEO is started and finds a proof, it prints the list of
+all disjuncts of variable substitution. In our case, we get:
+\verb+X= [a|[b|[]]]+.
+
+If a more convenient output is needed, however, additional clauses
+must be added in order to convert the list into a correct form.
+Note, that additional built-ins are needed to bypass the bounds, and
+to keep the number of inferences in the proof correct.
+The following program produces the desired output:
+
+\begin{verbatim}
+?- $ANS := [], 
+      query, 
+      $getinf(I), 
+      print_answersubst($ANS), 
+      I1 is I -1,
+      $setinf(I1).  /*(1)*/
+ 
+query :- p(X), $ANS := [X|$ANS].
+~p(X) :- $ANS := [X|$ANS].
+
+p(a);p(b)<-.
+
+print_answersubst([X]) :- $write("X="),$write(X),$write("\n").
+print_answersubst([X|Y]) :- 
+        $setdepth(1),$setinf(1),
+        $write("X="), $write(X), $write(" ; "),
+        print_answersubst(Y).
+\end{verbatim}
+
+If more than one query exists in the formula, this piece of code
+can easily be generalized.
+

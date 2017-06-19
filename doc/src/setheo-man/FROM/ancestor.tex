@@ -1,0 +1,252 @@
+\documentstyle[12pt,a4]{article}
+
+
+\title{The built-in predicate ``ancestor/1''}
+\author{Johann Schumann}
+\date{27.3.93}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This document specifies the behavior and implementation of the built-in
+{\bf ancestor/1} which allows to access the current ancestor list within
+the SAM.
+\end{abstract}
+
+\noindent{\bf Keywords:}  built-in 
+
+\noindent{\bf Action: } {\tt EXTENSION}
+
+\section{Solution Provided}
+
+none
+
+\subsection{Problems with Solution Provided}
+	
+No means for access of the ancestor list on the LOP level
+have been provided.
+
+
+\section{Detailed Description}
+
+\subsection{Informal Description}
+
+This built-in allows to extract individual elements from the
+ancestor list, and unifies them with the given term.
+The behavior of this predicate is the same as of the standard predicate
+member: if {\bf ancestor/1} is used with an unbound variable, the
+first element of the ancestor-list will be converted into a term
+with the predicate symbol as the functor. Then the variable will be
+bound to this term.
+If {\bf ancestor} is called with a term with a predicate symbol
+(or its negation) as the root-functor, {\bf ancestor} tries to
+find a member in the ancestor list which is unifiable with that term
+and performs a unification.
+
+The predicate fails, if no such member could be found, or the end of
+the list is reached.
+
+When a backtracking occurs over that built-in, the next element in the
+ancestor list is tried (or returned). If no more members exist, the predicate
+will fail.
+
+The following pseudo-LOP code will illustrate the behavior of {\bf ancestor}.
+We assume, that the ancestor-list is present in the global variable
+{\tt \$Ancestors}.
+
+\begin{verbatim}
+begin module ancestor.
+  export ancestor/1.
+  begin control.
+  $Depth := 999999.
+  $Inf := 999999.
+  $Copies := 999999.
+  end control.
+
+ancestor(T) :- member(T,$Ancestors).
+member(T,[T|_]).
+member(T,[_|R]) :- member(T,R).
+end module.
+\end{verbatim}
+
+\noindent {\bf Example1:}
+the following example shows, how the reduction steps
+can be implemented on the lop-level. Please note, that the {\bf inwasm}
+must be called with {\em -noreduct}
+
+\begin{verbatim}
+p(X) :- ancestor(~p(X)).
+~p(X) :- ancestor(p(X)).
+q(X) :- ancestor(~q(X)).
+~q(X) :- ancestor(q(X)).
+
+<-p(a),q(b).
+p(X) <- ...
+\end{verbatim}
+
+\noindent {\bf Example2:}
+the following example shows, how a special purpose unification, implemented
+as a built-in {\bf my\_unify(X,Y)} can be used within SETHEO for
+extension and reduction steps.
+
+\begin{verbatim}
+# reduction steps.
+p(X,Y) :- ancestor(~p(U,V)),my_unify(X,U),my_unify(Y,V).
+~p(X,Y) :- ancestor(p(U,V)),my_unify(X,U),my_unify(Y,V).
+...
+# original clause: p(a,f(X,b)) <-q(...
+p(U,V) :- my_unify(U,a),my_unify(V,f(X,b)),q(...
+...
+\end{verbatim}
+
+\section{SAM-Based Specification}
+
+The realisation of the built-in {\bf ancestor} within the SAM is
+more complex than that of other built-in predicates, since
+it must be backtrackable. The built-in must carry an internal pointer
+which points to the environment of the element of the ancestor list
+currently being tried. This pointer must be allocated on the stack and
+must be backtracked. Additionally, a new choice-point must be generated.
+
+In order to accomplish this, two approaches are possible:
+(1) a high-level approach, where the predicate {\bf ancestor} is
+defined in lop using low-level built-in predicates, and (2) a
+direct implementation of such a backtrackable predicate.
+
+\subsection{The high-level approach}
+
+In this approach, the predicate {\bf ancestor} is defined by 3
+low-level built-in predicates as shown below. This predicate definition,
+however is hidden in an inwasm-libary, so the user only sees one
+predicate.
+
+\begin{verbatim}
+ancestor(T) :- init_ancestor(I), my_ancestor(T,I).
+
+my_ancestor(T,I) :- getancestor(T,I).
+my_ancestor(T,I) :- incr_ancestor(I,I1), my_ancestor(T,I1).
+
+\end{verbatim}
+
+The low-level predicates work are defined as follows:
+
+\begin{description}
+\item[init\_ancestor(I)] initializes the variable $I$ to the beginning
+of the ancestor list. In our case, $I$ is just a pointer
+(with tag T\_BVAR) to the current environment.
+\item[getancestor(T,I)] tries to unify the ancestor with the environment
+$I$ with $T$. If the ancestor list is empty (i.e.\ $I == NULL$), or
+the unification fails, that predicate fails.
+
+\item[incr\_ancestor(I,I1)] just performs: $I1$ = $I${\tt ->dyn\_link}.
+This causes the check for the ancestor to proceed one level higher.
+\end{description}
+
+\subsection{The low-level approach}
+
+\subsection{Discussion of Approaches}
+
+
+\subsection{Data Structures}
+
+none
+
+\subsection{New SAM instructions}
+
+\subsubsection{The functor-instruction}
+
+A new SAM instruction {\bf functor} is being defined. Its argument
+points to a correponding argument vector of length 3.
+
+The pseudo-code of {\bf functor} is as follows:
+
+\begin{verbatim}
+---
+\end{verbatim}
+
+\subsubsection{The negate-instruction}
+
+The pseudo-code for this built-in is as follows. Again, the argument
+of this built-in is a pointer to a one-element argument vector.
+
+\begin{verbatim}
+---
+\end{verbatim}
+
+\subsection{Additional C-functions within SETHEO}
+\subsubsection{The function heapgen}
+
+as specified in Document ``functor''.
+
+\section{Required Changes}
+
+\subsection{Required Changes in sam}
+
+Files to be modified: conf.c
+
+New files: i\_functor.c, i\_negate.c
+
+\subsection{Required Changes in inwasm}
+
+The instructions {\bf ancestor} must be added to the set of
+built-in predicates as a library.
+
+\section{Required Changes in wasm}
+
+Must be compiled after making setheo.
+
+\section{The Testing}
+\subsection{Test-examples}
+{\tt Beispiele hier angeben}
+
+\subsection{Results of Tests}
+{\tt Resultate: Ausgabe, Zeiten,... angeben}
+
+\section{Proposed Time Schedule}
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|}
+\hline\hline
+Action & inwasm & wasm & sam \\
+\hline
+Specification & & & \\
+Implementation & & & \\
+Test & & & \\
+Documentation & & & \\
+Review & & & \\
+\hline
+Total & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+
+\section{Design and Implementation Procedure}
+
+\begin{center}
+\begin{tabular}{|l||c|c||c|c||c|c||}
+\hline\hline
+Action & \multicolumn{2}{|c|}{inwasm} &
+\multicolumn{2}{|c|}{wasm} & \multicolumn{2}{|c|}{sam}  \\
+\hline
+& Name & Date & Name & Date & Name & Date \\
+\hline\hline
+ Proposed:& & & & & & \\
+ Specified:& & & & & & \\
+ Approval of Specification:& & & & & & \\
+ Start of Implementation:& & & & & & \\
+ End of Implementation:`& & & & & & \\
+ Start of Tests:& & & & & & \\
+ End of Tests:& & & & & & \\
+ Approval of Code:& & & & & & \\
+ Integration into Version: & & & & & & \\
+ Start of Tests (of new Version):& & & & & & \\
+ End of Tests (of new Version):& & & & & & \\
+ Approval of Change:& & & & & & \\
+\hline\hline
+\end{tabular}
+\end{center}
+
+\end{document}

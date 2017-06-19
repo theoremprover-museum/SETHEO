@@ -1,0 +1,42 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$tdepth/2}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$tdepth(T,N)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term
+	\item[{\tt N}] number or variable
+	\end{description}
+\item[Low Level Name:]
+	{\tt tdepth}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This predicate calculates the depth of the term {\tt T} and
+unifies the result with the second parameter {\tt N}.
+The depth of a term is maximal length of its paths.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p <- $tdepth(f(a,X),2).
+p <- $tdepth(f(a,g(Y)),3).
+\end{verbatim}
+
+

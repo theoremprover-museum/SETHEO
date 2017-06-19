@@ -1,0 +1,30 @@
+// ISO10181 protocol
+// from [KW94AUTLOG]
+//
+// for AUTLOG-logic
+// modified version
+// 
+use AUTLOG
+
+Objects:
+principal A,B;
+sharedkey K_a_b;
+statement R_B;
+
+//
+Assumptions:
+B believes fresh R_B;
+B believes recognizes R_B;
+B believes sharedkey K_a_b;
+
+Idealized Protocol:
+
+message 1: B -> A      [ R_B ]  ;
+message 2:      A -> B { R_B } (K_a_b);
+
+//******************
+Conjectures:
+//******************
+after message 2: B believes A said_recently R_B;
+
+

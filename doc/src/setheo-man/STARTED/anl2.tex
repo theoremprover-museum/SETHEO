@@ -1,0 +1,34 @@
+\begin{figure}[htb]
+
+\psset{levelsep=8ex,linewidth=0.5pt,treefit=loose,nodesepB=4pt}
+
+\begin{center}
+
+\parbox{7cm}{
+\pstree{\TR{}}
+       {\pstree[linestyle=dotted,nodesepA=4pt]
+               {\TR{$\neg p(X), [X \neq a]$}}
+               {\TR{}}
+        \pstree[linestyle=dotted,nodesepA=4pt]
+               {\TR{$\neg q(X)$}}
+               {\TR{}}}
+}%
+\parbox{7cm}{
+\pstree{\TR{}}
+       {\pstree[nodesepA=4pt]
+               {\TR{$\neg p(b), [b \neq a]$}}
+               {\TR{$p(b)$}}
+        \pstree[nodesepA=4pt]
+               {\TR{$\neg q(b)$}}
+               {\TR{q(b)}}}
+}
+
+\end{center}
+
+\caption{The use of Antilemmata leads to the generation of
+         an Antilemma-Constraint $X\neq a$ after the first fail. So
+         after backtracking recomputation of the solution $X=a$ is
+         avoided. Instead immediately the the solution $X=b$ is
+         obtained.}  
+\label{fig:anl2}
+\end{figure}

@@ -1,0 +1,965 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann,, O. Ibens
+%	TU Muenchen 1996
+%
+%	%W% %G%
+% MOD:
+%	11.9.96
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section*{Tutorial~2}
+
+For this tutorial, we assume the reader to be familiar with the
+basics of the Model Elimination Calculus and SETHEO. This 
+tutorial covers the influence of refinements and extensions
+of the basic Model Elimiantion Calculus on the search behavior of SETHEO.
+Again, we use an example to illustrate the techniques implemented in
+SETHEO, in fact we use the same example as in the previous tutorial.
+For reference, its clauses (in LOP syntax) are given below in 
+Figure~\ref{tab:tut2:pellaar.lop}. This example, is of course, no
+challenge problem for Automated Theorem Provers
+(it used to be one about 10 years ago), but it has some nice 
+properties.
+
+
+\begin{table}[htb]
+\begin{center}
+\begin{verbatim}
+(1)  p(X,Z) <- p(X,Y),p(Y,Z).
+(2)  q(X,Z) <- q(X,Y),q(Y,Z).
+(3)  q(Y,X) <- q(X,Y).
+(4)  p(X,Y) ; q(X,Y)<-.
+(5)  <- p(a_1,a_2).
+(6)  <- q(a_3,a_4).
+\end{verbatim}
+\end{center}
+\caption{LOP clauses of the Example (file: MSC006-1.lop)}
+\label{tab:tut2:pellaar.lop}
+\end{table}
+
+For our first experiment, we run SETHEO, using the basic Model Elimination
+Calculus, and performing depth-first iterative deepening over the
+depth of the tabelau (A-literal depth)\footnote{
+	Using different bounds
+	will be discussed below in Section~\ref{sec:tut2:bounds}.}.
+Such a run will be accomplished using the two commands:
+
+\begin{center}
+\begin{verbatim}
+inwasm MSC006-1
+sam -dr MSC006-1
+\end{verbatim}
+\end{center}
+
+\begin{figure}[htb]
+\begin{center}
+\begin{verbatim}
+SUCCESS
+SETHEO-output for MSCXXXX.lop
+\end{verbatim}
+\end{center}
+\caption{Output of the \SAM\ for MSC006-1.lop)}
+\label{fig:tut2:pellaar.pure.log}
+\end{figure}
+
+After some time, SETHEO finds a proof, consisting of 18 Inferences,
+two of which are Model Elimination Reduction steps
+(see Figure~\ref{fig:tut2:pellaar.pure.log}  for SETHEO's output).
+A graphical representation
+of the tree can be obtained by using the tool {\bf xptree}.
+%seen in Figure~\ref{fig:tut1:pellaar} in Tutorial~1.
+For us of interest now, however, is not the proof itself, but the amount
+of search involved to find the proof.
+As shortly mentioned already in Tutorial~1, 
+this is reflected in the following sizes and numbers:
+
+\begin{description}
+\item[Abstract Machine Time] This number gives the amount of time (CPU user 
+time),
+the \SAM, SETHEO's Abstract Machine needed to find the proof. 
+However, on different machines, and even on different runs of the same
+problem, other values can be returned. Therefore, this figure should be
+taken as a first approximation only.
+\item[Total number of inferences $n_i$] gives the overall number of times,
+a unification was tried during search (by trying to perform an
+Extension or Reduction step). This number directly reflects the amount
+of search performed, but does not take into account, how long each
+attempted unification takes.
+
+\item[Number of Fails $n_f$] is the number of times, a unification failed,
+or a bound has been reached. This number is again splitted into those
+two values.
+\end{description}
+
+The output SETHEO produces at the end of the run gives these values
+for the overall search. Additionally, these values are also
+printed, after the entire search space has been exhausted with a given
+bound. Figure~\ref{fig:tut2:pellaar.pure.log} shows these figures
+for the increasing depth-bound ({\tt -d}). As can be seen clearly,
+the size of the search space grows substantially with each iteration
+(at least exponentially).
+
+In the following, we present several improvements of the Model
+Elimination Calculus and SETHEO's search procedure and have a look
+at these figures.
+The list of improvements discussed in this tutorial
+is only a small selections of techniques integrated into SETHEO.
+For a list of all techniques and the corresponding command-line
+switches see Chapter~\ref{chap:basic-modules}.
+Furthermore, we do {\em not\/} present the theoretical background
+nor any formal definitions or theorems. For such issues see
+e.g.\ \cite{LSBB89,LMG94,Letzdiss,Mayrdiss}.
+
+\section{Static Refinements}
+\subsection{Regularity}
+
+One of the most powerful refinement of the pure Model Elimination
+Calculus is its restriction to {\em regular\/} tableaux.
+
+\begin{definition}[regular tableau]
+A Model Elimination Tableau $\cal T$ is regular, if and only if on
+each path from the root to a leaf, no literal occurs more than once.
+\end{definition}
+
+One can show (cf. \cite{LSBB89,LMG94}) that for each closed tableau
+there also exists a closed regular tableau, i.e., we don't loose any
+proofs if we are searching for regular tableaux only.
+
+Figure~\ref{fig:tut2:reg-tab} contains two tableaux for the same
+subgoal (taken from our example). The left tableau is not regular,
+because the literal $\neg p(a,b)$ occurs twice in it; the right tableau
+is regular. In our case, it is easy to see, why the left tableau is
+not regular: in attempt to solve the goal $\neg p(a,b)$, an extension
+step into the symmetry clause (clause number (3)) is made, yielding
+a new subgoal $\neg p(b,a)$. Then this clause is used again to
+obtain $\neg p(a,b)$. Comparing this subgoal to the original one,
+we have gained nothing! Therefore, we can leave these two steps out,
+yielding a regular tableau. Restricting the search to certain kinds
+of tableaux thus reduces the search space considerably.
+
+\begin{figure}[htb]
+-figure-
+\caption{Model Elimination Tableau and Regular Model Elimination Tableau}
+\label{fig:tut2:reg-tab}
+\end{figure}
+
+Within SETHEO, there are two different ways to enforce regularity:
+a {\em direct regularity check\/} which is performed, as soon as an
+Extension or Reduction step is tried, and the generation of {\em
+regularity constraints\/}. 
+
+\noindent{\bf Direct Regularity Check.} This check can be
+activated by calling {\bf inwasm} with the option {\tt -eqpred},
+yielding the following sequence of commands:
+
+\begin{center}
+\begin{verbatim}
+inwasm -eqpred MSC006-1
+sam -dr MSC006-1
+\end{verbatim}
+\end{center}
+
+The direct regularity check is realized as an {\em
+equal-predecessor\/} check, i.e.\ when an Extension or Reduction step
+is tried the path is searched for equal literals. Note that this is
+only a restricted regularity check since {\em later\/} instantiations
+to equal literals are not detected. 
+
+When we look at the result SETHEO produces, a considerable 
+reduction in the amount of search necessary to find the proof
+can be seen.
+Table~\ref{tab:tut2:results.regularity}, lines 1 and 2
+shows typical figures, compared
+to the basic calculus.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -eqpred} & 12.40 & 117645 & 113085 &
+	30 & 110 & 814 & 7492 & 109190 \\
+\hline
+{\tt -reg} & 4.37 & 35557 & 45162 &
+	30 & 108 & 703 & 5037 & 29670 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic Model Elimination (line 1), 
+and implementations of regularity. $n_i$ is the total number of inferences,
+$n_f$ the total number of fails, and $n^k_i$ the number of inferences
+on search level $k$ (a ``--'' indicates that a proof has been found on a
+previous level).}
+\label{tab:tut2:results.regularity}
+\end{table}
+
+
+\noindent{\bf Regularity Constraints.} 
+A more elegant and powerful method, which provides a full
+regularity check, is realized by syntactical
+inequality constraints. These constraints of the form
+$ [ X \not\in \{t_1,\ldots,t_n\}] $  are attached to variables (here $X$)
+and checked permanently. As soon, as $X$ gets bound to a term,
+its constraints are evaluated. If a violation occurs (i.e.,
+$X$ gets instantiated to one of the $t_i$), backtracking
+occurs within the \SAM\ Abstract Machine.
+Looking at our above example of Figure~\ref{fig:tut2:reg-tab}
+the regularity-checker would
+generate the constraint $[ X,Y ] \not = [ b,a ]$. This constraint
+would fire immediatedly, if the symmetry clause was tried for the
+second time, causing the \SAM\ to fail and backtrack.
+
+The results for running SETHEO with regularity constraints, which
+is performed by the commands
+\begin{center}
+\begin{verbatim}
+inwasm -reg MSC006-1
+sam -dr -reg MSC006-1
+\end{verbatim}
+\end{center}
+are shown in Table~\ref{tab:tut2:results.regularity}.
+Although the figures for this example are quite similar for these
+two methods of enforcing regularity, it is advisable to use regularity
+constraints,
+because it is (a) more powerful, but costs a little
+more overhead, and (b) neatly fits into other Calculus Refinements
+described below. As a general hint, it is {\em always\/} advisable to
+activate the enforcement of regular tableaux. Note, that the
+default parameters for {\bf setheo} incorporates this option.
+
+\subsection{Tautology and Subsumption Constraints}
+
+A Model Elimination Tableau can be further restricted, namely that
+no instance of a clause in the tableau is a {\em tautology\/}, and
+that no instance of a clause is subsumed by another clause.
+Again, when these restrictions are enforced, no proofs are lost.
+In SETHEO, these conditions are checked permanently using
+the constraint mechanism. Constraints for checking for tautology and
+sumbsumption are generated during the run of the {\bf inwasm} compiler,
+if it is invoked with the {\bf -cons} or {\bf -taut -subs} options.
+Looking at our example, we can easily detect instantiations of clauses
+which will result in tautological clauses or clauses which are subsumed
+by others. Let's have a look at clause (4) in 
+Figure~\ref{tab:tut2:pellaar.lop} which expresses the symmetry of $p$.
+If we instantiate $X$ to the same value as $Y$ (e.g., by calling this
+clause with a subgoal $\neg p(a,a)$), we obtain the following
+instatiation of that clause in the tableau
+{\tt p(X,X) <- p(X,X)}. Obviously, this clause is tautologial and
+its application does not lead us anywhere. Therefore, we can {\em forbid\/}
+such an instantiation by adding the constraint {\tt [X] =/= [Y]}
+to the clause.
+
+In the case of the transitivity clauses (e.g., clause (1)), 
+we obtain a similar sitation:
+If two of the variables in that clause $X,Y,Z$ get instantiated to the
+same value, the resulting clause is tautological, namely if
+$X = Y$ or $Y = Z$. This can be forbidden, using two constraints.
+
+Additionally, there exist instantiations, where this clause is subsumed
+by clause (5) {\verb+<- p(a_1,a_2)+}, namely $X$ is instantiated
+to $c\_1$ and $Y$ to $c\_2$, or $Y$ to $c\_1$ and $Z$ to $c\_2$.
+In both cases, the resulting instance of the clause is subsumed by
+clause (5).
+Therefore, the following constraints are automatically added to
+clause (1):
+
+\begin{center}
+\begin{verbatim}
+p(X,Z) <-  p(X,Y), p(Y,Z)
+    : [Y] =/= [Z]          /* tau      */, 
+      [Y] =/= [X]          /* tau      */, 
+      [X,Y] =/= [a_1,a_2]  /* sub by 5 */, 
+      [Y,Z] =/= [a_1,a_2]  /* sub by 5 */.
+\end{verbatim}
+\end{center}
+
+A list of all generated constraints can be obtained, when the {\bf inwasm}
+is called with the option {\tt -lop}. In that case, a file 
+{\tt {\em file}\_pp.lop} is generated which contains all contrapositives
+of all clauses, the generated constraints as well as other information.
+
+A variety of other refinements, working with constraints have been
+developed and integrated into SETHEO (e.g., overlapping), 
+but these will not be discussed
+here. For details see Chapter~\ref{chap:manpages} and the Glossary.
+Comparative run-times with our example is shown in 
+Table~\ref{tab:tut2:results.constr}\footnote{
+	For activating these constraints within the \SAM, the command
+	{\bf sam} must be called with the option {\tt -st}}.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -taut} & 2.03 & 16411 & 21166 &
+	30 & 105 & 396 & 1946 & 13925 \\
+\hline
+{\tt -subs} & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -subs -taut -reg} & 2.32 & 16325 & 21052 &
+	30 & 101 & 380 & 1880 & 13925 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME and several comile-time
+refinements. {\tt -cons} is the abbreviation for
+	{\tt -reg -taut -subs -anl}.}
+\label{tab:tut2:results.constr}
+\end{table}
+
+\subsection{Deletion of Links}
+
+The search space for finding a Model Elimination proof is spanned
+by the possible {\em connections\/} between literals of the clauses. The more
+connections, the larger the search-space (which increases at least
+exponential with their number). Therefore, any method which can
+remove connections without sacrificing completeness of the search procedure
+can lead to a considerable decrease in run-time needed to find a proof.
+
+The method built into SETHEO tries to remove connections which
+are of no use. This option can be activated by calling {\bf inwasm}
+with {\tt -linksubs} or {\tt -rlinksubs}\footnote{
+	Note that this option has to be set for the {\bf inwasm} only.}.
+In this tutorial, wo won't describe in detail, how this preprocessing
+step works. Rather, we explain what happens 
+with selected clauses of our example.
+Let us consider clause (3) (Symmetry of $q$). The second literal
+(the tail literal) has several connections: some going to positive
+$q$ literals of other clauses, and one to the head-literal
+of our clause (3). The latter connection, we call it a 
+``back-connection'',
+is of interest. If clause (3) has been called from a subgoal
+$\neg p(a,b)$, then our tail literal gets $\neg p(b,a)$. If we now follow
+the back-connection, we end up with a new subgoal $\neg p(a,b)$ which
+is exactly our original one. In this case, following the back-connection
+does not make any sense\footnote{
+	In this case, our situation can be detected by the
+	regularity-contraints as well, but in general, these
+	two methods are independent from each other.
+	}.
+Thus this connection can be removed without
+harming completeness.
+
+Within the rules of transitivity (clauses (1) and (2)), one
+back-connection in each clause can be removed as well. 
+Transitivity clauses are in particular harmful, because they have two
+subgoals (the longer a clause, the more search space it induces), and
+these subgoals always introduce new variables (in our case variable $Y$).
+
+Results of experiments with deletion of links are shown in
+Table~\ref{tab:tut2:results.linksubs}\footnote{
+	The option {\tt -linksubs} differs from 
+	{\tt -rlinksubs} in such a way that
+	{\tt -rlinksubs} ignores connections into single-literal clauses 
+	(facts), thus reducing the required run-time to find 
+	removable clauses.}.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -linksubs} & 52.42 & 564876 & 722977 &
+	27 & 81 & 556 & 6437 & 557766 \\
+\hline
+{\tt -linksubs -cons} & 0.87 & 4634 & 4809 &
+	27 & 72 & 213 & 868 & 3445 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME, removal of connections, and removal of connections
+combined with constraints}
+\label{tab:tut2:results.linksubs}
+\end{table}
+
+
+\section{Dynamic Constraints: Antilemmata}
+
+The search mechanism of basic Model Elimination is based on enumerating all
+possible solutions for the involved subgoals. Since in general
+variables are shared, solutions found for one subgoal 
+influence the solvability of the still unsolved subgoals. Thus,
+the solution of an early subgoal may cause a fail in a later subgoal. 
+In that case, a new solution must be computed for the first subgoal.
+
+If, however, this solution is the same as the previous one,
+nothing could be accomplished, because again it won't be possible to
+solve the later subgoal.
+Therefore, this situation must be detected and must lead to a fail.
+If the recomputation of a solution
+appears very often, e.g.\ thousands of times, 
+a considerable amount of redundancy in the search is visible. 
+See Figure~\ref{fig:anl1} for a simple example. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{STARTED/anl1.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%The search mechanism of basic ME is based on enumerating all
+%possible solutions for the involved subgoals. Since in general
+%variables are shared, found solutions have influence on the solvability
+%of the still unsolved subgoals. So the solution of an early subgoal
+%may cause a fail in a later subgoal. 
+%
+%If after backtracking the same solution is computed again, this must
+%of course again lead to a fail. If the recomputation of a solution
+%appears very often, e.g.\ 100 times, this leads to a considerable
+%amount of redundance. See Figure~\ref{fig:anl1} for a simple example. 
+%\input{STARTED/anl1.tex}
+%
+%The above refinements can not prevent the prover from computing the
+%same solution for several times. So {\em Antilemmata\/} had to be
+%invoked which avoid the repetition of solutions: 
+%During backtracking all backtracked instantiations are converted into
+%Antilemmata. These forbid to compute the same instantiation again.
+%The repetition-check is performed every time when a further
+%Extension or Reduction step is tried (see Figure~\ref{fig:anl2}). 
+%\input{STARTED/anl2.tex}
+
+The refinements of the Model Elimination Calculus described in the
+previous sections cannot prevent the prover from computing the
+same solution over and over again. Thus, the concept of
+{\em Antilemmata\/} had been developed and implemented to
+avoid the repetition of solutions: 
+During backtracking all instantiations of variables which are undone
+are converted into
+Antilemmata. These forbid to compute the same instantiation again.
+The repetition-check is performed every time when a further
+Extension or Reduction step is tried (see Figure~\ref{fig:anl2}). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{STARTED/anl2.tex}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Antilemmata can be invoked with the commands
+\begin{center}
+\begin{verbatim}
+inwasm MSC006-1
+sam -dr -anl MSC006-1
+\end{verbatim}
+\end{center}
+The performance gain by Antilemmata is shown in
+Table~\ref{tab:tut2:results.anl}. 
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -anl} & 15.12 & 117727 & 195984 &
+	30 & 127 & 1625 & 15812 & 100124 \\
+\hline
+{\tt -cons} & 1.17 & 5350 & 6389 &
+	30 & 100 & 359 & 1321 & 3531 \\
+\hline
+{\tt -cons -linksubs} & 1.17 & 3879 & 3996 &
+	27 & 72 & 213 & 804 & 2754 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME, and for ME with Antilemmata}
+\label{tab:tut2:results.anl}
+\end{table}
+
+
+
+\section{Additional Inference Rules: Folding Up and Folding Down}
+
+A major source of redundancy in the Model Elimination Calculus is
+the necessity to solve the same subgoals over and over again.
+Not only during the search, the same proofs for subgoals occur
+repeatedly, but also in the final tableau, the same subgoal can show
+up more than once. 
+When performing a proof manually, usually, the human defines a {\em lemma\/},
+proofs it and then use it for each occurrence of the subgoal.
+
+A similar approach can be made for the Model Elimination Calculus as well
+(``Lemmaizing'', cf.\ \cite{METEOR}). As soon as a subgoal gets solved,
+the solution is stored in a so-called lemma store from where it can be used
+when the same or similar subgoals have to be solved later on.
+
+This approach\footnote{
+	The basic functionality for generating and using lemmata has
+	been built into SETHEO by means of built-in predicates. 
+	These are described in Chapter~\ref{chap:logprg}, but they
+	have to be added manually to the input formula.},
+however, carries several severe problems: 
+during the search a huge amount of lemmas are generated and must be stored
+in such a way that they can be retrieved easily. An unrestricted use of
+all these lemmas usually lead to an explosion of the search space.
+Therefore, effective methods for selecting ``good'' lemmas would be
+necessary.
+
+In order to avoid these problems, we have implemented a restricted
+version of lemmas by the means of additional inference rules.
+In contrast to ``real lemmas'' our restriction means that
+\begin{itemize}
+\item
+	no lemma survives backtracking over subgoal which caused its
+	generation,
+\item
+	variables within a lemma can be bound once only.
+\end{itemize}
+Nevertheless our restricted version is correct and sound and requires
+only a minimal overhead within the \SAM\  (actually, only a few pointers
+need to be adjusted).
+
+Figure~\ref{fig:tut2:foldup} shows with the help of a small example,
+how this mechanism for ``folding up'' works: let us assume, subgoal
+$\neg p(a,b)$ just has been solved (The triangle below that subgoal
+indicates a closed tableau), $p(a,b)$ now can be used as a lemma
+which could be used, if similar subgoals (in our example $\neg p(X,b)$)
+have to be solved later on. 
+Instead of copying $p(a,b)$ into an extra piece of memory, we just
+add $p(a,b)$ as a new node to the branch from the root of the
+tableau to the current nodes (right hand side of the Figure). This
+can be accomplished by adjusting a few pointers. Then, when a new subgoal
+(in our case $\neg p(X,b)$) has to be solved, the branch can be simply
+closed by one ME reduction step (dotted line). 
+
+{\tt
+In the Non-Horn case, 
+
+figure
+
+position of folded up literal
+
+folding down
+}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -cons} & 1.17 & 5350 & 6389 &
+	30 & 100 & 359 & 1321 & 3531 \\
+\hline
+{\tt -foldup -cons} & 1.33 & 7474 & 8797 &
+	30 & 100 & 365 & 1465 & 5505 \\
+\hline
+{\tt -foldupx -cons} & 1.10 & 5324 & 6197 &
+	30 & 100 & 365 & 1318 & 3502 \\
+\hline
+{\tt -folddown -cons} & 1.60 & 8402 & 9837 &
+	38 & 126 & 446 & 1739 & 6042 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME, ME with refinements, and refinements
+combined with the folding-down and folding-up inference rule. The proof with
+folding up contains 1 folding step, whereas in the experiment with folding down,the additional inference rule could not be used at all.}
+\label{tab:tut2:results.fold}
+\end{table}
+
+\section{Reordering}
+
+The basic ME Calculus is based on enumerating solutions for subgoals
+until a consistent solution for all literals of the query is found. In
+general this leads to a huge search space. To reduce the search space
+short clauses should be evaluated first\footnote{This is a good
+	heuristic since a short clause increases the number of open
+	subgoals less than a long clause. Nevertheless the subproofs
+	caused by the chosen short clause might give rise to a larger
+	search space than the subproofs that would be caused by a
+	rejected long clause.} 
+and branches which can not be closed should not be evaluated at all.
+ 
+In order to detect as early as possible if a branch can not be closed
+the {\em first-fail principle\/} has been investigated, i.e.\ the
+alternative which will probably lead to a fail is tried first and the
+subgoal which is most difficult to prove should be examined first.
+
+
+\subsection{Static Clause and Subgoal Reordering}
+
+During the preprocessing phase a {\em weak unification graph\/} is
+computed, i.e.\ for each subgoal that clauses are determined who's
+heads unify with the subgoal. The unification graph is called {\em
+weak\/} because during search for a proof subgoals become
+instantiated and then some of these unifications might not be
+performable any longer.
+
+While generating the weak unification graph a {\em Static Clause
+Reordering\/} is performed, i.e.\ the order of clauses for an
+Extension step is determined by several criterions, including 
+\begin{itemize}
+\item the length of the clause (short clauses are preferred),
+\item the degree of instantiation (ground clauses are preferred
+	according to the first-fail principle),
+\item the complexity of contained terms (clauses with complex
+      terms are preferred according to the first-fail principle).  
+\end{itemize}
+Because Reduction steps do not increase the number of open subgoals,
+but even close the current branch, they are always tried before the
+Extension steps\footnote{This is an arbitrary decision: Since also
+Extension steps with facts do not increase the number of open subgoals
+and close the current branch, Reduction steps could also be tried
+after Extension steps with facts.}
+
+The Static Clause Reordering is performed by default. To suppress the
+Static Clause Reordering, call
+\begin{center}
+\begin{verbatim}
+inwasm -noclreord MSCXXXX
+\end{verbatim}
+\end{center}
+
+Also a {\em Static Subgoal Reordering\/} is performed during the
+preprocessing phase. Here the order of subgoals is computed with
+respect to  
+\begin{itemize}
+\item the degree of instantiation (ground subgoals are preferred
+	according to the first-fail principle),
+\item the complexity of contained terms (subgoals with complex
+	terms are preferred according to the first-fail principle).  
+\end{itemize}
+
+During the Static Subgoal Reordering declarative and procedurale
+clauses are distinguished. By default, the subgoals of declarative
+clauses are reordered and the subgoals of procedurale clauses are not
+reordered. To enforce the Static Subgoal Reordering of procedurale
+clauses, call
+\begin{center}
+\begin{verbatim}
+inwasm -sgreord MSCXXXX
+\end{verbatim}
+\end{center}
+To suppress the Static Subgoal Reordering of procedurale clauses, call
+\begin{center}
+\begin{verbatim}
+inwasm -nosgreord MSCXXXX
+\end{verbatim}
+\end{center}
+
+Table~\ref{tab:tut2:results.static-reord} shows the results for basic
+ME, ME with Static Clause Reordering, ME with Static Subgoal
+Reordering and ME with Static Clause and Subgoal Reordering.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r||r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -nosgreord -noclreord} & $0.70^\dagger$ & 5848 & 8128 &
+	30 & 99 & 409 & 3467 & 1804 \\
+\hline
+-"- {\tt -cons} & $0.80^\ddagger$ & 3225 & 4335 &
+	30 & 94 & 379 & 2070 & 643 \\
+\hline
+{\tt -nosgreord -cons} & $2.17$ & 12857 & 16513 &
+	30 & 94 & 379 & 2070 & 10275 \\
+\hline
+{\tt -noclreord -cons} & $0.73^{\dagger\dagger}$ & 2961 & 3627 &
+	30 & 100 & 359 & 1321 & 1142 \\
+\hline
+Cl.\ Reord.\ & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+Sg.\ Reord.\ & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+Sg.\ and Cl.\ Reord.\ & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME, ME with Static Clause Reordering,
+         ME with Static Subgoal Reordering and ME with Static Clause
+         and Subgoal Reordering.
+	Proof $^\dagger$ is different from the others and 
+	contains 46 inferences ($^\ddagger$ with 34 inferences,
+	$^{\dagger\dagger}$ with 27 inferences)
+	in contrast to the ``standard proof'' with 21 inferences.} 
+\label{tab:tut2:results.static-reord}
+\end{table}
+
+
+\subsection{Dynamic Subgoal Reordering}
+
+Since during search subgoals get instantiated the initial order
+might not be optimal any longer. So a {\em Dynamic Subgoal
+Reordering\/} has been investigated. The Dynamic Subgoal
+Reordering is realized by means of a {\em Subgoal Selection
+Funktion\/} which computes the best subgoal to choose before each call
+of a new subgoal.
+
+Again the criterions are 
+\begin{itemize}
+\item the degree of instantiation (ground subgoals are preferred
+	according to the first-fail principle),
+\item the complexity of contained terms (subgoals with complex
+      terms are preferred according to the first-fail principle).  
+\end{itemize}
+These criterions are combined to different selection modi rsp.\
+different modi of Dynamic Subgoal Reordering. See
+Section~\ref{sec:sam} for details. 
+
+The default modus of Dynamic Subgoal Reordering can be invoked by
+\begin{center}
+\begin{verbatim}
+sam -dynsgreord MSCXXXX
+\end{verbatim}
+\end{center}
+
+Table~\ref{tab:tut2:results.dynsgreord} shows the results for basic
+ME and for ME with Dynamic Subgoal Reordering.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -cons} & 1.17 & 5350 & 6389 &
+	30 & 100 & 359 & 1321 & 3531 \\
+\hline
+{\tt -dynsgreord -cons} & 1.38 & 6479 & 8050 &
+	30 & 100 & 362 & 1450 & 4528 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME and ME with Dynamic Subgoal Reordering} 
+\label{tab:tut2:results.dynsgreord}
+\end{table}
+
+
+\subsection{Subgoal Reordering during Backtracking}
+
+An even more refined version of Subgoal Reordering can be performed
+during backtracking. The idea of {\em Subgoal Reordering during
+Backtracking\/} is to check after each fail which subgoal is the most
+suitable to process and eventually switch from a once chosen subgoal
+to another one.
+
+The most important selection criterion is 
+\begin{itemize}
+\item the length\footnote{Reduction steps are considered as of length
+		zero.} 
+	of the shortest alternative (subgoals with short alternatives
+	are preferred) 
+\end{itemize}
+In addition,
+\begin{itemize}
+\item the degree of instantiation,
+\item the complexity of contained terms,
+\item the predicate symbol,
+\item the still available tableau-depth (see
+	also Section~\ref{sec:tut2:bounds})
+\end{itemize}
+can influence the choice. See Section~\ref{sec:sam} for the different
+possibilities to combine the selection criterions.
+
+This approach conflicts with the first-fail principle, because the
+exhaustion of all the alternatives of a chosen subgoals is given
+up. But the approach provides some important advantages, as we will
+see. 
+
+Firstly, short proofs are priorized, i.e.\ if there is a short proof
+it will be found earlier by using Subgoal Reordering during
+Backtracking. Consider for example a long clause with, e.g., 30
+subgoals\footnote{This is not a pathological example since such long
+	clauses are the general case in equality handling by
+STE-modification \cite{}.}. 
+Here, it is very profitable to find a short proof for each subgoal.
+
+Secondly, this method is a step towards breadth-first search. This
+provides the possibility of computing some {\em inference look-ahead
+value\/} which helps to prune the search space in case of additional
+bounds (read Section~\ref{sec:tut2:bounds} about bounds). The
+inference look-ahead value is computed by means of the shortest
+alternative for each subgoal:
+\begin{displaymath}
+\mbox{inference look-ahead value} = \sum_{\mbox{open subgoals}} \mbox{length of shortest alternative}
+\end{displaymath}
+Of course the inference look-ahead value can also be computed in
+combination with basic ME or Static/Dynamic Subgoal Reordering. But in
+this case the shortest alternative is of length zero for
+most\footnote{exactly: for all subgoals that have a Reduction step or
+	an Extension step with a fact as shortest alternative} 
+subgoals and consequently the inference look-ahead value will not
+provide as much information as in combination with Subgoal Reordering
+during Backtracking. 
+
+To use SETHEO with Subgoal Reordering during Backtracking, call for
+example 
+\begin{center}
+\begin{verbatim}
+sam -singledelay MSCXXXX
+\end{verbatim}
+\end{center}
+or 
+\begin{center}
+\begin{verbatim}
+sam -multidelay MSCXXXX
+\end{verbatim}
+\end{center}
+See Section~\ref{sec:sam} for details on the different options
+concerning Subgoal Reordering during Backtracking.
+
+Table~\ref{tab:tut2:results.delay} shows the results for basic
+ME and for ME with Subgoal Reordering during Backtracking.
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|}
+\hline
+Method & $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$n_i^3$ & $n_i^4$ & $n_i^5$ & $n_i^6$ & $n_i^7$ \\
+\hline\hline
+basic & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -singledelay} & 2.34 & 160606 & 25252 &
+	25 & 145 & 2525 & 26262 & 282828 \\
+\hline
+{\tt -multidelay -cons} & 2.73 & 13158 & 11364 &
+	35 & 138 & 634 & 3372 & 8970 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for Basic ME and ME with Subgoal Reordering
+	during Backtracking}  
+\label{tab:tut2:results.delay}
+\end{table}
+
+
+\section{Bounds}
+\label{sec:tut2:bounds}
+
+Until now, we only have considered the depth-bound (A-literal depth)
+and iterative deepening over that bound as a means to obtain completeness.
+SETHEO, however, features a large variety of bounds.
+In general, the bounds in SETHEO follow the rules:
+\begin{itemize}
+\item
+Each bound can be used separatedly or combined with other bounds.
+\item
+Iterative deepening is performed with one bound at each time only.
+\item
+Several bounds are not complete when used alone (e.g., term complexity,
+or maximal number of open subgoals).
+\item
+Bounds can be obtained and set using specific LOP built-in predicates.
+These predicates are described in Chapter~\ref{chap:logprg}.
+\end{itemize}
+
+For those bounds which allow for iterative deepening, a fixed start-value
+is used. The increment can be set using the command-line options.
+The following table~\ref{tab:tut2:bounds:list} shows a short
+defintion of all bounds available in the current version and their main
+features.
+
+\begin{table}[htb]
+\begin{center}
+\small
+\begin{tabular}{|l|l|c|c|l|c|}
+\hline
+Name & option & complete? & iterate? & iterate with & type \\
+\hline\hline
+depth & {\tt -d} & Y & Y & {\tt -dr} & L \\
+inference & {\tt -i} & Y & Y & {\tt -ir} & G \\
+local inference & {\tt -li} & Y & Y & {\tt -lir} & L \\
+weighted depth & {\tt -wd} & Y & Y & {\tt -wdr} & L \\
+\hline
+term complexity & {\tt -tc \#} & N & N & - & - \\
+depth dependent term complexity & {\tt -tcd[12]} & N & N & - & - \\
+free variables & {\tt -fvars \#} & N & N & - & - \\
+open subgoals & {\tt -sgs \#} & N & N & - & - \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Search Bounds for SETHEO}
+\label{tab:tut2:bounds:list}
+\end{table}
+
+Most commonly used are the depth bound, the inference bound, and the
+weighted depth bound which has been designed to combine the advantages
+of the depth and inference bound. The choice of a bound dramatically
+influences the beaviour of SETHEO, as is depicted in
+Table~\ref{tab:tut2:bounds.results}. However, there does not seem
+to be a ``universally good'' iteration bound for all possible problems.
+
+\begin{table}[htb]
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|r|r|r||r|r|r|r|r|r|r|}
+\hline
+& $t_{\SAM}$ & $n_i$ & $n_f$ & 
+	$b_i:n_i$ &
+	$b_i:n_i$ &
+	$b_i:n_i$ &
+	$b_i:n_i$ &
+	$b_i:n_i$ &
+	$b_i:n_i$ \\
+\hline\hline
+{\tt -dr} & 1.17 & 5350 & 6389 &
+	3:30 & 4:100 & 5:359 & 6:1321 & 7:3531 & --\\
+\hline
+{\tt -ir} & $68.08^\dagger$ & 296043 & 365191 &
+	5:69 & 8:629 & 11:5369 & 14:29458 & 17:139963 & 20:120555  \\
+\hline
+{\tt -locir} & 1.20 & 5560 & 6570 &
+	5:71 & 6:182 & 7:342 & 8:789 &
+	9:1733 & 10:2400 \\
+\hline
+{\tt -wdr} & 4.52 & 18093 & 22926 &
+	3:30 & 4:94 & 5:316 & 6:949 &
+	7:3735 & 8:12960 \\
+\hline\hline
+\end{tabular}
+\end{center}
+\caption{Search Space for different completeness bounds. $b_i:n_i$ gives the 
+	total number of inferences (unifications) performed with bound $b_i$.
+	$\dagger$ is the shortest proof with 20 inferences}
+\label{tab:tut2:bounds.results}
+\end{table}
+
+Therefore, an appropriate completeness bound must be selected upon information
+about similar proof tasks within the same domain, and possible additional
+information about the proof tasks.
+
+Another approach to deal with this problem is to explore several different
+completeness bounds in parallel in a competitive way (as e.g., as SiCoTHEO does):
+on each processor, SETHEO tries to solve the problem, using a different
+bound (or a combination of bounds). The processor which finds a solution
+first, wins and stops the other processors.  
+For details on this approach see \cite{Sch96ppai}.

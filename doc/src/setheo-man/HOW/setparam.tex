@@ -1,0 +1,108 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Set Parameters}
+
+In this section some hints are given how to set SETHEO's parameters in
+case of special problems. But these are just rules of thumb, sometimes
+you might find better parameter settings by yourself. For a detailed
+parameter description see Section~\ref{sec:basic-progr}.
+
+\begin{description}
+\item[Logic Programming:]
+     {In the compilation phase the {\it subgoal reordering\/},
+      the {\it clause reordering\/} and the generation of {\it
+      overlap constraints\/} should be switched off. 
+      %During the run of
+      %the prover the antilemma constraints 
+      %should be restricted to {\it weak antilemmata\/}. This
+      %corresponds more to the view of a logic programmer.\\
+      So call the \inw\ with the {\bf --nosgreord --noclreord}
+      options and make sure not to call {\bf --oconsx} ({\bf
+      --ocons} is possible). 
+      %Call the \sam\ with the {\bf --weakanl
+      %[n]} option (where {\bf n} is an optional  
+      %number) instead of {\bf anl [n]}. If you run the \sam\ with
+      %the option {\bf --cons} (which will cause the \sam\ to use its
+      %whole constaint mechanism) just add the option {\bf --weakanl
+      %[n]}
+      }.
+\item[Small Formulae:]
+     {Small formulae do not cause any problems. Call the \inw\ with
+      the {\bf --cons} option, the \wasm\ with the {\bf -opt}
+      option and the \sam\ with the {\bf --dr --cons} options. These
+      are good standard parameters.} 
+\item[Large Formulae:]
+     {When using large formulae the preprocessing is very time
+      consuming. The 
+      preprocessing can be fastened if {\it overlap constraints\/},
+      {\it subsumption constraints\/} and {\it link subsumption\/} are
+      avoided. If there are only a few rules but many facts, the \inw\
+      can be called with the {\bf --rsubs~[n] --rlinksubs~[m]}
+      options because this options do not consider facts. Otherwise
+      the options {\bf --[r]subs~[n]} and {\bf 
+      --[r]linksubs~[m]} should be avoided. The option {\bf
+      --overlap[x]~[n]} should generally not be used for proving large
+      formulae.} 
+\item[Propositional Logic:]
+     {}
+\item[Long Proofs:]
+     {During long proofs it is important to reduce the search space.
+      There are several bounds to reduce the search space\footnote{See
+      Section~\ref{sec:sam}.}. In general you do not know the size of
+      the proof, so an iterative bound might be best.\\
+      First try the combination of {\it iterative deepening\/} and
+      {\it constraints\/}: Call the \inw\ with the {\bf --cons}
+      option, the \wasm\ with the {\bf --opt} option and the \sam\
+      with the {\bf --dr --cons} options. Iterative deepening
+      is in most cases the best iterative bound, and 
+      constraints additionally reduce the search space.\\
+      If you can estimate the number of inferences, the number of free
+      variables, the termcomplexity or the number of open subgoals you
+      can use this knowledge by setting the corresponding bounds. Note
+      that the free variables bound is not complete in combination
+      with antilemmata.\\ 
+      There are two more iterative bounds: The {\it iterative
+      inferencing\/} and the {\it iterative local
+      inferencing\/}. So you can also call the \SAM\
+      with the {\bf --ir} resp.\ the {\bf --locir} option. Note that
+      only one iterative bound is possible at the same time. For using
+      the {\it iterative inferencing\/} it is very useful to estimate
+      the depth of the proof and call the \SAM\ with {\bf --ir 1 --d n 
+      --cons} where {\it n\/} is the estimated depth.\\
+      During large proofs the \sam\ might stop with an {\it overflow
+      error\/}. In such a case you have to start the \SAM\ again with
+      the overflowed memory area enlarged. Read Section~\ref{sec:sam}
+      for the enlarging options.\\
+      The most frequent overflow error is the {\it constraint
+      stack overflow\/} error. In this case you can either reduce
+      the number of 
+      generated antilemma constraints\footnote{There is no possibility
+      to reduce the other kinds of constraints, but its usually the
+      antilemma constraints that cause a constraint stack
+      overflow.}.
+      The option {\bf -anl [n]} reduces the generated
+      antilemmata to such for which at least {\it n\/} inference steps
+      have been made. The default is {\it n\/}=25, so if you want to
+      reduce the number of generated antilemma constraints set {\it
+      n\/}$>$25. This should decrease the runtime, but will increase
+      the number of inferences.\\
+      In some cases the {\it foldup\/} mechanism leads to good
+      results. This mechanism generates lemmata from closed
+      branches. Call the \inw\ with the {\bf --cons --foldup} options 
+      and the \wasm\ and the \sam\ as above. But note that all methods
+      to reduce the search space will reduce the number of generated
+      lemmata, too. So don't be surprised if the combination of such
+      two powerful methods as foldup and antilemmata doesn't lead to
+      the expected results. In a few cases the combination works even 
+      worse than antilemmata or foldup at its own. When using foldup 
+      it might eventually be better to call the \sam\ with the {\bf
+      --noanl} option, just try.}  
+\end{description}
+
+

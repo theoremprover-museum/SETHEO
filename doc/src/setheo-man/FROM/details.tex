@@ -1,0 +1,331 @@
+%details
+\ssection{Implementations Guide}
+\ssubsection{Layout of the System}
+The SETHEO--system consists of the programs
+{\bf plop},
+{\bf preproc},
+{\bf inwasm},
+{\bf wasm},
+{\bf setheo},
+{\bf xtheo} and
+{\bf xtheo--graphics}.
+Some fonts for the xtheo and libraries for wasm are needed as well.
+\ssubsection{System Requirements}
+To run the entire system including xtheo, you have to have a sun
+with SUN/OS 3.2 or later.
+If you do not need any graphical output, any UNIX system will do well.
+%Also some other hardware systems may work, e.g.\ atari ST, IBM/PC.
+Successful installations have been carried through on sun2, sun3, sun4,
+sun386i, IBM PC/RT, Targon 35, AT\&T/Olivetti 3b2, 386--PC under UNIX,
+Transputer (T800 and T414 with 3L--parallel C and IBM/PC), and
+$\mu$VAX, VAX/750.
+%Minor problems may occur for atari and PC under MS--DOS.
+
+In any case you need:
+\begin{itemize}
+\item
+Setheo sources (of course)
+\item
+C compiler with a 32-bit data type (preferable int) and a
+UNIX--lookalike run--time library.
+\item
+The hash(3) functions. If they are not available, a home--made
+hash function hsearch for inwasm and wasm must be written.
+\item
+The sun-view libraries and include files for xtheo and xtheo--graphics ONLY.
+\item
+Memory requirements: 0.5 MB of RAM should be sufficient for most examples.
+\end{itemize}
+
+\ssubsection{Installing SETHEO}
+\ssubsubsection{Loading the sources}
+
+Prior to loading SETHEO we recommend to create a new user (for example 
+`setheo'), the home directory of which will hold the respective files 
+and directories of SETHEO.
+In this home directory SETHEO can be loaded on a UNIX machine using the
+
+\vspace{-2mm}
+\begin{center}
+              tar xvf /dev/rst0
+\end{center}
+\vspace{-2mm}
+command. It loads the source files under the current
+directory.
+They are:
+\\[3mm]
+
+\begin{tabular}{|l|l|}
+\hline
+SETHEO.users.registration.form & users registration form \\
+make.conf      & configuration file for make \\
+README        & README file containing important information \\
+SOURCES/plop  & directory containing formula to LOP translator \\
+SOURCES/preproc & directory containing preprocessing modules \\
+SOURCES/inwasm  & directory containing formula compiler \\
+SOURCES/wasm & directory containing setheo assembler \\
+SOURCES/setheo & directory containing setheo theorem prover \\
+SOURCES/xtheo & directory containing user interface for sun \\
+SOURCES/include & directory containing include files for SETHEO \\
+man     & directory containing manual pages and auxiliary documentation\\
+examples& directory containing examples \\
+bin	& directory for compiled programs \\
+\hline
+\end{tabular}\\[3mm]
+Please ensure for the following installation that the environment variable
+\$SETHEOHOME is set to the directory containing the files and directories above.
+
+
+
+\ssubsubsection{Installation of Manual-Pages}
+
+To install the manual pages of SETHEO you have to copy the files
+in the directory {\tt man} ending with \verb-.1- to your local manpage 
+directory.
+
+Note: You must be superuser to do this. 
+
+\ssubsubsection{Installation of the SETHEO Programs}
+
+In order to install the SETHEO-programs 
+{\bf plop},
+{\bf preproc},
+{\bf inwasm},
+{\bf wasm},
+{\bf setheo},
+{\bf xtheo} and
+{\bf xtheo--graphics} you might type
+
+\begin{center}
+                cd SOURCES\\
+                make \\
+		cd ..
+\end{center} \vspace{-2mm}
+
+This will start the compilation of the several programs and copy the 
+executables to the directory \$SETHEOHOME/bin.
+Please ensure that this directory is included in your path, or else copy the
+contents of this directory to an appropriate directory on your machine.
+
+%\ssubsubsection{Installation of the Preprocessor}
+%
+%To install the SETHEO Preprocessor preproc you have to be in the directory
+%./preproc, so you might type \vspace{-2mm}
+%
+%\begin{center}
+                %cd SOURCES/preproc\\
+                %make install\\
+		%cd ../..
+%\end{center} \vspace{-2mm}
+%
+%
+%\ssubsubsection{Installation of the Translator plop}
+%
+%To install the SETHEO Formula Translator {\it plop\/} you have to be in the directory
+%./setheo/plop, so you might type \vspace{-2mm}
+%
+%\begin{center}
+%                cd SOURCES/plop\\
+%                make install\\
+%		cd ../..
+%\end{center} \vspace{-2mm}
+%
+%
+%\ssubsubsection{Installation of the SETHEO-Compiler}
+%
+%To install the SETHEO Compiler inwasm: \vspace{-2mm}
+% 
+%\begin{center}
+%                cd SOURCES/inwasm\\
+%                make install\\
+%		cd ../..
+%\end{center} \vspace{-2mm}
+%
+%
+%This will create the program {\tt inwasm} in the directory bin.
+%
+%Note: If You are running strange Unix-systems (e.g. Targon35),
+%you have to type
+%  
+% \vspace{-2mm}
+%\begin{center}
+%                att make install
+%\end{center}
+% \vspace{-2mm}
+%      
+%      in order to get the hsearch(3C) routines. For very old bsd
+%      systems which do not have the hsearch(3C), see 'Internals'
+%
+%\ssubsubsection{Installation of the SETHEO Assembler}
+%
+%To install the SETHEO Assembler wasm you might type
+%\vspace{-2mm}
+%\begin{center}
+%                cd SOURCES/wasm\\
+%                make install\\
+%		cd ../..
+%\end{center}\vspace{-2mm}
+%
+%
+%Note:
+% wasm uses hsearch(3C) as well as inwasm, so the note above
+%      holds as well.
+%
+%\ssubsubsection{Installation of SETHEO}
+%
+%To install setheo you have to say:\vspace{-2mm}
+%\begin{center}
+%                cd SOURCES/setheo
+%                make install\\
+%		cd ../..
+%\end{center}
+% \vspace{-2mm}
+%
+%%\ssubsubsection{Installation of PARTHEO}
+%%PARTHEO consists of 3 parts: the worker, the master and the configuration
+%%files. The worker itsself consists of a modified SAM (in the directory
+%%./setheo/mainpart/gsrc) and a parallel communications part in ./setheo/mainpart/partheo/worker.
+%%To make the worker, go into the SETHEO directory and edit the makefile:
+%%change the {\tt MACHINE =} to:
+%%\begin{center}
+%%MACHINE = TRANSPUTER
+%%\end{center}
+%%
+%%After that make the setheo library with (from the MS-DOS window):
+%%\vspace{-2mm}
+%%\begin{center}
+%%make partheo.lib
+%%\end{center}
+%%
+%%After that change to the directory worker with (MS-DOS):
+%%\vspace{-2mm}
+%%\begin{center}
+%%cd ..$\backslash$partheo$\backslash$worker \\
+%%make worker
+%%\end{center}
+%%
+%%To make the master say: \vspace{-2mm}
+%%\begin{center}
+%cd ..$\backslash$master \\
+%make master
+%\end{center}
+%\vspace{-2mm}
+%and configure all parts with (MS-DOS):
+%\vspace{-2mm}
+%\begin{center}
+%cd ..$\backslash$conf \\
+%pt
+%\end{center}
+%\vspace{-2mm}
+%This will configure PARTHEO for a 16-Transputer Torus topology.
+%Partheo itself can be started from the MS-DOS window saying:
+%\vspace{-2mm}
+%\begin{center}
+%partheo
+%\end{center}
+
+%\ssubsubsection{Installation of the User Interface Xtheo}
+%
+%To install the SETHEO User Interface {\it Xtheo\/} 
+%you might type \vspace{-2mm}
+%
+%\begin{center}
+%                cd SOURCES/xtheo\\
+%		make install\\
+%		cd ../..
+%\end{center} \vspace{-2mm}
+%
+%Note: You have to be superuser to install the fonts at the proper
+%places. \vspace{-2mm}
+%
+
+\ssubsubsection{Testing the theorem prover}
+
+After installation you can test the operation of the theorem-prover:
+\begin{description}
+\item[manuals]  Say: \vspace{-2mm}
+
+\begin{center}
+                man setheo \\
+                man inwasm \\
+                man wasm \\
+                man preproc \\
+                man plop \\
+\end{center} \vspace{-2mm}
+
+  A UNIX-lookalike manual page should appear on the screen.
+
+\item[theorem prover] Go to the directory  examples
+  and say: \vspace{-2mm}
+           
+\begin{center}
+                proofall
+\end{center} \vspace{-2mm}
+
+  All examples contained in this directory are run. No error message
+  should occur and the LOG file should be empty.
+  To test a special example, say chang6.lop just say
+ \vspace{-2mm}
+\begin{center}
+                chang6.pr
+\end{center}
+ \vspace{-2mm}
+  This invokes the inwasm, the wasm and setheo with a correct
+  parameter setting.
+\end{description}
+
+Note: You might have to 'rehash' before if you are using the csh(1).
+
+\ssubsubsection{Customisation SETHEO to special machines}
+
+If you have a machine not listed above you have to determine some
+parameters before installing setheo. To do this say:
+Go into the directory \vspace{-2mm}
+\begin{center}
+                SOURCES/setheo
+\end{center} \vspace{-2mm}
+
+Type: \vspace{-2mm}
+\begin{center}
+                cc byte.c \\
+                ./a.out
+\end{center} \vspace{-2mm}
+
+An output like the following may be produced: \vspace{-2mm}
+
+\begin{verbatim}
+      Size of int in bytes: 4 pointer in hex: 4108
+      Mask to be used for setheo: 0 Hex
+\end{verbatim}
+
+If the size of an int is not 4 bytes you will get in trouble.
+The displayed mask must be entered as
+ {\tt PTR\_MASK}
+in the file {\it tags.h}.
+
+If the size of int is 2 bytes, make the follwoing entry: \vspace{-2mm}
+\begin{center}
+               typedef long WORD
+\end{center} \vspace{-2mm}
+
+In the current version there is no guarantee that this will run.
+
+After changing the file tags.h, proceed with an ordinary installation.
+
+
+\ssubsubsection{Cleaning up}
+
+If you also want to remove the standard examples
+you may as well remove the entire setheo directory.
+
+To clean up the .o files and core--files
+just go to the appropriate directories
+and say: \vspace{-2mm}
+\begin{center}
+                make clean
+\end{center}
+
+
+\begin{center}
+{\bf Have fun !!}
+\end{center}

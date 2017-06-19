@@ -1,0 +1,436 @@
+-------------------------------------
+Assignment and destructive assignment 
+-------------------------------------
+
+\subsection{:=}
+
+{\tt \$V := T}
+
+\$V is the name of a global variable.
+
+T is an arbitrary term which is gets (destructively) assigned
+to the global variable.
+
+
+Destructive term assignment to global variables. 
+%-------------------------------------------
+The term {\tt T} is not copied during the assignment.
+This means that later substitutions of variables present in {\tt T}
+also alter the contents of the global variable.
+Copying of the entire term can be accomplished using 
+{\bf functor/3}.
+%-------------------------------------------
+This statement always succeeds.
+%-------------------------------------------
+\begin{verbatim}
+p <- $G := [p_entered | $G],..
+\end{verbatim}
+
+Here, we enter a symbol to a list which is kept in the global
+variable {\tt \$G}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{is}
+
+{\tt V is NUMEXPR}
+
+V: (logical) variable
+NUMEXPR: term or numerical expression which must evaluate to a number
+	when this statement is encountered.
+
+%-------------------------------------------
+This statement succeeds, if {\tt V} is an unbound variable or
+if {\tt V} is instantiated to a number which is equal to the value
+of the numerical expression {\tt NUMEXPR}.
+Otherwise a fail occurrs.
+If {\tt NUMEXPR} does not evaluate to a number, a non-fatal run-time
+error occurrs.
+%-------------------------------------------
+   Note: In contrast to global variables in some Prolog Systems
+   	 like Sepia or Eclipse, destructive assignments to
+	 global variables in LOP are backtracked if the proof 
+	 search fails at later subgoals.
+%-------------------------------------------
+\begin{verbatim}
+p(X,Y) <- X is Y+1.
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{$<,>,\geq$}
+
+{\tt NUMEXPR relop NUMEXPR}
+
+%----------------------------------
+%Unification and test for identity
+%---------------------------------
+
+\subsection{unify/2}
+
+{\tt unify(T1,T2)}
+
+T1,T2: two terms to be unified.
+
+%-------------------------------------------
+This built-in succeeds, if both terms are unifiable.
+%-------------------------------------------
+As a side-effect, the substiutions of the unification are applied to
+the terms {\tt T1, T2}.
+
+%-------------------------------------------
+If only a check is required, if two terms are unifiable, {\tt isunifiable/2}
+should be used.
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- unify(X,f(g(a,b),c)).
+\end{verbatim}
+
+produces the same result as
+\begin{verbatim}
+p(f(g(a,b),c)<-.
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{eq/2, ==}
+
+{\tt eq(T1,T2)}
+{\tt T1 == T2}
+
+T1,T2: terms to be checked for syntactical equality.
+
+%-------------------------------------------
+This built-in succeeds, if {\tt T1} is syntactical equal to
+{\tt T2}.
+
+%-------------------------------------------
+This predicate checks two terms for syntactical equality.
+Two terms are syntactical equal, if
+\begin{itemize}
+\item
+both are the same symbolic constants (os strings)
+\item
+both are the {\em same\/} variable,
+\item
+the terms are of the form
+$f^1(t_1^1,\ldots,t_n^1)$ and
+$f^2(t_1^2,\ldots,t_n^2)$, and the function symbols $f^1,f^2$ and all
+pairs of subterms $t^1_i,t^2_i$ are syntactical equal.
+\end{itemize}
+
+
+%-------------------------------------------
+\begin{verbatim}
+p(X)<- eq(f(a),X).
+p(X)<- eq(f(Y),X).
+\end{verbatim}
+The first clause succeeds, if $X$ is instantiated to $f(a)$.
+The second clause, however, does {\em never\/} succeed, since
+$Y$ only occurrs only once in the second clause.
+
+\subsection{neq/2, =/=}
+
+This built-in is complementary to {\bf eq/2}. For details see
+Section~\ref{sec:eq/2}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{eqpred/1}
+
+{\tt eqpred(N)}
+
+N: number of literal to check. {\tt N} must be in the range
+	between 1 and the length of the clause.
+
+%-------------------------------------------
+
+Equal predecessor check in the current tableau:
+
+A built-in of this form fails, whenever the 
+            n-th literal in the current clause is preceeded by an 
+            identical one (syntactically equal) in the current tableau. 
+
+This built-in can be used to implement a weak form of
+regularity checks.
+
+%-------------------------------------------
+\begin{verbatim}
+L1:- eqpred(1),     /* eq pred check for the head literal L1.   */
+     L3, eqpred(3), /* eq pred check for the literal ~L3.       */
+     L5, eqpred(5), /* eq pred check for the literal ~L5.       */
+	      :
+	      :
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{isvar/1}
+
+{\tt isvar(T)}
+
+T: term
+
+
+%-------------------------------------------
+This built-in predicate succeeds, if {\tt T} is
+a variable or bound to a variable. 
+%-------------------------------------------
+Global variables are initially bound to ordinary variables.
+Therefore, this test is also suited for global variables.
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- isvar(X),...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{isnonvar/1}
+
+{\tt isnonvar(T)}
+
+T: term
+
+
+%-------------------------------------------
+This built-in predicate succeeds, if {\tt T} is
+{\em not\/} a variable or bound to a variable. 
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- isvar(X),...
+p(X) <- isnonvar(X),...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{isnumber/1}
+
+{\tt isnumber(T)}
+
+T: term
+
+
+%-------------------------------------------
+This built-in predicate succeeds, if {\tt T} is
+bound to a number.
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- isnumber(X),...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{isconst/2}
+
+{\tt isconst(T)}
+
+T: term
+
+
+%-------------------------------------------
+This built-in predicate succeeds, if {\tt T} is
+bound to a symbolic constant or a string.
+%-------------------------------------------
+Natural numbers are no symbolic constants.
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- isconst(X),...
+p(X) <- isvar(X),...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{iscompl/1}
+
+{\tt iscompl(T)}
+
+T: term
+
+
+%-------------------------------------------
+This built-in predicate succeeds, if {\tt T} is
+bound to a complex term $f(t_1,\ldots,t_n)$, or a list.
+%-------------------------------------------
+\begin{verbatim}
+p(X) <- isconst(X),...
+p(X) <- iscompl(X),...
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{size/2}
+
+{\tt size(T,N)}
+
+This predicate calculates the size of the term {\tt T} and
+unifies the result with the second parameter {\tt N}.
+The size of a term is the number of its constants, variables, and
+function symbols.
+%-------------------------------------------
+\begin{verbatim}
+p <- size(f(a,X),2)
+p <- size(f(a,g(Y)),2)  /* will fail */
+\end{verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{tdepth/2}
+
+{\tt tdepth(T,N)}
+
+This predicate calculates the depth of the term {\tt T} and
+unifies the result with the second parameter {\tt N}.
+The depth of a term is maximal length of its paths.
+%-------------------------------------------
+\begin{verbatim}
+p <- tdepth(f(a,X),2)
+p <- size(f(a,g(Y)),3) 
+\end{verbatim}
+
+
+---------------------------------------
+Testing and bounding tableau complexity
+---------------------------------------
+
+
+*) BUILT_IN ::= getdepth^( VARIABLE ) 
+
+   Comment: Instantiates VARIABLE with the maximum tableau depth 
+            (allowed for a final tableau) minus current depth.
+
+*) BUILT_IN ::= getinf^( TERM ) 
+
+   Comment: Instantiates VARIABLE with the current number
+   	    of inferences (i.e. the number of inferences needed
+	    to derive the current tableau).
+
+*) BUILT_IN ::= getmaxinf^( TERM ) 
+
+   Comment: Instantiates VARIABLE with the maximum number 
+   	    of inferences (allowed for a final tableau).
+
+
+*) BUILT_IN ::= setdepth^( NAT )
+	
+   Comment: Setting the still available depth to the value of NAT
+
+*) BUILT_IN ::= setinf^( NAT )
+
+   Comment: Setting the current inference counter to the value of NAT.
+
+*) BUILT_IN ::= setmaxinf^( NAT )
+
+   Comment: Setting the maximum inference counter to the value of NAT.
+
+
+
+----------------------------------------
+Other possibilities for explicit control
+----------------------------------------
+
+
+*) BUILT_IN ::= fail
+
+   Comment: `fail' is an usolvable subgoal. 
+
+*) BUILT_IN ::= stop
+
+   Comment: `stop' is a subgoal letting the proof procedure halt.
+
+*) BUILT_IN ::= precut 
+            |   cut 
+
+   Comment: The Prolog clause
+
+ 	p(X) :- q(X), 
+	        !, 
+		r(X).
+
+             is operationally equivalent to the LOP clause
+
+ 	p(X) :- precut, 
+	        q(X), 
+		cut, 
+		r(X).
+
+   Comment: The Prolog Clause 
+
+ 	p(X) :- not q(X), 
+		r(X).
+
+ 	     is operationally equivalent to the following sequence of
+	     LOP clauses
+
+ 	p(X) :- not_q(X),
+		r(X).
+
+	not_q(X) :- q(X),
+		 !,
+		 fail.
+
+        q(X).
+  
+
+------------------
+Output statements
+------------------
+
+*) To open a file with filename STRING:
+
+	BUILT_IN ::=  tell^( "STRING" )
+
+
+*) To close the file with filename STRING:
+
+	BUILT_IN ::= told
+
+*) To write the value of variables into the file just opened 
+   or onto the screen:
+
+	BUILT_IN ::= write^( VARIABLE )
+
+   Note: The write statement is executed immediately whenever
+   	 it is met during the search. 
+
+   Note: to obtain the full answer substitution the write statement 
+         must be the last subgoal of a QUERY (rather than a GOAL). 
+	 This is because goal clauses are fanned.
+
+	 In order to output disjunctive answer substitutions 
+	 global variables are needed:
+
+Example:
+
+   Given the clause
+
+        p(a) ; p(b) <-.
+
+   the `disjunctive answer' for the query
+
+	<- p(X).
+
+   is `X = a ; X = b'.
+
+
+  A program which computes this answer needs a new `artificial query' 
+  containing a subgoal to enter the original goal. In this way, the 
+  goal is transformed into an axiom. The axiom however, is fanned into
+  contrapositives. The program is given below.
+
+# In order to initialize list $X:
+
+   ?- $X := [], query, write_list($X).
+   
+# In order to collect the answer substitutions in the list $X:
+
+   query <- $X := [X|$X], p(X).
+
+# The disjunctive fact remains unchanged:
+
+   p(a) ; p(b) <-.
+
+# In order to output the elements of $X:
+
+   write_list([]) :- write(".").
+   write_list([H|T]) :- write(H), write(";"), write_list(T).
+   
+
+Note: It would be helpful if you try this program by your own with SETHEO 
+      and then have a closer look onto the proof tree using `xptree'.
+
+
+
+
+
+       BUILT_IN ::= GLOBAL_VARIABLE :is ARITH_EXPR

@@ -1,0 +1,211 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{inwasm}\label{sec:inwasm}
+
+\Inw\ ({\bf in}put for {\bf w}arren {\bf as}se{\bf m}bler) takes
+clauses in \LOP\ 
+notation and compiles them into \SAM\ assembler code.  The
+output  may  then  be  processed  by \wasm. For  the syntax of
+the input language \LOP, see the 
+description in Section~\ref{sec:lop-syntax}. \Inw\ distinguishes
+between  declarative clauses (axioms) and procedural clauses
+(rules). In the Non--Horn case, all declarative clauses are
+fanned into contrapositives. Also code to perform reduction
+steps is added in this case. 
+
+The Synopsis of \inw\ is the following:
+
+\begin{tabular}{lp{14cm}}
+      {\tt inwasm}  &  {\tt [-[no]purity] [-[no]reduct] [-[no]fan] 
+                            [-[no|x]sgreord] [-[no]clreord] [-randreord]
+                            [-all]
+                            [-taut] [-reg] [-eqpred]
+                            [-[r]subs] [-overlap[x] [number]] 
+                            [-cons] [-ocons[x]] 
+                            [-[r]linksubs]
+                            [-foldup[x]] [-folddown[x]] 
+                            [-notree] [-searchtree] [-interactive]
+                            [-verbose [number]]
+                            [-lop]}  \\
+      {\tt file}    &  
+\end{tabular}
+
+The inputfile is the only parameter which has to be given. It must be
+a file with extension {\bf .lop}. The output of \inw\ is either a file
+with extension {\bf \_pp.lop} (see option {\bf --lop}) or with
+extension {\bf .s} (default). {\bf file\_pp.lop} is again an input
+file for \inw\ and {\bf file.s} is an input file for \wasm\ (see
+Section~\ref{sec:wasm}). 
+
+All optional parameters are listed below:
+
+In the \inw\ some default settings are integrated. For example a
+simple reordering  of  input  clauses (short before long) and
+their subgoals (according to the first fail principle) is  set
+by default.  Switching off (or enforcing) the default settings
+can be done with the following options:  
+
+\begin{description}
+      \item[--\lb no\rb purity]
+           {Suppress or enforce {\it purity reduction\/}. Purity
+            reduction means that 
+            clauses are deleted, if they contain at least one subgoal
+            which is not part of another clause. Purity is performed
+            by default.} 
+      \item[--\lb no\rb reduct]
+           {Suppress or enforce code  generation  for {\it
+            reduction\/} steps.  Reduction  steps  guarantee
+            completeness in the non--horn case.} 
+      \item[--\lb no\rb fan]
+           {Suppress or enforce {\it fanning\/} of declarative
+            clauses, if the 
+            formula contains at least one non--horn clause.}
+      \item[--nosgreord]
+           {Suppress   {\it subgoal   reordering\/}    of declarative 
+            clauses.}  
+      \item[--sgreord]
+           {Enforce subgoal reordering of procedural clauses.}
+      \item[--\lb no\rb clreord]
+           {Suppress or enforce {\it clause reordering\/}. Procedural
+            clauses and declarative clauses are not distinguished.} 
+\end{description}
+
+The default settings of \inw\ are {\bf --purity --reduct --fan
+--sgreord  --clreord}. 
+Constraints can be computed in order to avoid redundant
+substitutions. These are the options for enabling
+constraints\footnote{For tautology, subsumption and regularity
+constraints see also Section~\ref{sec:sam}.}: 
+
+\begin{description}
+      \item[--taut]
+           {Instructions to add {\it tautology constraints\/} are added.}
+      \item[--reg]
+           {Instructions for full {\it regularity\/} check via  {\it
+            constraints\/} are inserted.}
+      \item[--eqpred]
+           {Instructions to detect {\it identical--predecessor--fails\/}
+            are added. {\bf --eqpred} implements a restricted form of
+            {\bf --reg}.}
+      \item[--subs]
+           {Instructions to activate {\it unit subsumption constraints\/}
+            are inserted.}
+      \item[--rsubs]
+           {Instructions to activate {\it unit subsumption constraints\/}
+            are inserted, but facts are ignored as subsuming clauses.}
+      \item[--overlap \lb number\rb]
+           {Common initial segments of contrapositives of  declarative
+            clauses  are  detected  and extracted. If possible,
+            {\it overlap  constraints\/}  are  generated. {\it number\/}
+            specifies  the  increasing  complexity [0..10] of these
+            overlaps, the default is {\it number\/}~=~2.}
+      \item[--overlapx \lb number\rb]
+           {Like {\bf --overlap}, but in this case, overlaps are also
+            computed for  the procedural clauses. Again, the default is
+            {\it number\/}~=~2.}  
+      \item[--cons]
+           {Regularity, tautology and unit subsumption constraints are
+            computed and inserted into the code file. Facts are
+            ignored as subsuming clauses. {\bf --cons} is the same as
+            {\bf --reg --taut --rsubs}.}  
+      \item[--ocons \lb number\rb]
+           {Regularity, tautology, unit subsumption and overlap
+            constraints are computed and inserted into the code
+            file. Facts are 
+            ignored as subsuming clauses. Overlaps beetween
+            procedural clauses are not computed. {\it number\/}
+            specifies  the  increasing complexity [0..10] of these
+            overlaps, the default is {\it number\/}~=~2. {\bf --ocons
+            \lb number\rb} is the same as {\bf --reg --taut --rsubs
+            --overlap \lb number\rb}.} 
+      \item[--oconsx \lb number\rb]
+           {Regularity, tautology, unit subsumption and overlap
+            constraints are computed and inserted into the code
+            file. Facts are  ignored as subsuming clauses. Overlaps
+            beetween procedural clauses are computed. {\it number\/}
+            specifies  the  increasing complexity [0..10] of these
+            overlaps, the default is {\it number\/}~=~2. {\bf --oconsx
+            \lb number\rb} is the same as {\bf --reg --taut --rsubs
+            --overlapx \lb number\rb}.} 
+\end{description} 
+
+As an internal representation of the input formula a
+weak--unification connection graph  is generated. This
+connection graph can be further preprocessed to delete
+unnecessary links. The options for link deletion are the
+following: 
+
+\begin{description}
+      \item[--linksubs \lb number\rb]
+           {Tautological and subsumable links are deleted. At  most
+            {\it number\/}~*~1000 links are tested. Select the number from
+            [1..5]. The default is {\it number\/}~=~6.}
+      \item[--rlinksubs \lb number\rb]
+           {Tautological and  subsumable  links  are  deleted,  but
+            links  into  facts are ignored. Again, at most 
+            {\it number\/}~*~1000 links are tested. Select the number from
+            [1..5]. The default is {\it number\/}~=~6.} 
+\end{description} 
+
+ 
+The following are additional inference rules for the \SAM. They
+can be enabled by setting the concerning \inw\ options:
+
+\begin{description}
+      \item[--foldup]
+           {Insert code to factorize subgoals with previous ones.}
+      \item[--foldupx]
+           {Insert code to use previously solved subgoals for pruning
+            purposes in an extended regularity check.}
+      \item[--folddown]
+           {Insert code to factorize subgoals with later ones.}
+      \item[--folddownx]
+           {Insert code to use later subgoals for pruning  purposes
+            in an extended regularity check.} 
+\end{description} 
+
+\begin{remark}
+Folding up and folding down are  not  compatible  with  each
+other.   The  extended regularity checks are not complete in
+combination with antilemmata\footnote{See Section~\ref{sec:sam}.}.
+\end{remark}
+
+Miscellaneous options:
+
+\begin{description}
+      \item[--randreord]
+           {Enables random reordering of or--branches (see also \rc\
+            in Section~\ref{sec:overwiew}).}
+      \item[--all]
+           {With this option all possible proofs within the current
+            bounds  are enumerated. For each proof \SE\ fails and
+            adds the new proof--tree to the {\bf .tree} file. Before
+            using 
+            \xp\  the  file  must  be  splitted. The option is
+            especially useful in combination with  write--statements
+            to display answer substituitions of query variables.}
+      \item[--notree]
+           {Writing the proof tree into a file is disabled.}
+      \item[--searchtree]
+           {Instructions are inserted to write parts of the  search
+            tree into {\bf file.ortree}.}
+      \item[--interactive]
+           {Instructions are inserted to run the \SAM\ in an  interactive
+            mode.}
+      \item[--verbose \lb number\rb]
+           {Achieves varying  verbosity  specified  with {\it number\/}.
+            According to {\it number\/}, you get some intermediate
+            preprocessing output. The various possibilities  are
+            printed onto the screen when you ommit the {\it number\/}. } 
+      \item[--lop]
+           {Writes preprocessing output into {\bf file\_pp.lop}. No
+            file with extension {\bf .s} is generated. Since {\bf
+            file\_pp.lop} itself is a \LOP\ file it can be used as an
+            input file for \inw. To avoid multiple fanning all clauses
+            in {\bf file\_pp.lop} are procedural clauses.}
+\end{description}

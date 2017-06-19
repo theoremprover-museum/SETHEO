@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{is}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt V is NUMEXPR}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt V}]
+(logical) variable
+	\item[{\tt NUMEXPR}]
+term or numerical expression which must evaluate to a number
+        when this statement is encountered.
+ 
+
+	\end{description}
+\item[Low Level Name:]
+	{\tt sto}
+\item[Result:]\ \\
+This statement succeeds, if {\tt V} is an unbound variable or
+if {\tt V} is instantiated to a number which is equal to the value
+of the numerical expression {\tt NUMEXPR}.
+Otherwise a fail occurrs.
+If {\tt NUMEXPR} does not evaluate to a number, a non-fatal run-time
+error occurrs.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+In contrast to global variables in some Prolog Systems
+         like Sepia or Eclipse, destructive assignments to
+         global variables in LOP are backtracked if the proof
+         search fails at later subgoals.
+
+
+
+
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X,Y) <- X is Y+1.
+\end{verbatim}
+
+

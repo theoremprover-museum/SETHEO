@@ -1,0 +1,256 @@
+#!/bin/sh
+# Script File:		mkstubs
+# SCCS-Info:		%W %Y
+# Author:		J. Schumann
+# Date:			%D
+# Context:		sam
+# 
+# Contents:			
+#			generate include-files, instruction files
+#			and parts of the make file out of conf.c
+#
+# Modifications:	
+#	(when)		(who)		(what)
+#
+# Bugs:
+#
+# --- Forschungsgruppe KI, Inst. fuer Informatik, TU Muenchen ---
+########################################################################
+
+########################################################################
+#SunOs:
+########################################################################
+AWK=gawk
+NEW_FILES=yes
+echo "SunOs-Version !!"
+
+########################################################################
+#HpHalle:
+########################################################################
+#AWK=awk
+#NEW_FILES=no
+#echo "Hp-Version !!"
+
+
+TMP=/tmp/se.$$
+SRC=./
+INCLUDE=../include
+INSTR=$SRC
+LIBRARY=libseth.a
+
+
+
+########################################################################
+trap "rm -f $TMP" 1 2 3 
+
+########################################################################
+if [ ! -f $SRC/conf.c ]
+	then
+	echo "must have a conf.c file"
+	exit 1
+	fi
+
+
+########################################################################
+if [ ! -d $INSTR ]
+	then
+	echo "mkstubs: $INSTR is not a directory"
+	exit 2
+	fi
+
+########################################################################
+if [ ! -d $INCLUDE ]
+	then
+	echo "mkstubs: $INCLUDE is not a directory"
+	exit 2
+	fi
+
+########################################################################
+# write all istruction lines of the conf.c file into the
+# file $TMP
+#
+sed -e '/^{/!d' conf.c >$TMP
+
+############################################################################
+echo "generating file: conf.h ..."
+if [ -f $INCLUDE/conf.h ]
+	then
+	mv $INCLUDE/conf.h $INCLUDE/conf.old.h 
+	fi
+$AWK '
+	BEGIN { print "/**************************************************/";
+			print "/* conf.h:  -- do not edit by hand                */";
+	        print "/**************************************************/";
+		print "";
+		print "#ifndef CONF_H"
+		print "#define CONF_H"
+		}
+	{ print "instr_result " $2 "();" ;}
+	END { print "#endif" }
+     ' < $TMP >$INCLUDE/conf.h
+
+echo "file: conf.h generated"
+
+############################################################################
+echo "generating file: make.conf ..."
+if [ -f $SRC/make.conf ]
+	then
+	mv $SRC/make.conf $SRC/makefile.old.conf
+	fi
+$AWK '
+	BEGIN { print "####################################################";
+			print "# make.conf -- do not edit by hand           ";
+	        print "####################################################";
+		print "";
+		PRINT="INSTRSOURCES= "
+		}
+	{ print PRINT "\\";
+	  PRINT=INSTR "/"$2".c ";
+	  SAVED[$2] = $2;}	
+	END   { print PRINT
+		print ""
+		TO_PRINT="INSTROBJS="
+		for (i in SAVED ){
+			print TO_PRINT "\\"
+			TO_PRINT=LIBRARY "(" SAVED[i] ".o)";
+			}
+		print TO_PRINT
+		 }
+     ' INSTR=$INSTR LIBRARY=$LIBRARY $TMP >$SRC/make.conf
+
+echo "file: make.conf generated"
+
+############################################################################
+if [ $NEW_FILES = "yes" ] ; then
+echo "generating instruction files..."
+
+# saved		print "file " IFILE " already exists"
+
+$AWK '
+	{
+	IFILE=INSTR "/" $2 ".c"
+	print "file " IFILE "..."
+	if ( ! system("test -f "IFILE) ) {
+		print "file " IFILE " already exists"
+		}
+	else {
+	print "processing " IFILE
+
+	print "/******************************************************/" >IFILE
+	print "/*    S E T H E O                                     */" >>IFILE
+	print "/*                                                    */" >>IFILE
+	print "/* FILE: " $2 ".c                                     */" >>IFILE
+	print "/* VERSION:                                           */" >>IFILE
+	print "/* DATE:                                              */" >>IFILE
+	print "/* AUTHOR:                                            */" >>IFILE
+	print "/* NAME OF FILE:                                      */" >>IFILE
+	print "/* DESCR:                                             */" >>IFILE
+	print "/* MOD:                                               */" >>IFILE
+	print "/* BUGS:                                              */" >>IFILE
+	print "/******************************************************/" >>IFILE
+
+	print "" >>IFILE
+	print "#include <stdio.h>" >>IFILE
+	print "#include \"tags.h\"" >>IFILE
+	print "#include \"machine.h\"" >>IFILE
+	print "" >>IFILE
+	print "#define INSTR_LENGTH		"substr($4,2) >>IFILE
+	print "" >>IFILE
+	print "" >>IFILE
+	print "instr_result "$2 "()" >>IFILE
+	print "{" >>IFILE
+	print "   /* your program text comes here */" >>IFILE
+	print "   fprintf(stderr,\"sorry, %s is not implemented\\n\","substr($3,2)");" >>IFILE
+	print "   pc +=INSTR_LENGTH;" >>IFILE
+	print "   return error;" >>IFILE
+	print "}" >>IFILE
+	close (IFILE);
+	}
+	}' INSTR=$INSTR $TMP
+
+echo "instruction files generated"
+
+fi
+		
+############################################################################
+echo "generating file: w_scan.h ..."
+if [ -f $INCLUDE/w_scan.h ]
+	then
+	mv $INCLUDE/w_scan.h $INCLUDE/w_scan.old.h 
+	fi
+$AWK '
+	{ print substr($3,3,length($3)-3)"	return T_"$2";" ;}
+     ' < $TMP >$INCLUDE/w_scan.h
+echo "file: w_scan.h generated"
+
+############################################################################
+echo "generating file: w_parse1.h ..."
+if [ -f $INCLUDE/w_parse1.h ]
+	then
+	mv $INCLUDE/w_parse1.h $INCLUDE/w_parse1.old.h 
+	fi
+$AWK '
+	BEGIN { print "/**************************************************/";
+		print "/* w_parse1.h:  -- do not edit by hand             */";
+	        print "/**************************************************/";
+		print "";
+		}
+	{ print "%token T_" $2 ;}
+     ' < $TMP >$INCLUDE/w_parse1.h
+
+echo "file: w_parse1.h generated"
+
+############################################################################
+echo "generating file: w_parse2.h ..."
+if [ -f $INCLUDE/w_parse2.h ]
+	then
+	mv $INCLUDE/w_parse2.h $INCLUDE/w_parse2.old.h 
+	fi
+$AWK '
+	BEGIN { print "/**************************************************/";
+		print "/* w_parse2.h:  -- do not edit by hand             */";
+	        print "/**************************************************/";
+		print "";
+		}
+	{ 
+		printf("	");
+		if (NR > 1) printf("| ");
+		printf( " T_%s ",$2);
+		komma=0;
+		for (i=2;i <= substr($4,2);i++){
+			if (komma == 1)
+			   printf("'\'','\'' ");
+			printf(" expr ");
+			komma=1;
+			}
+		print "";
+		print "		{ put_instr("NR-1",curr_pc++);"
+		for (i=2;i<=substr($4,2);i++){
+			print "		put_oper($" 2*(i-1) ".val,$" 2*(i-1) ".tag,curr_pc++);"
+			}
+		print "		}"
+		}
+     ' < $TMP >$INCLUDE/w_parse2.h
+
+echo "file: w_parse2.h generated"
+
+########################################################################
+echo "generating file: opcodes.h ..."
+if [ -f $INCLUDE/opcodes.h ]
+	then
+	mv $INCLUDE/opcodes.h $INCLUDE/opcodes.old.h 
+	fi
+$AWK '
+	BEGIN { print "/**************************************************/";
+		print "/* opcodes.h:  -- do not edit by hand             */";
+	        print "/**************************************************/";
+		print "";
+		}
+	{ 
+		print "#define OPCODE_" substr($3,3,length($3)-3) "		" NR-1
+	}
+     ' < $TMP >$INCLUDE/opcodes.h
+
+echo "file: opcodes.h generated"
+
+rm -f $TMP

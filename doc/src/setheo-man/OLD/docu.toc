@@ -1,0 +1,93 @@
+\contentsline {chapter}{\numberline {1}Introduction}{4}
+\contentsline {section}{\numberline {1.1}Getting Started}{4}
+\contentsline {subsection}{\numberline {1.1.1}Getting Started}{4}
+\contentsline {subsubsection}{Introduction}{4}
+\contentsline {subsubsection}{The Example--Theorem}{4}
+\contentsline {subsubsection}{XTHEO--Window}{6}
+\contentsline {paragraph}{PLOP}{6}
+\contentsline {paragraph}{preproc}{7}
+\contentsline {paragraph}{wasm and inwasm}{7}
+\contentsline {paragraph}{setheo}{8}
+\contentsline {paragraph}{prooftree}{8}
+\contentsline {paragraph}{Further hints}{9}
+\contentsline {section}{\numberline {1.2}SETHEO System Overview}{10}
+\contentsline {subsection}{\numberline {1.2.1}Filename Conventions}{12}
+\contentsline {chapter}{\numberline {2}The Basic Programs}{14}
+\contentsline {section}{\numberline {2.1}plop}{14}
+\contentsline {section}{\numberline {2.2}inwasm}{14}
+\contentsline {section}{\numberline {2.3}wasm}{17}
+\contentsline {section}{\numberline {2.4}sam}{17}
+\contentsline {section}{\numberline {2.5}xptree}{20}
+\contentsline {chapter}{\numberline {3}Additional Modules}{23}
+\contentsline {section}{\numberline {3.1}The Environment}{23}
+\contentsline {section}{\numberline {3.2}clop}{23}
+\contentsline {section}{\numberline {3.3}setheo}{23}
+\contentsline {section}{\numberline {3.4}setheo}{23}
+\contentsline {section}{\numberline {3.5}xvtheo}{24}
+\contentsline {section}{\numberline {3.6}xvdelta}{24}
+\contentsline {section}{\numberline {3.7}delta}{24}
+\contentsline {chapter}{\numberline {4}The Interactive SETHEO}{25}
+\contentsline {chapter}{\numberline {5}File Formats}{26}
+\contentsline {section}{\numberline {5.1}The FOL Syntax}{26}
+\contentsline {paragraph}{Variables}{26}
+\contentsline {paragraph}{Constants}{26}
+\contentsline {paragraph}{Propositional Connectives}{26}
+\contentsline {paragraph}{Quantifiers}{27}
+\contentsline {paragraph}{Brackets}{27}
+\contentsline {paragraph}{Special Characters}{27}
+\contentsline {paragraph}{Comments}{27}
+\contentsline {section}{\numberline {5.2}The LOP Syntax}{27}
+\contentsline {section}{\numberline {5.3}{\psc S\kern -.13em\lower .45ex\hbox {A}\kern -.13emM}\ Assembler Syntax}{31}
+\contentsline {subsection}{\numberline {5.3.1}Directives}{32}
+\contentsline {subsection}{\numberline {5.3.2}Statements}{33}
+\contentsline {section}{\numberline {5.4}{\psc S\kern -.13em\lower .45ex\hbox {A}\kern -.13emM}\ Machine Code Syntax}{33}
+\contentsline {section}{\numberline {5.5}Syntax Definition of a Proof Tree}{34}
+\contentsline {section}{\numberline {5.6}The Operator Translation Table}{34}
+\contentsline {section}{\numberline {5.7}The {\psc S\kern -.13em\lower .45ex\hbox {A}\kern -.13emM}\ Logfile}{34}
+\contentsline {chapter}{\numberline {6}Logic Programming with SETHEO}{35}
+\contentsline {section}{\numberline {6.1}Introduction}{35}
+\contentsline {section}{\numberline {6.2}Global Variables}{35}
+\contentsline {section}{\numberline {6.3}Built-in Predicates}{35}
+\contentsline {section}{\numberline {6.4}List of Built-Ins}{35}
+\contentsline {subsection}{\numberline {6.4.1}genlemma/2}{35}
+\contentsline {subsection}{\numberline {6.4.2}genlemma/2}{37}
+\contentsline {subsection}{\numberline {6.4.3}genulemma/3}{38}
+\contentsline {subsection}{\numberline {6.4.4}uselemma/1}{38}
+\contentsline {subsection}{\numberline {6.4.5}getnrlemma/1}{39}
+\contentsline {subsection}{\numberline {6.4.6}dumplemma/0}{39}
+\contentsline {subsection}{\numberline {6.4.7}dlrange/2}{39}
+\contentsline {subsection}{\numberline {6.4.8}delrange/2}{39}
+\contentsline {subsection}{\numberline {6.4.9}checklemma/1}{40}
+\contentsline {subsection}{\numberline {6.4.10}checkulemma/2}{40}
+\contentsline {subsection}{\numberline {6.4.11}addtoindex/2}{40}
+\contentsline {subsection}{\numberline {6.4.12}clearindex/0}{40}
+\contentsline {subsection}{\numberline {6.4.13}clearlemma/2}{40}
+\contentsline {section}{\numberline {6.5}Non-Backtrackable Counters}{40}
+\contentsline {subsection}{\numberline {6.5.1}counters/1}{40}
+\contentsline {subsection}{\numberline {6.5.2}setcounter/2}{40}
+\contentsline {subsection}{\numberline {6.5.3}getcounter/2}{41}
+\contentsline {section}{\numberline {6.6}How to \pldots }{41}
+\contentsline {subsection}{\numberline {6.6.1}Selection of Start Clauses}{41}
+\contentsline {paragraph}{Disabling a Query.}{41}
+\contentsline {paragraph}{Converting a Clause into a Query.}{41}
+\contentsline {paragraph}{Example:}{42}
+\contentsline {subsection}{\numberline {6.6.2}Answer Substitutions}{42}
+\contentsline {subsection}{\numberline {6.6.3}Bounds and iterative deepening}{42}
+\contentsline {subsection}{\numberline {6.6.4}Restart Model Elimination}{42}
+\contentsline {subsection}{\numberline {6.6.5}The SETHEO C-Interface}{42}
+\contentsline {subsection}{\numberline {6.6.6}Adding Built-in Predicates}{42}
+\contentsline {subsubsection}{Built-ins in inwasm}{42}
+\contentsline {subsubsection}{Changing SETHEO}{43}
+\contentsline {chapter}{\numberline {7}Odds and Ends}{46}
+\contentsline {section}{\numberline {7.1}Default Values}{46}
+\contentsline {section}{\numberline {7.2}Limitations of the SETHEO System}{46}
+\contentsline {subsubsection}{Limitations in the WASM}{46}
+\contentsline {subsubsection}{Limitations in the SAM}{47}
+\contentsline {section}{\numberline {7.3}Known Bugs}{47}
+\contentsline {section}{\numberline {7.4}How to Report a Bug}{47}
+\contentsline {chapter}{\numberline {8}Installations Guide}{48}
+\contentsline {section}{\numberline {8.1}Introduction}{48}
+\contentsline {section}{\numberline {8.2}Getting the Binaries}{48}
+\contentsline {section}{\numberline {8.3}Getting the Sources}{48}
+\contentsline {section}{\numberline {8.4}Installing the SETHEO System (Binaries)}{48}
+\contentsline {section}{\numberline {8.5}Installing the SETHEO System (Sources)}{48}

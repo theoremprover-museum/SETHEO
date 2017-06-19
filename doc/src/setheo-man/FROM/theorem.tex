@@ -1,0 +1,58 @@
+% theorem
+\ssection{SETHEO as a Theorem Prover}
+To use SETHEO as a theorem prover, we give a table of
+advisable parameters for all modules, which should be used
+with different types of formulae.
+A detailed description of the parameters can be found in the section
+"Description of the Modules" or in the manual pages.
+The abbrevation "dfs" means that the formula can be proven with a
+depth--first--search mode (PROLOG--like).
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Type of formula & inwasm & wasm & setheo  & remarks\\
+\hline \hline
+logic program, horn, dfs & & & & no parameters needed\\
+\hline
+large program, horn, dfs & & --O & --S 1000000 & optimise, large stack \\
+\hline
+horn formula, one query & --T & & --d {\it nu\/} & set bound to {\it nu\/}\\
+&&& or: --r & iterative deepening\\
+&&& or: --i {\it nu\/} & set inf. bound to {\it nu\/}\\
+\hline
+Horn, arbitrary & --T --q & & --r & set bound, artif. query \\
+&&& or: --d nu &\\
+&&& or: --i nu &\\
+\hline
+non--horn & --T --r --q & & --r & need reduction steps \\
+&&& or: --d nu &\\
+&&& or: --i nu &\\
+\hline
+\hline
+additionally (all types)& --p & & & equal predecessor fail\\
+\hline
+additionally (all types)& --c {\it nu\/}& & & set copy bound to {\it nu\/}\\
+\hline
+\end{tabular}
+\end{center}
+\vspace{3mm}
+
+The following example is from [AAR--newsletter]. In its clausal representation
+it consists of 6 clauses, one being non--horn. In this case the inwasm
+is called with the parameters {\bf --q --t --r} and optionally {\bf --p}
+to reduce the complexity of the search. Setheo can do an iterative deepening
+search {\bf --r} or the valid depth can be given directly, if known {\bf --d 9}.
+
+\begin{center}
+\begin{quote}
+{\tt
+<- p(a,b). \\
+<- q(c,d). \\
+q(X,Z) <- q(X,Y), q(Y,Z). \\
+p(X,Z) <- p(X,Y), p(Y,Z). \\
+q(X,Y) <- q(Y,X). \\
+p(X,Y);q(X,Y)<-. \\
+}
+\end{quote}
+\end{center}

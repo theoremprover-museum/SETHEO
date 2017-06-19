@@ -1,0 +1,44 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$isnonvar/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$isnonvar(T)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T}] term
+	\end{description}
+\item[Low Level Name:]
+	{\tt isnon\_var}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built-in predicate succeeds, if {\tt T} is
+{\em not\/} a variable or bound to a variable.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) <- $isnonvar(X),...
+p(X) <- $isvar(X),...
+\end{verbatim}
+The built-in predicates {\tt \$isvar} and {\tt \$isnonvar} can be used
+to distinguish clauses which can be entered, if a variable is bound
+(here: first clause), or not (second clause).
+
+
+

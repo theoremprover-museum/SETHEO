@@ -1,0 +1,11 @@
+# List of Contrapositives
+
+/*-1.1-*/   ?-
+		/*-1.2-*/ p.
+
+/*-2.1-*/  p.
+# End of Contrapositives
+
+# Weak-Unification List
+# 1.2 to ( 2.1 )
+# End Weak-Unification List

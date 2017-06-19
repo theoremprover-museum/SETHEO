@@ -1,0 +1,251 @@
+#******************************************************
+#*     PIL System
+#*     $Id: README.PIL,v 1.2 2002/09/13 17:49:25 schumann Exp $
+#*
+#*     (c) Johann Schumann, Klaus Wagner
+#*     TU Muenchen and NASA Ames
+#*
+#*     $Log: README.PIL,v $
+#*     Revision 1.2  2002/09/13 17:49:25  schumann
+#*     changes
+#*
+#*     Revision 1.1.1.1  2001/07/16 18:16:09  schumann
+#*     new CVS project
+#*
+#*****************************************************/
+PIL -- a prototypical system for Verification of
+	Authentication protocols using BAN and AUTLOG logic
+
+1. INSTALLATION
+
+1.1. Prerequisites:
+	SWI-PROLOG      must be installed and the PROLOG interpreter
+			available as "pl"
+			Version 3.4.X or higher
+			SWI-PROLOG is freely available on:
+				http://www.psy....nl/swi
+
+1.2. unpack PIL.tar.gz
+	gunzip -c PIL.tar.gz | tar xvf -
+	Contents:
+	subdirectories:
+	PIL/bin		place for the binaries
+	PIL/lib		library files (rules + skeleton files)
+	PIL/src		source files
+	PIL/examples
+	PIL/doc		some documentation
+
+
+1.2.1. default contents of bin (after installation)
+
+	ILFBANSETHEO:	main script to do verification
+
+	pil:		binary syntax converter for PIL
+
+	inwasm:		compiler for SETHEO prover(*)
+	sam:		SETHEO prover(*)
+
+	(*) may be in a separate directory
+
+	setheo2block:	PROLOG source of proof converter
+	mkreport:	report generator
+	Makefile	makefile
+
+1.3. installation and adaptation
+	set the current directory as PILHOME, e.g., by
+	export PILHOME=`pwd`
+
+	make the binaries and place them in the bin-directory
+	
+	cd src
+	make
+	
+	The ILFBANSETHEO contains variable declarations on where
+	the binaries are located.
+	As a default, all binaries (pil, inwasm, sam, setheo2block)
+	are in the current directory (or accessable from the current
+	$PATH setting). 
+
+1.4. invoking PIL.
+1.4.0. start all examples
+	cd examples
+	makeallexamples
+	this script compiles and proves all provided examples
+	For each example X.pil, the following is done:
+	* invoke pil to generate first-order proof-tasks (*.lop)
+	* for each of the proof tasks: search for the proofs using
+	  "make". The script for this is "ILFBANSETHEO"
+	* per default, the proofs are not formatted (i.e., no email
+	  is sent [ -fakemail]
+	* after all proofs have been found, generate a LaTeX report
+	  (mkreport)
+	* latex that report
+	* clean up.
+
+1.4.1. input file
+	The BAN/AUTLOG specification of the (idealized) protocol
+	and the properties to be shown are placed in a file
+	xxx.pil
+	Note that one specification can spawn a number of individual
+	proof tasks.
+
+1.4.2 preparation of proof tasks
+
+	usage: 
+	pil [-make <makefile>] [-skel <skelfile>] [-rules <rulefile] 		
+            [-noinfo] [-no_sorts | -sorts_minimal] [-sorts2] 
+	    [-no_use_proofed] [-out <outfile>] [-ilf] <infile> 
+
+[-make <makefile>] 
+	Name the generated makefile (?)
+
+[-skel <skelfile>] 
+	Use <skelfile> as skeleton for the makefile.
+	Default: Makefile.skel
+
+[-rules <rulefile] 		
+	add domain theory axioms for the BAN or AUTLOG logic
+	default:  ban-rules.lop (for BAN;  use BAN in specfile),
+	default:  autlog-rules.lop (for AUTLOG;  use AUTLOG in specfile),
+
+[-noinfo] 
+	?
+[-no_sorts | -sorts_minimal] 
+	use -sorts_minimal for use with ILFBANSETHEO
+
+[-sorts2] 
+	generate more elaborate sort info (not supported in ILFBANSETHEO)
+
+[-no_use_proofed] 
+	per default, all previous conjectures are added to the formula
+	as assumptions. For correctness of proof-task #i it is important
+	that proof tasks #1,...#i-1 have been tackled successfully.
+	-no_use_proofed disregards these assumptions (leads to longer
+	proof times)
+
+[-out <outfile>] 
+	use outfile as base name for the generated formula files
+
+[-ilf] 
+	generate symbol table information for human-readable proofs.
+	needs to be used in conjunction with ILFBANSETHEO
+
+<infile> 
+	specification file.
+
+For use with ILFBANSETHEO, usually,
+	pil -ilf -sorts_minimal <infile>
+is used.
+
+For a given specification <infile>.pil, pil generates the following files:
+	Makefile.<infile>	Makefile to make all proofs
+	<infile>-#.lop		proof task with number #
+	<infile>-#.ilf		symbol table for proof postprocessing
+
+1.4.3 running the proof tasks
+
+	make -f Makefile.<infile> all
+
+starts the prover on all required proof tasks.
+
+	make -f Makefile.<infile> proofs
+generates a Latex-file <infile>.tex which contains the
+specification and a table of run-times for each of the proof tasks.
+
+1.4.4 running indvividual proof tasks
+
+ILFBANSETHEO is a script which, given a proof-task (.lop), starts
+the automated theorem prover SETHEO and postprocesses the proof in
+case one is found.
+
+usage: ILFBANSETHEO [-debug] [-verbose] [-editilf] [-fullproof]
+  	[-noproof] [-dr] [-wdr] [-cputime number] [-mail]
+  	[-fakemail] <file>
+
+After decoding the command-line arguments, ILFBANSETHEO preprocesses
+the input file <file>.lop. ILFBANSETHEO then starts the automated
+theorem prover SETHEO with the appropriate parameters.
+ILFBANSETHEO allows to change the search bound from weighted iterative
+deepening (-wdr, default) to unweighted search (-dr). 
+A proof has to be found within a limit of N seconds CPU time.
+
+If no proof has been found, or -noproof is set, ILFBANSETHEO exits
+after the run of SETHEO. The option -noproof allows for quick testing and
+examination of the low-level machine proof.
+
+Otherwise, the proof is converted into the ILF internal format.
+This internal format then can be converted using the ILF-mail server
+in Berlin into a human-readable LaTeX format.
+A stand-alone converter is not available for free.
+After conversion, a mail with the proof is automatically sent to the
+server, unless -fakemail is set.
+
+The ILF server should send back a uuencoded LaTeX file within a few seconds.
+If an error message should be returned instead, please send email to
+schumannJ@acm.org.
+
+[-debug]            keep temp files
+
+[-verbose]          display output of modules
+
+[-editilf]          edit ilf-output
+
+[-fullproof]        generate full proof
+
+[-noproof]          do not generate ILF-proof
+
+[-dr]               use -dr iterating (SAM)
+
+[-wdr]              use -wdr iterating (SAM) [default]
+
+[-cputime number]   CPU-time limit
+
+[-mail]             use ILF-mail-server [default]
+
+[-fakemail]         only do as if sending an email
+
+file
+
+
+Usually, ILFBANSETHEO only needs to be invoked with the file name.
+For local testing (not sending out any mail), use the -fakemail
+option.
+
+1.4.5 mkreport
+
+Mkreport takes a list of proof-files as generated by SETHEO
+(extension: .tree and .log) and generates a simple
+LaTeX Report Document of the entire run.
+
+This is still very rudimentary and definitely needs improvement.
+
+
+
+3. Examples
+===========
+
+X509.pil		X509 protocol with BAN logic
+iso10181.pil		ISO10181 to be used with AUTLOG logic only
+kerb.pil		kerberos protocol (BAN)
+ns.pil			Needham schroeder (BAN)
+nspk.pil		Needham schroeder, public keys (BAN)
+otw.pil			Otway-Rees Protocol (BAN)
+rpc.pil			RPC handshake (BAN)
+wmf.pil			wide-mouthed-frog protocol (BAN)
+ya.pil			Yahalom (BAN)
+
+
+some modifications etc.
+
+R.pil
+alkerb.pil
+alkerb0.pil
+alkerb1.pil
+iso10181-mod.pil	: AUTLOG logic only
+k.pil
+my-ya.pil
+rpc-ki.pil
+rpc2.pil
+tmn.pil
+x.pil
+

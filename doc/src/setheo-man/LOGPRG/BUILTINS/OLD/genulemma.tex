@@ -1,0 +1,106 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{genulemma/3}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt genulemma(N1,N2,N3)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N1}]
+        This number indicates the number of the literal for which
+        a unit-lemma is to be generated. {\tt N1} must be in the
+        range between $1$ and the length of the clause (including
+        built-in literals).
+        \item[{\tt N2}]
+        If this number is $\neq 0$, the generation of a unit-lemma
+        is considered. Otherwise, this predicate just succeeds.
+        \item[{\tt N3}]
+        If a unit-lemma is stored in the index, this number will be
+        stored together with the lemma. This information can the
+        be used when unit-lemmata are being used (e.g., by {\bf uselemma/1}).
+        \end{description}
+\item[Low Level Name:]
+	{\tt genulemma}
+\item[Result:]\ \\
+        This built-in predicate always succeeds. Memory overflow and
+        wronly instantiated parameters will result in a
+        non-fatal run-time error.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+%----------------------------------------------------
+This built-in generates a unit-lemma {\tt L<-.} for a literal
+{\tt ~L} in the current clause. Its number is given as the first argument.
+The lemma is generated, if all of the following
+conditions hold.
+The lemma will be annotated by the value of the third argument
+(must be a number).
+ 
+\begin{itemize}
+\item
+all arguments must be instantitated to numbers,
+otherwise, a run-time error is generated.
+\item
+the first argument must be instantiated to a number
+in the range between $1$ and the length of the clause (including
+built-in literals).
+\item
+the value of the second argument is $\neq 0$,
+\item
+the current instantiation of the given literal is not subsumed
+by any unit-lemma in the lemma store.
+\end{itemize}
+
+If the unit-lemma subsumes one or more unit-lemmata in the lemma-store,
+these unit-lemmata are deleted.
+
+%----------------------------------------------------
+ 
+ 
+%----------------------------------------------------
+ 
+
+\vspace*{0.5cm}
+\noindent
+{\bf Side-effects.}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+\begin{itemize}
+\item
+the range of the first argument is NOT checked
+\item
+it is not checked, if the solution of the given literal required
+reduction steps above the current node in the tableau.
+Therefore, it is easily possible to generate unsound proofs, if
+yet unsolved literals are kept as lemmata.
+\item
+all built-in literals (including this one) count as literals
+\end{itemize}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+q(X,Y) <- p(X),genulemma(2,1,5),r(X,Y).
+\end{verbatim}
+ 
+generates a lemma {\tt p(a)<-.}, if X is instantiated to {\tt a}.
+The lemma carries the number $5$.
+ 
+
+

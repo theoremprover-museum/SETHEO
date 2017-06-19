@@ -1,0 +1,29 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The Environment}\label{sec:environ}
+
+The shell scripts mentioned in Section~\ref{sec:overwiew} refer to the
+environment variable {\tt SETHEOHOME} which must be defined in the
+environment settings. {\tt SETHEOHOME} is the directory where the
+binaries of the basic programs \plop, \inw, \wasm, \sam\ and \xp\
+reside, e.g.\ {\tt /home/setheo/bin}. This variable is set accordingly,
+when the SETHEO system is installed (see Section~\ref{sec:inst-bin}).
+You can define the environment variable either by typing 
+\begin{verbatim}
+setenv SETHEOHOME /home/setheo/bin
+\end{verbatim}
+or by adding the line
+\begin{verbatim}
+setenv SETHEOHOME /home/setheo/bin
+\end{verbatim}
+to your .cshrc/.tcshrc file or by adding the lines
+\begin{verbatim}
+SETHEOHOME = /home/setheo/bin
+export SETHEOHOME
+\end{verbatim}
+to your .login or bourne-/ ? /... shell startup.

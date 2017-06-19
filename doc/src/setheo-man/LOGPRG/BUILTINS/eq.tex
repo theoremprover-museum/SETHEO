@@ -1,0 +1,59 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$eq/2, ==}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$eq(T1,T2) , T1 == T2 }
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt T1,T2}]
+terms to be checked for syntactical equality.
+	\end{description}
+\item[Low Level Name:]
+	{\tt eq\_built}
+\item[Result:]\ \\
+This built-in succeeds, if {\tt T1} is syntactical equal to
+{\tt T2}.
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This predicate checks two terms for syntactical equality.
+Two terms are syntactical equal, if
+\begin{itemize}
+\item
+both are the same symbolic constants (or strings)
+\item
+both are the {\em same\/} variable,
+\item
+the terms are of the form
+$f^1(t_1^1,\ldots,t_n^1)$ and
+$f^2(t_1^2,\ldots,t_n^2)$, and the function symbols $f^1,f^2$ and all
+pairs of subterms $t^1_i,t^2_i$ are syntactical equal.
+\end{itemize}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X)<- $eq(f(a),X).
+p(X)<- $eq(f(Y),X).
+p(X)<- f(Y) == X.
+\end{verbatim}
+The first clause succeeds, if $X$ is instantiated to $f(a)$.
+The second clause, however, does {\em never\/} succeed, since
+$Y$ only occurs only once in the second clause.
+The third clause is equivalent to the second one.
+ 

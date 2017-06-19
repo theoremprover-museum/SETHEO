@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{plop}
+\label{sec:plop}
+
+\Plop\footnote{This program is provided on an ``as is'' basis, and is
+not maintained any more.}
+takes formulae of first order predicate logic in standard notation
+and converts them into LOP clausal sets preserving the property
+of unsatisfiability. Obvious tautological clauses and redundant
+literals are removed. 
+Both, the first-order-language syntax and the LOP syntax are described in
+a later section\footnote{See Section~\ref{sec:pl1-syntax},
+\ref{sec:lop-syntax}}. \Plop\ can be invoked by the following
+command line: 
+\begin{verbatim}
+plop [-necho][-nopti][-sko][-neg][-baum][-debu][-defgro] file[.pl1]
+\end{verbatim}
+The only parameter which has to be given is the name of the input file.
+It must have the extension {\bf .pl1}. The generated output file
+has the extension {\bf .lop} which can be handled by {\bf inwasm}.
+
+The other parameters are optional and have the following meaning:
+\begin{description}
+\item[--necho]
+suppresses the screen output. 
+Otherwise the input and output formula is displayed.
+\item[--nopti]
+suppresses the removal of tautologies and redundancies. 
+\item[--sko]
+produces output clauses in skolemized
+normal form, i.e. clauses containing disjunction
+and negation symbols, but neither conditional nor conjunction
+symbols.
+\item[--neg]
+negates the input formula, before doing the transformation.
+For many applications, when the formula is of the form
+$Axioms \rightarrow Theorem$, this switch must be used.
+\item[--baum]
+displays statistics of the internal formula tree.
+\item[--debu]
+turns on the verbose debugging mode of \plop.
+\item[--defgro]
+displays constraints concerning the size of some elements
+of the input formula. If a given example exceeds them, define-statements
+in the source code of \plop\ are to be modified.
+\end{description}

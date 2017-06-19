@@ -1,0 +1,129 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%	16.12.96
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Global Variables}
+\label{LOP:GLOBVAR}
+
+The concept of {\em destructive\/} and {\em multiple\/} assignment
+for variables is one of the basic concepts in a procedural
+programming language.
+In logic programs, however, a variable has quite a different meaning:
+it is a {\em logical variable\/} \cite{Kow79b}.
+A logical variable can be used and modified by the {\em unification\/}
+procedure only which may perform a {\em specialisation\/}.
+
+This means that a variable which is in the beginning of the
+calculation {\em unbound\/} may be given several values during
+the proof, but each value is a specialisation of the previous ones
+(or the same).
+Otherwise unification is not possible.
+This behavior of logical variables does, of course, not allow
+multiple destructive assignments to a variable, e.g.\ {\tt X:=5} and
+afterwards {\tt X:=7}.
+
+Another basic principle of procedural languages is the existence of
+{\em global variables\/} which are visible and valid from all parts
+of the program and in all incarnations of the procedures or functions.
+This is different in logic: in clausal form, a variable is valid only within
+{\em one\/} clause.
+
+For a programmer who is using procedural languages most of the time,
+it would be very convenient to have 
+the possibility of using (global) variables with multiple destructive
+assignment in a logic program.
+This inclusion also partly
+bridges the gap between procedural languages and logic languages, as
+the concept of global variables can be embedded cleanly into the
+logic language as shown below.
+This is in contrast to PROLOG which developed the concept of global
+data by introducing the {\em assert\/} and {\em retract\/}
+predicates. These constructs, however, have no clean and
+natural denotational semantics.
+%%\footnote{The operational semantics for these constructs are
+%%very complicated and unnatural as well [???]}.
+Note that a multiple destructive assignment in a logical language
+must be {\em backtrackable\/} when the underlying execution model
+needs backtracking to find a solution (e.g.\ the \SAM\ and  PROLOG).
+
+So we introduce global backtrackable variables
+(see also \cite{LS88} for the theoretical background and their semantics). 
+This concept has a clean denotational
+semantics, which has been introduced by R.~Letz and will be shown below,
+and allows for a very efficient and easy integration into 
+the \SAM.
+The only draw-back of this construct is that we have to commit ourselves
+to a fixed order of evaluation of the subgoals
+({\em literal selection function}),
+namely left-to-right. Only with this restriction we can make sure
+that the assignment {\tt \$X:=1} will be executed
+{\em prior\/} to {\tt \$X:=2} in the tail of
+a clause {\tt \ldots,\$X:=1,\ldots,\$X:=2,\ldots} which is
+equal to the intuitive meaning of (procedural) evaluation.
+
+In LOP the concept of global variables and multiple destructive assignment
+is employed as a basis for almost all its non-logical and
+meta-programming constructs.
+
+
+\subsection{Syntax and Usage of Global Variables}
+
+In LOP global variables are denoted like variables, but their names
+start with a '\$', e.g.\ {\tt \$X}, {\tt \$World}
+are global variables.
+Global variables can be used like ordinary variables in the terms
+of the predicates. Besides this, they may appear on the left hand side
+of the destructive assignment ({\tt :=}).
+On the right hand side of an assignment any term may be present.
+In such a term the global variable which occurs on the left hand side
+of the assignment may be present as well,  e.g.\
+{\tt \$X:=f(\$X,a)} or {\tt \$X:=[a,\$X]}.
+
+\subsection{Examples of the Usage of Global Variables}
+One short example shows how global variables, in our case {\tt \$X},
+are backtracked.
+
+\begin{center}
+\begin{tabular}{lll}
+& $\leftarrow$ {\em example}.& \\
+ {\em example} & $\leftarrow$ {\tt \$X := a}, {\em p}.& \\
+$p$ & $\leftarrow$ {\tt \$X := b}, {\em fail}.& \% must backtrack\\
+$p$ & $\leftarrow$ {\em write(\/}{\tt \$X}, {\em )}.& \% print value of {\tt \$X}
+\end{tabular}
+\end{center}
+
+When this program is executed, the variable {\tt \$X} is first set to
+the value {\tt a}. After entering the first clause for {\tt p}, the variable
+is set to {\tt b} (destructive assignment). After that, a failure occurs
+which causes a backtracking step to be performed and the second clause
+can be tried, printing the current value of {\tt \$X}.
+If global variables were not
+backtrackable, the value after the last assignment, in our case {\tt b}
+would be printed. This, however, is not correct.
+With the usage of {\em backtrackable\/} global variables as introduced
+above, the correct value, namely {\tt a}, is printed.
+
+\subsection{Restictions for Global Variables}
+
+Global variables are in general not compatible with SETHEO's
+anti-lemma mechanism, as is shown with the following example:
+
+\begin{verbatim}
+?-p, q($X).
+q(b).
+p :- $X := a.
+p :- $X := b.
+\end{verbatim}
+
+This logic program first solves the subgoal {\tt p}, whereby {\tt \$X}
+is assigned to {\tt a}. Then the second subgoal is tried, but here
+the unification fails. During backtracking, the anti-lemma mechanism
+determines that {\tt p} has been solved optimally (there are no substitutions
+for logical variables in {\tt p}). Hence it is decided that there exist no
+more solutions, and thus the \SAM\ returns with ``total failure''.
+If the generation of antilemmata is disabled, the above program works
+correctly.

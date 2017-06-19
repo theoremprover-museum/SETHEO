@@ -1,0 +1,101 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{\SAM\ Error Messages}\label{sec:errors}
+
+There are different types of errors which might occur during the \SAM's
+runtime. The minor ones only cause a message printed on the
+screen. The heavy errors additionally lead to a system interrupt. If
+necessary, the hexadecimal code of the trouble causing object is
+displayed, too. 
+The problems can be divided into three classes: 
+\begin{enumerate}
+\item{user dependend problems}
+\item{internal problems}
+\item{implementation problems}
+\end{enumerate}
+
+{\bf User dependend problems} are either caused by the user or can
+easily be avoided by the user. {\it Wrong parameter choices\/} or {\it
+overflow errors\/} belong to this class. Examples for {\bf wrong
+parameter choices} to the \SAM\ are: 
+\begin{itemize}
+\item{The name of the code file together with extension {\bf .hex}
+      does not exist.
+      {\it What you can do:\/} Check if you spelled the name correctly
+      and if you left out the extension.}
+\item{The name of the code file is missing.
+      {\it What you can do:\/} Add the code file.}
+\item{An option was requested which is not available in your current
+      version of SETHEO.
+      {\it What you can do:\/} If you need this option, this becomes a
+      problem for a programmer because you have to change some
+      compiler flags and compile the \SAM\ again. If possible, just
+      don't request this option.}
+\item{You have made a typing mistake concerning options or parameters
+      to options.
+      {\it What you can do:\/} Check the spelling of what you typed and
+      maybe look at Section~\ref{sec:sam} again.}
+\end{itemize}
+Some of the built--ins also require special kinds of parameters, e.g.\
+the arithmetic built--ins expect number values.
+{\it What you can do:\/} You have to repair this kind of wrong
+parameter choices within the {\bf .lop}--file. The error message tells
+you what to change. Don't forget to call the \inw\ and the \wasm\ again
+before calling the \SAM.
+
+{\bf Overflow errors} are not caused by the user but they are
+avoidable by the 
+user. An overflow error occurs if one of the \SAM's memory areas is
+too small. Overflow errors always cause the \SAM\ to interrupt. You
+can still get statistical information if you are interested in, but
+there is no way to go on proving. 
+{\it What you can do:\/} Quit the program and start it again with the
+overflowed memory area enlarged. Eventually read Section~\ref{sec:sam}
+how to enlarge memory areas.
+
+{\bf Internal problems} are memory allocation problems or limit
+exceeding problems. {\bf Memory allocation problems} can be the
+following: 
+\begin{itemize}
+\item{The operating system does not provide enough space to allocate
+      the \SAM's memory areas or the address of one of the memory
+      areas is out of range. {\it What you can do:\/} Reduce the 
+      size of the memory areas. Use the same options as for enlarging
+      the memory areas (see Section~\ref{sec:sam}).}
+\item{The operating system does not provide enough space to allocate
+      memory for storing antilemmata or the address of the allocated
+      memory is out of range. {\it What you can do:\/} Reduce
+      the number of generated antilemmata. Call the {\bf -anl
+      [number]} option with {\it number\/} enlarged. The default value
+      for {\it number\/} is 25 (see Section~\ref{sec:sam}).}
+\item{The operating system does not provide enough space to open an
+      output file. {\it What you can do:\/} Reduce the size occupied
+      by the \SAM, i.e.\ reduce the size of the memory areas (see above).}
+\end{itemize}
+The following problems are {\bf limit exceeding problems}:
+\begin{itemize}
+\item{A number value gets bigger than 32767 or less than --32768 and is
+      truncated to a short value.
+      (Remember the \SAM\ works only with short arithmetic). {\it What
+      you can do:\/} Try to avoid refering to this value.}
+\item{A choicepoint contains too many alternatives for the random
+      reordering instruction. {\it What you can do:\/} If you want to
+      repair this problem you have to change a constant within the
+      \SAM's source code, so this becomes an implementation problem.}
+\end{itemize}
+
+{\bf Implementation problems} arise from wrong or incomplete
+changes to the SETHEO system. Messages about illegal tags, illegal
+instructions or unavailable bounds belong to this kind. 
+{\it What you can do:} Errors concerning illegal tags are hard to
+debug. So think very carefully what you are changing. Errors
+concerning illegal instructions might result from spelling mistakes or
+from not having made the corresponding changes in \inw\ and \wasm. Errors
+concerning unavailable bounds should be detectable using a usual
+debugging tool.

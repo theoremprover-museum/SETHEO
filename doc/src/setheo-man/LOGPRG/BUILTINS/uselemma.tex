@@ -1,0 +1,84 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$uselemma/1}\label{subsec:built-in-uselemma}
+
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$uselemma(N)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}] number
+	\end{description}
+\item[Low Level Name:]
+	{\tt uselemma}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+during run-time, only lemmata from the index may be used which carry
+a number which is smaller than the given parameter.
+ 
+%----------------------------------------------------
+ 
+This built-in always succeeds. If the pushed lemmata and the remaining
+alternatives are to be tried, this built-in must be directly followed
+by a {\bf fail}.
+%----------------------------------------------------
+This built-in tries to use lemmata from the lemma-store.
+This built-in must be used within a clause of a specific structure
+as shown below.
+When called, this built-in extracts all lemmata from the index
+and marks them as possible choices, which fulfill the following conditions:
+\begin{enumerate}
+\item
+the lemma in the index must not be marked ``deleted''.
+\item
+the lemma must be unifiable with the head of the current clause.
+\item
+the number stored with the lemma must be smaller ($<$) than the
+given parameter.
+\end{enumerate}
+  
+After adding the choices, this built-in succeeds, If the
+selected lemmata are to be tried, a fail must be executed
+after this built-in.
+Then, the lemmata are tried and then
+all other or-branches for
+the current subgoal which have not yet been touched are tried.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example}
+%----------------------------------------------------
+ 
+The following example illustrates the usage of this built-in.
+\begin{verbatim}
+...
+p(a,b) <-..
+p(b,c) <-..
+ 
+p(_,_) :- $uselemma(5),$fail.
+ 
+p(e,f) <-.
+..
+\end{verbatim}
+ 
+If the clauses are not reordered, SETHEO first tries the alternatives
+{\tt p(a,b)..} and {\tt p(b,c)..}.
+Then it extracts all suitable lemmata from the lemma store.
+ 
+These lemmata are pushed upon the stack as additional alternatives
+which are tried (caused by the fail), before {\tt p(e,f)..} is tried.
+

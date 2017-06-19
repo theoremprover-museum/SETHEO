@@ -1,0 +1,38 @@
+// Needham-Schroeder
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+Objects:
+principal A,B,S;
+sharedkey K_a_s, K_b_s, K_a_b;
+variable sharedkey K;
+statement N_a, N_b;
+//
+Assumptions:
+(A,S) believes sharedkey K_a_s;
+(B,S) believes sharedkey (B,S,K_b_s);
+S believes sharedkey (A,B,K_a_b);
+
+(A,B) believes S controls sharedkey (A,B,K);
+A believes S controls fresh sharedkey (A,B,K); 
+
+A believes fresh N_a;
+B believes fresh N_b;
+
+S believes fresh sharedkey (A,B,K_a_b);
+B believes fresh sharedkey (A,B,K);
+//
+Idealized Protocol:
+message 2: S -> A      {N_a,sharedkey K_a_b,fresh sharedkey K_a_b,
+                          {sharedkey K_a_b}(K_b_s)}(K_a_s);
+message 3:      A -> B {sharedkey K_a_b}(K_b_s);
+message 4:      A <- B {N_b, sharedkey K_a_b}(K_a_b);
+message 5:      A -> B {N_b, sharedkey K_a_b}(K_a_b); 
+//
+Conjectures:
+after message 3: B believes sharedkey (A,B,K_a_b);
+                 A believes sharedkey (A,B,K_a_b);
+		 A believes fresh sharedkey (A,B,K_a_b);
+after message 4: A believes B believes sharedkey (A,B,K_a_b);
+after message 5: B believes A believes sharedkey (A,B,K_a_b);
+                 
+

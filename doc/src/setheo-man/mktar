@@ -1,0 +1,22 @@
+#!/bin/sh
+OFILE=sman.tar
+
+date >DATE
+
+#tar cvf $OFILE `find \
+#find \
+#BIBLIOGRAPHY  \
+#DATE  \
+#FORMATS  \
+#HOW  \
+#INSTALL  \
+#INSTSETHEO  \
+#LOGPRG  \
+#Makefile  \
+#STARTED  \
+#SYSTEM  \
+#WHAT  \
+#*.tex \
+#*.sty  \
+#-print  >ALLFILES
+tar cvf sman.tar `cat ALLFILES`

@@ -1,0 +1,73 @@
+\documentstyle[a4wide,11pt]{article}
+
+\typeout{Version of 23.10.91}
+\setlength{\parindent}{0mm}
+
+\newcommand{\ssection}[1]{\section{#1}}
+\newcommand{\ssubsection}[1]{\subsection{#1}}
+\newcommand{\ssubsubsection}[1]{\subsubsection{#1}}
+
+\setlength{\unitlength}{1mm}
+\setlength{\unitlength}{1mm}
+
+\input psfig.tex
+
+
+% Usage: bild{<filename>}{<height>}{<width>}{<title>}{<label>}
+\newcommand{\bild}[5]
+{
+	\begin{figure}[htbp]
+		\centerline
+		{
+			\hbox
+			{
+				\psfig{figure=#1,height=#2,width=#3}
+			}
+		}
+		\begin{center}
+			\parbox{14cm}{\caption{\label{#5} #4}}
+		\end{center}
+	\end{figure}
+}
+
+
+\begin{document}
+
+\bibliographystyle{alpha}
+
+\title{SETHEO --- Users Manual}
+\author{Johann M. Ph. Schuhmann \and  Norbert Trapp \and Martin van der
+Koelen\\
+\it Forschungsgruppe K\"unstliche Intelligenz\\
+Technische Universit\"{a}t M\"{u}nchen\\
+Augustenstr. 46 Rgb\\
+8000 M\"{u}nchen 2 \\
+}
+\maketitle
+
+\vspace{15mm}
+\begin{abstract}
+Setheo is a sound and complete theorem prover for first order logic.
+It is based on model elimination, a specialisation of the Connection
+Method. This document is the user manual of the SETHEO system.
+The input language LOP is described as well as all parts of the theorem
+prover. 
+\end{abstract}
+
+\input{intro}
+%\newpage
+\input{using}
+%\newpage
+\input{started}
+%\newpage
+\input{modules}
+%\newpage
+\input{syntax}
+%\newpage
+\input{theorem}
+%\newpage
+\input{lop}
+%\newpage
+\input{details}
+
+\end{document}

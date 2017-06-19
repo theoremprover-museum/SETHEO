@@ -1,0 +1,75 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$cut/0,\$precut/0}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$precut, ..., \$cut}
+\item[Low Level Name:]
+	{\tt pre\_cut, cut}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+These two built-ins implement the PROLOG-cut ``!''.
+The PROLOG clause
+\begin{verbatim}
+        p(X) :- q(X),
+                !,
+                r(X).
+\end{verbatim}
+% 
+is operationally equivalent to the LOP clause
+% 
+\begin{verbatim}
+        p(X) :- $precut,
+                q(X),
+                $cut,
+                r(X).
+\end{verbatim}
+The {\tt \$precut} always must be the {\em first\/} tail-literal of a clause.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Note.}
+The Prolog Clause
+ 
+\begin{verbatim}
+        p(X) :- not q(X),
+                r(X).
+\end{verbatim}
+ 
+             is operationally equivalent to the following sequence of
+             LOP clauses
+ 
+\begin{verbatim}
+        p(X) :- not_q(X),
+                r(X).
+ 
+        not_q(X) :- $precut,q(X),
+                 $cut, $fail.
+\end{verbatim}
+ 
+
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+p(X) :- ...
+p(X) :- $cut,$precut.
+p(X) :- $write("cannot be entered\n").
+\end{verbatim}
+
+

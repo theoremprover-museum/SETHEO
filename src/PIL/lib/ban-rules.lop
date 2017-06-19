@@ -1,0 +1,271 @@
+/* **********************************************************
+**    NAME:             ban-rules.lop
+**    SCCS:             %W% %G%
+**    DESCRIPTION:
+**    AUTHOR:  		J. Schumann
+**                      - modified by Klaus Wagner
+**
+**    DATE: 		30.01.97
+**    STATUS:
+**    NOTE:        
+**	                - all banrules from [BAN90]
+**
+**    CHANGES:
+**	NEW!!!
+**	with selection 
+**	and term-depth
+**	NEW: termdepth3
+**	clause names and specific names for local predicates
+**	jsc 4/10/97
+**	
+**	with uncertified-key-decrypt
+**		
+**	changed P,Q und sk()
+**		
+*********************************************************** */
+/* dummy-rule to initialize and/2 */
+dummy(and(X,Y))<-.
+
+/*  rules     */
+%BAN-RULES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% message meaning
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename message_meaning
+
+% (1a)
+%
+#if (sk_cnt && encr_cnt)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,sk(P,Q,K))),
+	holds(sees(P,encr(X,K))).
+#endif
+
+% (1b)
+#if (pub_cnt && encr_cnt && inv_cnt)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,pub(Q,K))),
+	holds(sees(P,encr(X,inv(K)))).
+#endif
+
+% (1c)
+#if (ss_cnt && comb_cnt)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,ss(Q,P,Y))),
+	holds(sees(P,comb(X,Y))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% nonce-verification
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename nonce_verification
+
+% (2)
+#if (fresh_cnt)
+holds(bel(P,bel(Q,X))) <-
+	holds(bel(P,fresh(X))),
+	holds(bel(P,said(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% jurisdiction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename jurisdiction
+
+% (3)
+#if (controls_cnt)
+holds(bel(P,X)) <-
+	holds(bel(P,controls(Q,X))),
+	holds(bel(P,bel(Q,X))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% freshness
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename freshness
+
+% (4)
+#if(fresh_cnt)
+holds(bel(P,fresh(X))) <-
+	holds(bel(P,fresh(Y))),
+	oneof(Y,X).
+#endif
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% components
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename sees_components
+
+% (5a)
+#if (sk_cnt && encr_cnt)
+holds(sees(P,X)) <-
+	holds(bel(P,sk(P,Q,K))),
+	holds(sees(P,encr(X,K))).
+#endif
+
+
+% (5b)
+#if(pub_cnt && encr_cnt)
+holds(sees(P,X)) <-
+	holds(bel(P,pub(P,K))),
+	holds(sees(P,encr(X,K))).
+#endif
+
+% (5c)
+#if(pub_cnt && encr_cnt && inv_cnt)
+holds(sees(P,X)) <-
+	holds(bel(P,pub(Q,K))),
+	holds(sees(P,encr(X,inv(K)))).
+#endif
+
+
+
+#clausename sees_components
+% (5e)
+holds(sees(P,X)) <- 
+	holds(sees(P,Y)),
+	oneof(X,Y).
+
+% (5f)
+#if (comb_cnt)
+holds(sees(P,X)) <-
+        holds(sees(P,comb(X,Y))).
+#endif
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AUXILIARIES 
+% not defined in [BAN]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% symmetry of sk(X,Y,K) and ss
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename symmetry
+% (7)
+
+#if (sk_cnt)
+holds(bel(A,sk(Q,P,K))) <-
+	holds(bel(A,sk(P,Q,K))).
+#endif
+
+% (7)
+
+#if(ss_cnt)
+holds(bel(A,ss(Q,P,K))) <-
+	holds(bel(A,ss(P,Q,K))).
+#endif
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% break up "and"
+% for
+%	bel(said(... and
+%       bel(bel(...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%braucht aber noch (16a) und (15a)
+% (8)
+#clausename break_up_message
+
+#if (ILF_PROOF)
+
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+% (9)
+holds(bel(P,bel(Q,S))) :- 
+	subset(S,X), holds(bel(P,bel(Q,X))).
+
+% (9a)
+holds(bel(P,S)) :- 
+	subset(S,X), holds(bel(P,X)).
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+#else
+% (8)
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X),
+ 	$tdepth3(X,and,X1),
+ 	X1< TDEPTH,
+ 	holds(bel(P,said(Q,X))).
+
+% (9)
+holds(bel(P,bel(Q,S))) :- 
+	subset(S,X),
+	$tdepth3(X,and,X1),
+	X1< TDEPTH,
+	holds(bel(P,bel(Q,X))).
+
+% (9a)
+holds(bel(P,S)) :- 
+	subset(S,X),
+	$tdepth3(X,and,X1),
+	X1< TDEPTH,
+	holds(bel(P,X)).
+
+
+% (9b)
+holds(bel(P,and(X,and(Y,nil)))) <- 
+	holds(bel(P,X)),
+        holds(bel(P,Y)).
+
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename sees_components_uncertified
+% This rule seems to be needed for the
+% yahalom protocol
+%
+% if P believes that someone said that
+% K is the key to communicate between P and Q
+% then this key may be used to decrypt a
+% message
+%
+% (5d "uncertified keys")
+#if (sk_cnt && encr_cnt)
+holds(sees(P,X)) <-
+	holds(bel(P,said(R,sk(P,Q,K)))),
+	holds(sees(P,encr(X,K))).
+holds(sees(P,X)) <-
+	holds(bel(P,said(R,sk(Q,P,K)))),
+	holds(sees(P,encr(X,K))).
+#endif
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% testing and retrieving subsets
+% subset(A,B)    A \subset B
+% NOTE:
+%	currently, nil can be returned
+%	as a subset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename low_level_subset
+low_level_subset(nil,nil)<-.
+low_level_subset(T,and(F,R)) <- low_level_subset(T,R).
+low_level_subset(and(F,T),and(F,R)) <-low_level_subset(T,R).
+
+subset(X,Y) <- low_level_singleton(X,Y).
+
+#if (ILF_PROOF)
+subset(X,Y) <- low_level_subset(X,Y).
+#else
+subset(X,Y) <- low_level_subset(X,Y) : [X] =/= [and(#X,nil)].
+#endif
+
+#clausename low_level_singleton
+low_level_singleton(X,and(X,R))<-.
+low_level_singleton(X,and(F,R)) <- low_level_singleton(X,R).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% oneof
+% selects one element out of
+% a set
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#clausename oneof
+
+% (13)
+oneof(X,and(X,Y))<-.
+% (14)
+oneof(X,and(Y,Z)) <- oneof(X,Z).
+
+

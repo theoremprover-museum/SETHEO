@@ -1,0 +1,86 @@
+#!/bin/sh
+#******************************************************
+#*     PIL System
+#*     $Id: mkreport,v 1.1.1.1 2001/07/16 18:16:09 schumann Exp $
+#*
+#*     (c) Johann Schumann, Klaus Wagner
+#*     TU Muenchen and NASA Ames
+#*
+#* DESCRIPTION:
+#*	generates a run-time statistics report for
+#*	all given .tree files, e.g. ya_1.tree, ya_2.tree,...
+#*	The name of the output file is ya.tex
+#*
+#*     $Log: mkreport,v $
+#*     Revision 1.1.1.1  2001/07/16 18:16:09  schumann
+#*     new CVS project
+#*
+#*****************************************************/
+
+if [ -z "$*" ] ; then
+	echo "usage: mkreport file.tree ..."
+	exit 1
+	fi
+
+PROTONAME=`echo $1 |sed -e 's/\([-a-zA-Z0-9]*\)-[0-9][0-9]*\.tree/\1/'`
+
+REPFILE=$PROTONAME.tex
+PILFILE=$PROTONAME.pil
+
+cat <<! >$REPFILE
+\\documentstyle{article}
+
+\\begin{document}
+
+\\title{The Protocol $PROTONAME}
+\\maketitle
+
+\\section{Specification}
+{\\footnotesize
+\\begin{verbatim}
+!
+
+cat $PILFILE >>$REPFILE
+
+cat <<! >>$REPFILE
+\\end{verbatim}
+}
+\\section{Results}
+
+\\begin{center}
+\\begin{tabular}{|l|r|r|}
+\\hline
+Proof task & Number of inferences & time[s] \\\\
+\\hline
+\\hline
+!
+
+for i in $* ; do
+	echo $i
+	LOG=`basename $i .tree`.log
+	CNT=`echo $i |sed -e 's/[a-zA-Z0-9]*-\([0-9][0-9]*\)\.tree/\1/'`
+
+	echo $CNT >>$REPFILE
+
+	awk 'BEGIN{proof="n"}
+	/SUCCESS/{proof="y";}
+	/Number of inferences in proof/{ inf=$7;}
+	/Abstract machine time/{
+		if ($6 == "<"){
+			time="0.01";
+			}
+		else {
+			time=$6;
+			}
+		}
+	END{print "& " inf " &" time "\\\\"
+	}' $LOG >>$REPFILE
+
+done
+
+cat <<! >>$REPFILE
+\\hline
+\\end{tabular}
+\\end{center}
+\\end{document}
+!

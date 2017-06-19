@@ -1,0 +1,11 @@
+SAM V3.2.1L(5.5) Copyright TU Munich (March 25, 1994)
+
+Options : -dr pellaar 
+
+
+Start proving...
+
+-d:    3  time     < 0.01 sec  inferences =       30  fails =       44
+-d:    4  time     < 0.01 sec  inferences =      127  fails =      197
+-d:    5  time =     0.06 sec  inferences =     3149  fails =     5174
+-d:    6  

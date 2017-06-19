@@ -1,0 +1,6 @@
+<-p(a,b).
+<-q(c,d).
+p(X,Y) <- p(X,Z),p(Z,Y).
+q(X,Y) <- q(X,Z),q(Z,Y).
+p(X,Y) <- p(Y,X).
+p(X,Y); q(X,Y)<-.

@@ -1,0 +1,315 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Tutorial~1}
+
+Assume you have been given the following problem to prove\footnote{
+	The problem has been taken from \cite{PELLAAR}. A formulation
+	of that problem is also present in the TPTP \cite{SSY94} as problem
+	{\tt MSC006-1}.}:
+\begin{quote}
+Let $p$ and $q$ be two binary relations.
+For the relations, we know the following properties:
+$p$ and $q$ are transitive. Furthermore, $q$ is symmetric.
+Additionally, we know that for each pair of elements, the pair is
+either in relation $p$ or in relation $q$.
+
+Now, we have to show that at least one of the relations $p$ or $q$
+is total.
+\end{quote}
+
+As a first step, we have to write down this problem in a formal
+notation, expanding the definitions of ``transitive'', ``symmetric'',
+and ``total''. 
+A relation\footnote{
+	With $XrY$ we denote that $X$ is in relation $r$ with $Y$.
+	}
+$r$ is transitive, if
+\[ \forall X,Y,Z \mbox{\ \ \ } XrY \wedge YrZ \rightarrow XrZ,\]
+it is symmetric, if
+\[ \forall X,Y \mbox{\ \ \ } XrY \rightarrow YrX,\]
+and total (i.e., all elements are in the relation $r$), if
+\[ \forall X,Y \mbox{\ \ \ } XrY.\]
+
+Now, given the formal definitions of all properties, you are invited
+to take a sheet of paper and try to prove the theorem.
+
+Did you make it?
+If not, don't be desparate. There is a proof in Table~\ref{tab:started:nonob-proof} at the end of this Chapter and furthermore, there is SETHEO to
+support you.
+
+In order to use SETHEO to automatically find a proof, you have to write
+down the problem in first order predicate logic (FOL).
+In general, such a formula is of the form
+\[ 
+{\cal A}_1 \wedge \ldots  \wedge {\cal A}_1 \rightarrow {\cal T}
+\]
+where ${\cal A}_i$ are Axioms (in our case, the properties of the relations
+$p$ and $q$, and ${\cal T}$ is the theorem we want to show.
+When we insert the definitions, we obtain:
+
+\[
+\begin{array}{lll}
+(( \forall X,Y,Z  & XpY \wedge YpZ \rightarrow XpZ ) & \wedge \\
+( \forall X,Y,Z  & XqY \wedge YqZ \rightarrow XqZ ) & \wedge \\
+( \forall X,Y  & XqY \rightarrow YqX )& \wedge \\
+( \forall X,Y  & XpY \vee XqY)) &  \\
+& \rightarrow & \\
+(( \forall X,Y  & XpY ) & \vee \\
+( \forall X,Y  & XqY )) & \\
+\end{array}
+\]
+
+Before starting SETHEO, however, two further steps must be done:
+(1) the syntax must be changed, and
+(2) the formula must be converted into Conjunctive Normal Form (CNF).
+Although the second step can be performed automatically, we will 
+give hints, how our formula is converted into CNF.
+The transformation of an arbitrary formula into CNF is described in detail
+in many textbooks. Here, we refer to \cite{Lov78,Chang75}.
+The transformation consists of essentially two steps: 
+removing all logical operators which do not belong to CNF, and
+elimination of the quantifiers by skolemization.
+
+\subsection{Preparing the formula}
+Since SETHEO does not understand \LaTeX\ and infix mathematical
+notation, we have to modify the syntax according to the following
+rules.
+\begin{itemize}
+\item
+SETHEO does not understand infix notation (well, there are some exceptions).
+Therefore, instead of $XrY$ we have to write our binary relation $r$
+as a predicate of arity two: {\tt r(X,Y)}\footnote{
+	Actually, there is quite a number of different ways to
+	convert the syntax. E.g., one could have written instead:
+	{\tt isInRelation(r,X,Y)}. For further details see our third
+	tutorial.}.
+This predicate has the meaning: $\mbox{{\tt r(X,Y)}} \equiv {\rm\bf T}$
+iff $X$ and $Y$ are in the relation $r$.
+
+\item
+All variables must start with an uppercase letter or an underscore
+e.g.,{\tt X, Y, \_99, \_}, all
+predicate-, function-, and constant symbols must start with a lowercase
+letter (e.g., {\tt r, f(X)}.
+\item
+The connectives and qunatifiers must be changed into an ASCII representation
+(e.g., $\forall$ must be written as {\tt forall}).
+\end{itemize}
+
+For details on the FOL syntax of SETHEO see Chapter~\ref{chap:file-formats}.
+If you choose to do the conversion of a formula into CNF by hand,
+all steps of transforming the syntax execpt the last one apply.
+
+After applying all syntactic sugar to our formula, we obtain:
+\begin{verbatim}
+( 
+  ( forall X,Y,Z p(X,Y) & p(Y,Z) -> p(Y,Z)) &
+  ( forall X,Y,Z q(X,Y) & q(Y,Z) -> q(Y,Z)) &
+  ( forall X,Y   q(X,Y) -> q(Y,X)) &
+  ( forall X,Y   p(X,Y) ;  q(X,Y)) 
+) -> (
+  ( forall X,Y   p(X,Y)) ; 
+  ( forall X,Y   q(X,Y)) 
+)
+\end{verbatim}
+
+This formula must be kept in a file with the extension ``.pl1''
+(for 1st order predicate logic). Our example is contained in file
+{\em nonob.pl1}\footnote{
+	In your SETHEO distribution, this file as well as the other
+	examples described in this manual can be found in the
+	directory {\tt \$SETHEOHOME/examples}.}.
+Now, we are ready to start the SETHEO system. In a first step, 
+we have to convert this formula into CNF (i.e., a set of clauses).
+This is done using the module {\bf plop}, by typing:
+\begin{center}
+{\bf\tt plop -neg nonob}.
+\end{center}
+
+The {\tt -neg} option must be given, because SETHEO's proof mode is
+a {\em refutation\/} procedure. Instead of proving out theorem, 
+SETHEO tries to refute it. 
+
+After invoking {\bf plop},
+a lot of data are printed on the screen, until finally, the message
+\begin{center}
+{\tt Erzeugte Klauseln: 6} 
+\end{center}
+(number of generated clauses is 6) apprears.
+Above this message, these clauses are printed on the screen.
+Additionally, these clauses have been written into the file
+{\em nonob.lop}.
+For reference, the resulting 6 clauses are shown below (Table~\ref{tab:started:tut1:lop}.
+One can easily identify the clauses for transitivity, symmetry and the other
+properties of the relations.
+Please note that the clauses are written in LOP-syntax\footnote{
+	The full definition of the LOP syntax can be found
+	in Chapter~\ref{formats}.}
+a PROLOG-like syntax, i.e., 
+a clause with positive atoms $P_1,\ldots,P_n$ and negative atoms
+$L_1,\ldots,L_m$ are written as
+\[ P_1 {\tt ;} \ldots {\tt ;} P_n \mbox{\tt \ \ <-\ \ }
+L_1 {\tt ,} \ldots {\tt ,} P_m{\tt .} \]
+with $m,n \geq 0$.
+Our theorem ($p$ or $q$ is total) has been negated and thus being
+transformed into two clauses. The all-quantified variables in the 
+theorem have been converted into the constants {\tt c\_1},\ldots,{\tt c\_4}
+by Skolemization.
+Please note, that all variables which occur in the clauses
+(they are implicitly all-quantified) only range over one clause.
+
+Although our formula now looks rather like a PROLOG program, it
+actually is a non-Horn formula, as can be seen in the fourth clause.
+This clause contains two positive atoms, separated by a {\tt ;}.
+Horn-clauses, on the contrary, only may contain at most one
+positive literal per clause.
+
+\begin{table}[htb]
+\begin{verbatim}
+p(X,Z) <- p(X,Y),p(Y,Z).
+q(X,Z) <- q(X,Y),q(Y,Z).
+q(Y,X) <- q(X,Y).
+p(X,Y) ; q(X,Y)<-.
+<- p(c_1,c_2).
+<- q(c_3,c_4).
+\end{verbatim}
+\caption{LOP formula for the ``Nonobviosness Problem''}
+\label{tab:started:tut1:lop}
+\end{table}
+
+\subsection{Running SETHEO}
+
+Given a set of clauses in the LOP-notation (Tavle~\ref{tab:started:tut1:lop}; either generated by hand
+or by {\bf plop}), we are ready to start the prover itsself.
+In our example, the clauses are in the file {\tt nonob.lop}.
+Please, type {\tt setheo nonob} on your computer to start SETHEO.
+Now, a lot of things happen (hopefully no ``command not found'', or
+``core dumped'') and a huge amount of output is printed on the
+screen. Here, it is advisable to use a command-screen with a scroll bar.
+
+Of most interest for us at the moment is the message
+\begin{center}
+{\tt ***** SUCCESS *****}
+\end{center}
+ which should appear after a few seconds 
+on the screen.
+This means that SETHEO could refute the set of clauses, given in the
+file {\em nonob.lop}, or equivalently, a proof has been found for
+our theorem.
+
+An abbreviated copy of the messages on the screen are given in following
+(Missing lines are denoted by  {\tt \ldots}). For reference in the
+text, the lines are numbered (the line numbers are not visible on
+your screen)\footnote{
+	Depending on your version of SETHEO, several messages
+	can be stated differently, or different numbers may be
+	present. This, however, is quite normal.
+	}
+
+\begin{verbatim}
+01- inwasm V3.2.5 Copyright TU Munich (April 7, 1995) 
+02- command line: /usr/local/jessen/DIR/setheo/inwasm -cons -foldup pellaar 
+03- Parsing 
+04- Preprocessing: 
+         ...
+05- Codegeneration.
+06- pellaar.s generated in  0.07 seconds
+
+07- wasm V3.2 Copyright TU Munich (March 25, 1994)
+         ...
+08- SAM V3.3 Copyright TU Munich (December 22, 1995)
+09- Options : -dr -cons -dynsgreord 2 pellaar 
+         ...
+10- Start proving...
+         ...
+11- -d:    2  time     < 0.01 sec  inferences =        9  fails =       15
+         ...
+12- -d:    7  time =     0.62 sec  inferences =     6410  fails =     7741
+
+13-                   ******** SUCCESS ************
+
+14- Number of inferences in proof      :       20
+15-         - E/R/F/L                  :       17/       2/       1/       0
+         ...
+16- Number of unifications             :     8465
+         ...
+17- Instructions executed              :    32093
+18- Abstract machine time (seconds)    :     0.90
+19- Overall time          (seconds)    :     1.05
+\end{verbatim}
+
+
+The SETHEO system processes the formula in three distinct steps:
+\begin{enumerate}
+\item
+The input formula is being preprocessed (see tutorial~2 and
+Section~\ref{sec:inwasm} for details), and assembler code for the
+SETHEO abstract machine is generated (lines 1--6).
+\item
+Then, the code is assembled (line 7).
+\item
+Finally, the interpreter for the abstract machine \SAM\  is started.
+This module actually tries to find the proof (lines 8--19).
+\end{enumerate}
+
+Each of the modules (which are separate programs) can be called with
+a variety of command-line parameters. If you invoke the {\bf setheo}-command,
+default settings are taken. For a description of the parameters and their
+influence see our Tutorial~2 and Chapter~\ref{chap:basic-programs}.
+
+After each of the modules has finished its work, it prints a line
+which indicates the run-time of that module (e.g. line 6 and 19).
+For the prover itself, we additionally give the time needed to
+{\em search\/} for the proof (line 18). This run-time does not
+take into account the overhead for book-keeping tasks, for loading the
+formula and for printing the statistics.
+
+The amount of search needed to find the proof can be seen at three
+different points:
+\begin{description}
+\item[line 11--12]
+	The prover does ``iterative deepeing''. This means that
+	the search space is only searched until a certain limit
+	is reached. If within these limits no proof can be found, the
+	limit is increased and the search starts over again. Here,
+	we limit the depth ({\tt -d}). For each level, the amount of
+	time spent, the number of inferences, and the number of
+	backtracking steps is given.
+\item[line 16]
+	This number gives the number of successful unifications which
+	have been made during the search.
+\item[line 17]
+	This number is the amount of low-level abstract machine instructions
+	executed to find the proof. This number is the most fain-grain
+	measure of the work done by the \SAM. Please note however, that
+	the execution time for each instruction differs.
+\end{description}
+
+
+The actual proof found by SETHEO consists of $20$ (Model Elimination)
+Inference steps (line 14). Therr type and frequency
+are given in line 15.
+In order to unstand these figures and the proof itself, some
+knowledge about the Model Elimination Calculus is necessary.
+In the next section, we will give a short (informal) introduction into
+the calculus. After that, we will have a detailed look at the proof
+generated by SETHEO.
+
+\subsection{The Model Elimination Calculus}
+
+\subsection{Looking at the Proof}
+\subsubsection{The graphical Display}
+\subsubsection{The \LaTeX\ Output}
+
+\begin{table}[htb]
+proof for pellaar
+\caption{proof for pellaar}
+\label{tab:started:nonob-proof}
+\end{table}
+

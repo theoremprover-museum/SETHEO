@@ -1,0 +1,53 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	O. Ibens
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$initcounters/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$initcounters(N)}
+\item[Parameters:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}] number of counters to provide
+	\end{description}
+\item[Low Level Name:]
+	{\tt init\_counters}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+This built--in provides {\tt number} memory cells for storing counter
+values which are not deleted in case of backtracking.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Notes.}
+\begin{enumerate}
+\item{The memory cells are not initialized. This ensures that they are
+      not reinitialized resp.\ their values are not deleted in case of
+      backtracking.}
+\item{Make sure {\tt \$initcounters} is the first subgoal of the
+      query. This will prevent overwriting the stored values in case of
+      backtracking.}
+\item{There should be only one subgoal {\tt \$initcounters} in a
+      query. After the second call of {\tt \$initcounters} the first
+      counter block is not accessible any more.}
+\end{enumerate}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+:- $initcounters(5), p(X), q(X).
+\end{verbatim}
+

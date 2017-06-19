@@ -1,0 +1,54 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{plop}
+\label{sec:plop}
+
+{\bf Plop}\footnote{This program is provided on an ``as is'' basis, and is
+not maintained any more.} is a translation program which
+takes formulae of first order predicate logic in standard notation
+and converts them into LOP clausal sets preserving the property
+of unsatisfiability. Obvious tautological clauses and redundant
+literals are removed. 
+Both, the first-order-language syntax and the LOP syntax is described in
+a later section. Plop can be invoked by the following command line or via
+the Xtheo interface:
+\begin{center}
+{\bf plop} [ {\bf --necho} ][ {\bf --nopti} ][
+{\bf --sko} ][ {\bf --neg} ][ {\bf --baum]} ][
+{\bf --debu} ][ {\bf --defgro} ] {\it file\/}[{\bf .pl1}]
+\end{center}
+The only parameter which has to be given is the name of the input file.
+It must have the extension {\bf .pl1}. The generated output file
+has the extension {\bf .lop} which can be handled by preproc or inwasm.
+
+The other parameters are optional and have the following meaning:
+\begin{description}
+\item[--necho]
+suppresses the screen output. 
+Otherwise the input and output formula is displayed.
+\item[--nopti]
+suppresses the removal of tautologies and redundancies. 
+\item[--sko]
+yields output clauses not in LOP form but in skolemized
+normal form, i.e. clauses containing disjunction
+and negation symbols but neither conditional nor conjunction
+symbols.
+\item[--neg]
+negates the input formula before doing the transformation.
+(Some examples or programs may be formulated affirmatively.)
+\item[--baum]
+displays statistics of the internal formula tree.
+\item[--debu]
+turns on the verbose debugging mode of plop.
+\item[--defgro]
+displays constraints concerning the size of some elements
+of the input formula. If a given example exceeds them, define-statements
+in the source code of PLOP are to be modified.
+\end{description}
+

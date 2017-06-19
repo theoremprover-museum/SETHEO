@@ -1,0 +1,204 @@
+/* **********************************************************
+**    NAME:             ban-rules-exp.lop
+**    SCCS:             %W% %G%
+**    DESCRIPTION:
+**    AUTHOR:  		J. Schumann
+**
+**    DATE: 		30.01.97
+**    STATUS:
+**    NOTE:        
+**
+**    CHANGES:
+**	2008: full selection, so no ILFBANSETHEO needed
+**		
+*********************************************************** */
+/* dummy-rule to initialize and/2 */
+dummy(and(X,Y))<-.
+
+/*  rules     */
+%BAN-RULES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% message meaning
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename message_meaning
+
+% (1a)
+%
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,sk(P,Q,K))),
+	holds(sees(P,encr(X,K))).
+
+% (1b)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,pub(Q,K))),
+	holds(sees(P,encr(X,inv(K)))).
+
+% (1c)
+holds(bel(P,said(Q,X))) <-
+	holds(bel(P,ss(Q,P,Y))),
+	holds(sees(P,comb(X,Y))).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% nonce-verification
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename nonce_verification
+
+% (2)
+holds(bel(P,bel(Q,X))) <-
+	holds(bel(P,fresh(X))),
+	holds(bel(P,said(Q,X))).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% jurisdiction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename jurisdiction
+
+% (3)
+holds(bel(P,X)) <-
+	holds(bel(P,controls(Q,X))),
+	holds(bel(P,bel(Q,X))).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% freshness
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename freshness
+
+% (4)
+holds(bel(P,fresh(X))) <-
+	holds(bel(P,fresh(Y))),
+	oneof(Y,X).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% components
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename sees_components
+
+% (5a)
+holds(sees(P,X)) <-
+	holds(bel(P,sk(P,Q,K))),
+	holds(sees(P,encr(X,K))).
+
+
+% (5b)
+holds(sees(P,X)) <-
+	holds(bel(P,pub(P,K))),
+	holds(sees(P,encr(X,K))).
+
+% (5c)
+holds(sees(P,X)) <-
+	holds(bel(P,pub(Q,K))),
+	holds(sees(P,encr(X,inv(K)))).
+
+
+
+%#clausename sees_components
+holds(sees(P,X)) <- 
+	holds(sees(P,Y)),
+	oneof(X,Y).
+
+% (5f)
+holds(sees(P,X)) <-
+        holds(sees(P,comb(X,Y))).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% AUXILIARIES 
+% not defined in [BAN]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% symmetry of sk(X,Y,K) and ss
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename symmetry
+% (7)
+
+holds(bel(A,sk(Q,P,K))) <-
+	holds(bel(A,sk(P,Q,K))).
+
+% (7)
+
+holds(bel(A,ss(Q,P,K))) <-
+	holds(bel(A,ss(P,Q,K))).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% break up "and"
+% for
+%	bel(said(... and
+%       bel(bel(...
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%braucht aber noch (16a) und (15a)
+% (8)
+%#clausename break_up_message
+
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+% (9)
+holds(bel(P,bel(Q,S))) :- 
+	subset(S,X), holds(bel(P,bel(Q,X))).
+
+% (9a)
+holds(bel(P,S)) :- 
+	subset(S,X), holds(bel(P,X)).
+holds(bel(P,said(Q,S))) :- 
+	subset(S,X), holds(bel(P,said(Q,X))).
+
+% (9b)
+holds(bel(P,and(X,and(Y,nil)))) <- 
+	holds(bel(P,X)),
+        holds(bel(P,Y)).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename sees_components_uncertified
+% This rule seems to be needed for the
+% yahalom protocol
+%
+% if P believes that someone said that
+% K is the key to communicate between P and Q
+% then this key may be used to decrypt a
+% message
+%
+% (5d "uncertified keys")
+holds(sees(P,X)) <-
+	holds(bel(P,said(R,sk(P,Q,K)))),
+	holds(sees(P,encr(X,K))).
+holds(sees(P,X)) <-
+	holds(bel(P,said(R,sk(Q,P,K)))),
+	holds(sees(P,encr(X,K))).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% testing and retrieving subsets
+% subset(A,B)    A \subset B
+% NOTE:
+%	currently, nil can be returned
+%	as a subset
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%#clausename low_level_subset
+low_level_subset(nil,nil)<-.
+low_level_subset(T,and(F,R)) <- low_level_subset(T,R).
+low_level_subset(and(F,T),and(F,R)) <-low_level_subset(T,R).
+
+subset(X,Y) <- low_level_singleton(X,Y).
+
+subset(X,Y) <- low_level_subset(X,Y).
+% subset(X,Y) <- low_level_subset(X,Y) : [X] =/= [and(#X,nil)].
+
+% #clausename low_level_singleton
+low_level_singleton(X,and(X,R))<-.
+low_level_singleton(X,and(F,R)) <- low_level_singleton(X,R).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% oneof
+% selects one element out of
+% a set
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% #clausename oneof
+
+% (13)
+oneof(X,and(X,Y))<-.
+% (14)
+oneof(X,and(Y,Z)) <- oneof(X,Z).
+
+

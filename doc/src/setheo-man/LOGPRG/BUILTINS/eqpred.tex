@@ -1,0 +1,56 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   SETHEO MANUAL
+%	(c) J. Schumann, O. Ibens
+%	TU Muenchen 1995
+%
+%	%W% %G%
+%
+% BUILT-IN:	
+% SCCS:		%W% %G%
+% AUTHOR:	J. Schumann
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{\$eqpred/1}
+
+\begin{description}
+\item[Synopsis:]
+	{\tt \$eqpred(N)}
+\item[Parameter:]\ \\[-0.5cm]
+	\begin{description}
+	\item[{\tt N}]
+	number of literal to check. {\tt N} must be in the range
+        between 1 and the length of the clause (including all built-in
+	predicates).
+	\end{description}
+\item[Low Level Name:]
+	{\tt eqpred/4}
+\end{description}
+
+\vspace*{0.5cm}
+\noindent
+{\bf Description.}
+A built-in of this form fails, whenever the
+n-th literal in the current clause is preceeded by an
+identical one (syntactically equal) in the current tableau.
+This check is performed, when the built-in is executed (in contrast
+to SETHEO's regularity constraints).
+
+\vspace*{0.5cm}
+\noindent
+{\bf Note.}
+This built-in can be used to implement a weak form of
+regularity checks.
+
+\vspace*{0.5cm}
+\noindent
+{\bf Example.}
+\begin{verbatim}
+L1:- $eqpred(1),     /* eq pred check for the head literal L1.   */
+     L3, $eqpred(3), /* eq pred check for the literal ~L3.       */
+     L5, $eqpred(5), /* eq pred check for the literal ~L5.       */
+              :
+              :
+
+\end{verbatim}
+
+

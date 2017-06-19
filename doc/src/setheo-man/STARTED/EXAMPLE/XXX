@@ -1,0 +1,34 @@
+inwasm V3.2.5 Copyright TU Munich (April 7, 1995) 
+command line: /usr/local/jessen/DIR/setheo/inwasm -cons -foldup pellaar 
+pellaar.s generated in  0.07 seconds
+Parsing 
+Preprocessing: 
+        ...
+Codegeneration.
+wasm V3.2 Copyright TU Munich (March 25, 1994)
+        ...
+SAM V3.3 Copyright TU Munich (December 22, 1995)
+
+Options : -dr -cons -dynsgreord 2 pellaar 
+
+using antilemma-constraints
+using regularity-constraints
+using tautology-constraints
+using subsumption-constraints
+
+Start proving...
+
+-d:    2  time     < 0.01 sec  inferences =        9  fails =       15
+        ...
+-d:    7  time =     0.62 sec  inferences =     6410  fails =     7741
+
+                    ******** SUCCESS ************
+
+Number of inferences in proof      :       20
+        - E/R/F/L                  :       17/       2/       1/       0
+        ...
+Number of unifications             :     8465
+        ...
+Instructions executed              :    32093
+Abstract machine time (seconds)    :     0.90
+Overall time          (seconds)    :     1.05

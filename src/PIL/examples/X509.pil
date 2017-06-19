@@ -1,0 +1,27 @@
+//X509 Protocol
+// abgeleitet von BAN: A Logic of Authentication
+// 15.10.96
+Objects:
+principal A,B;
+publickey K_a, K_b;
+statement N_a, T_a, X_a, Y_a;
+statement N_b, T_b, X_b, Y_b;
+//
+Assumptions:
+(A,B) believes publickey K_a;
+(A,B) believes publickey (B,K_b);
+A believes fresh N_a;
+A believes fresh T_b;
+B believes fresh N_b;
+B believes fresh T_a;
+//
+Idealized Protocol:
+message 1: A -> B {T_a,N_a,X_a,{Y_a}(K_b)}(K_a_);
+message 2: A <- B {T_b,N_b,N_a,X_b,{Y_b}(K_a)}(K_b_);
+message 3: A -> B {N_b}(K_a_);
+//
+Conjectures:
+after message 3: A believes B believes X_b;
+		 B believes A believes X_a;
+
+

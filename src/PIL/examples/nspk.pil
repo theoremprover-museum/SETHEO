@@ -1,0 +1,46 @@
+// neue Version
+// Needham-Schroeder  Public-Key
+// abgeleitet von BAN: A Logic of Authentication
+// 26.01.97
+Objects:
+principal A,B,S;
+publickey K_a, K_b, K_s;
+variable publickey K;
+statement N_a, N_b;
+//
+Assumptions:
+(A,S)   believes publickey K_a;
+(B,S)   believes publickey K_b;
+(A,B,S) believes publickey K_s;
+
+A believes S controls publickey (B,K);
+B believes S controls publickey (A,K);
+
+A believes fresh N_a;
+B believes fresh N_b;
+
+A believes secret (A,B,N_a);
+B believes secret (A,B,N_b);
+
+A believes fresh publickey K_b;
+B believes fresh publickey K_a;
+
+//
+Idealized Protocol:
+message 2: S -> A       {publickey K_b}(K_s_);
+message 3:      A -> B  {N_a}(K_b);
+message 5: S ->      B  {publickey K_a}(K_s_);	
+message 6:      A <- B  {<secret (A,B,N_b),N_a>(N_a)}(K_a);
+message 7:      A -> B  {<secret (A,B,N_a),B believes secret (A,B,N_b),
+                          N_b>(N_b)}(K_b);
+//
+Conjectures:
+after message 2: A believes publickey K_b;
+after message 3: B sees N_a;
+after message 5: B believes publickey K_a;
+after message 6: A believes B believes secret (A,B,N_b);
+after message 7: B believes A believes secret (A,B,N_a);
+                 B believes A believes B believes secret (A,B,N_b);
+                 
+
+
