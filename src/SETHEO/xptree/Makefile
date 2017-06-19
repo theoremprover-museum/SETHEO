@@ -24,10 +24,11 @@ STATLIBS = -L. -L/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/lib -Bstatic -lXawRol
 -lm -ll -ly
 #LIBS = -L/usr/X11/lib -lXaw -lXmu -lXt -lXext -lX11 -lresolv -lm -ll -ly
 #JSCLIBS = -L/usr/X11/lib -lXaw -lXmu -lXt -lXext -lX11 -lresolv -lm -lfl
-LIBS = -L/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/lib -lXaw -lXmu -lXt -lXext -lX11 -lresolv -lm -lfl
+#JSC LIBS = -L/Developer/SDKs/MacOSX10.4u.sdk/usr/X11R6/lib -lXaw -lXmu -lXt -lXext -lX11 -lresolv -lm -lfl
+LIBS = -L/usr/lib/x86_64-linux-gnu/ -lXaw -lXmu -lXt -lXext -lX11 -lresolv -lm -lfl
 #SW = -fast
 SW = -Dlinux
-AWLIBPATH=/usr/local/lib
+AWLIBPATH=/usr/lib/x86_64-linux-gnu/
 RANLIB=echo
 
 ###############################################
@@ -62,14 +63,14 @@ OBJS2 = $(OBJS)
 OBJS2_STATIC = $(OBJS) Tree.o
 
 
-all: xptree xptree_static
+all: xptree
 
 
 xptree_static: xptree.h $(OBJS2_STATIC) libXawRol.a
 	$(CC) $(SW) -o xptree_static $(OBJS2_STATIC) $(STATLIBS) $(DEFS) $(COPTS)
 
 libXawRol.a: Tree.o
-	cp $(AWLIBPATH)/libXaw.a libXawRol.a
+	cp $(AWLIBPATH)/libXaw7.a libXawRol.a
 	ar d libXawRol.a $(XPTREEHOME)/Tree.o
 	$(RANLIB) libXawRol.a
 

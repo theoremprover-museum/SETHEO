@@ -1,4 +1,4 @@
-MAKEFILE = makefile
+MAKEFILE = Makefile
 
 include ../make.conf
 
@@ -113,7 +113,7 @@ delta:
 # and is generated from information contained in these
 # files
 
-$(INCLDIR)/uopcodes.h: codegen/instrs.c built_ins.c makefile
+$(INCLDIR)/uopcodes.h: codegen/instrs.c built_ins.c Makefile
 	fgrep 'OPCODE_' codegen/instrs.c built_ins.c | \
 	sed -e 's/^.*\(OPCODE_[A-Za-z_0-9]*\).*$$/\1/' | \
 	awk 'BEGIN{print "/* uopcodes.h: do not edit by hand */"} \
